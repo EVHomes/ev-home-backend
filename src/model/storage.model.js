@@ -3,7 +3,7 @@ import multer from "multer";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import config from "../config/config.js";
-
+import jwt from "jsonwebtoken";
 // Multer setup for file uploads
 export const storage = multer.diskStorage({
   destination: function (req, file, cb) {
