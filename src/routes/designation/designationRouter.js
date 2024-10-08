@@ -1,6 +1,16 @@
 import { Router } from "express";
-import { getDesignation } from "../../controller/designation.controller.js";
+import { getDesignation ,
+    getDesignationById,
+    addDesignation,
+    updateDesignation,
+    deleteDesignation,
+} from "../../controller/designation.controller.js";
 
 const desRouter = Router();
-cpRouter.get("/channel-partner", getDesignation);
+desRouter.get("/designation", getDesignation);
+desRouter.get("/designation/:id",getDesignationById);
+desRouter.post("/designation-add",addDesignation);
+desRouter.post("/designation-update/:id",updateDesignation);
+desRouter.delete("/designation/:id",deleteDesignation);
 export default desRouter;
+ 

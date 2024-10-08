@@ -7,5 +7,5 @@ export const designationSchema=new mongoose.Schema(
     // {timestamps:true}
 );
 
-const designationModel =mongoose.model("designationModel",designationSchema);
+const designationModel =mongoose.model("designations",designationSchema,"designations");
 export default designationModel;
