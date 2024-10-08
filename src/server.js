@@ -13,8 +13,8 @@ app.use(express.json());
 app.use(cors());
 app.use(router);
 
-app.use(errorHandler);
 app.use(notFound);
+app.use(errorHandler);
 
 app.listen(config.PORT, () => console.log("listening on port " + config.PORT));
 

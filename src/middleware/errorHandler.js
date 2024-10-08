@@ -8,11 +8,9 @@ export function notFound(req, res, next) {
 
 export function errorHandler(err, req, res, next) {
   console.error(err.message);
-  res.status(err.code || 500);
-  res.json({
+
+  res.status(err.code || 500).json({
     code: err.code || 500,
     message: err.message || httpStatus["500_MESSAGE"],
   });
-
-  next();
 }
