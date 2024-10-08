@@ -6,7 +6,7 @@ import desRouter from "./designation/designationRouter.js";
 import deptRouter from "./department/departmentRouter.js";
 import ourProjectRouter from "./ourProject/ourProjectRouter.js";
 import leadRouter from "./lead/leadRouter.js";
-import storageRouter from "../model/storage.model.js";
+import storageRouter from "./storage/storageRouter.js";
 
 const router = Router();
 router.use(cpRouter);
