@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 const dateOfBirthFormat = /^\d{4}-\d{2}-\d{2}$/;
 const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const passwordFormat = /^\d+$/;
 
-export const channelPartnerSchema = new mongoose.Schema(
+export const employeeSchema = new mongoose.Schema(
   {
     email: {
       type: String,
@@ -15,7 +16,16 @@ export const channelPartnerSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
-    password: { type: String, required: true, minlength: 6 },
+    employeeId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
     firstName: { type: String, default: null },
     lastName: { type: String, default: null },
     gender: {
@@ -37,24 +47,18 @@ export const channelPartnerSchema = new mongoose.Schema(
           `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
       },
     },
-    firmName: { type: String, required: true, default: null },
-    homeAddress: { type: String, default: null },
-    firmAddress: { type: String, default: null },
+    address: { type: String, default: null },
+    department: { type: String, required: true, ref: "departments" },
+    designation: { type: String, required: true, ref: "designations" },
+    division: { type: String, required: true, ref: "divisions" },
+    reportingTo: { type: String, ref: "employees", default: null },
     countryCode: { type: String, default: "+91" },
     phoneNumber: { type: Number, required: true, default: null },
-    haveReraRegistration: { type: Boolean, required: true, default: false },
-    reraNumber: { type: String, default: null },
-    reraCertificate: { type: String, default: null },
     isVerified: { type: Boolean, required: true, default: false },
-    sameAdress: { type: Boolean, required: true, default: false },
     refreshToken: { type: String, default: null },
   },
   { timestamps: true }
 );
 
-const cpModel = mongoose.model(
-  "channelPartners",
-  channelPartnerSchema,
-  "channelPartners"
-);
-export default cpModel;
+const employeeModel = mongoose.model("employees", employeeSchema, "employees");
+export default employeeModel;

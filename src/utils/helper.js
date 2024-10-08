@@ -19,19 +19,34 @@ export const comparePassword = async (plainPass, hashPass) => {
   return verifyPassword;
 };
 
-export const createJwtToken = (data) => {
-  const token = jwt.sign({ data }, config.JWT_SECRET_KEY);
+export const createJwtToken = (data, secretKey, validity) => {
+  const options = {};
+
+  if (validity) {
+    options.expiresIn = validity;
+  }
+
+  const token = jwt.sign({ data }, secretKey, options);
   return token;
 };
+// export const createJwtToken = (data, secretKey, validity) => {
+//   if (validity) {
+//     const token = jwt.sign({ data, exp: validity }, secretKey);
+//     return token;
+//   }
+//   const token = jwt.sign({ data }, secretKey);
+//   return token;
+// };
 
-export const verifyJwtToken = (token) => {
+export const verifyJwtToken = (token, secretKey) => {
   try {
-    const result = jwt.verify(token, config.JWT_SECRET_KEY);
+    const result = jwt.verify(token, secretKey);
     return result;
   } catch (error) {
-    return false;
+    return null;
   }
 };
+
 export function generateOTP(length) {
   const digits = "0123456789";
   let otp = "";

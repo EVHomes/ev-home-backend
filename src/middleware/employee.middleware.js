@@ -4,35 +4,32 @@ import { errorRes } from "../model/response.js";
 import { createJwtToken } from "../utils/helper.js";
 import jwt from "jsonwebtoken";
 // Define the allowed fields for designation updates
-const ALLOWED_CP_FIELDS = [
+const ALLOWED_EMPLOYEE_FIELDS = [
   "id",
+  "email",
+  "employeeId",
+  "password",
   "firstName",
   "lastName",
-  "dateOfBirth",
-  "firmName",
-  "homeAddress",
-  "firmAddress",
-  "countryCode",
-  "email",
   "gender",
+  "dateOfBirth",
+  "address",
+  "department",
+  "designation",
+  "division",
+  "reportingTo",
+  "countryCode",
   "phoneNumber",
-  "password",
-  "haveReraRegistration",
-  "reraCertificate",
-  "reraNumber",
-  "sameAdress",
-  "created_at",
   "isVerified",
-  "logo",
-  "otp",
+  "refreshToken",
 ];
 
 // Middleware to validate and filter fields
-export const validateChannelPartnerFields = (req, res, next) => {
+export const validateEmployeeFields = (req, res, next) => {
   const filteredBody = {};
   let hasValidFields = false;
 
-  for (const field of ALLOWED_CP_FIELDS) {
+  for (const field of ALLOWED_EMPLOYEE_FIELDS) {
     if (field in req.body && req.body[field] != null) {
       filteredBody[field] = req.body[field];
       hasValidFields = true;
@@ -53,24 +50,22 @@ export const validateChannelPartnerFields = (req, res, next) => {
   next();
 };
 
-export const validateRegisterCPFields = (req, res, enxt) => {
+export const validateRegisterEmployeeFields = (req, res, next) => {
   const {
     firstName,
     lastName,
     email,
+    employeeId,
+    designation,
+    department,
+    division,
     password,
-    firmName,
-    firmAddress,
-    homeAddress,
     gender,
     phoneNumber,
     dateOfBirth,
-    haveReraRegistration,
-    reraNumber,
-    reraCertificate,
+    address,
     isVerified,
-    sameAdress,
-  } = body;
+  } = req.filteredBody;
 
   if (!firstName) {
     return res.send(
@@ -104,28 +99,59 @@ export const validateRegisterCPFields = (req, res, enxt) => {
     );
   }
 
-  if (!firmName) {
+  if (!employeeId) {
     return res.send(
       errorRes(400, {
-        message: "Firm Name is required",
+        message: "EmployeeId is required",
       })
     );
   }
 
-  if (haveReraRegistration == true) {
-    if (!reraNumber)
-      return res.send(
-        errorRes(400, {
-          message: "email is required",
-        })
-      );
+  if (!gender) {
+    return res.send(
+      errorRes(400, {
+        message: "gender is required",
+      })
+    );
+  }
 
-    if (!reraCertificate)
-      return res.send(
-        errorRes(400, {
-          message: "email is required",
-        })
-      );
+  if (!designation) {
+    return res.send(
+      errorRes(400, {
+        message: "designation is required",
+      })
+    );
+  }
+
+  if (!department) {
+    return res.send(
+      errorRes(400, {
+        message: "department is required",
+      })
+    );
+  }
+
+  if (!division) {
+    return res.send(
+      errorRes(400, {
+        message: "division is required",
+      })
+    );
+  }
+
+  if (!dateOfBirth) {
+    return res.send(
+      errorRes(400, {
+        message: "date Of Birth is required",
+      })
+    );
+  }
+  if (!address) {
+    return res.send(
+      errorRes(400, {
+        message: "address is required",
+      })
+    );
   }
 
   return next();
