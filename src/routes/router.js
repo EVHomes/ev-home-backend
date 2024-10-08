@@ -4,6 +4,7 @@ import employeeRouter from "./employee/employeeRouter.js";
 import divRouter from "./division/divisionRouter.js";
 import desRouter from "./designation/designationRouter.js";
 import deptRouter from "./department/departmentRouter.js";
+import ourProjectRouter from "./ourProject/ourProjectRouter.js";
 import leadRouter from "./lead/leadRouter.js";
 import storageRouter from "../model/storage.model.js";
 
@@ -13,7 +14,7 @@ router.use(employeeRouter);
 router.use(divRouter);
 router.use(desRouter);
 router.use(deptRouter);
+router.use(ourProjectRouter);
 router.use(leadRouter);
 router.use(storageRouter);
-
 export default router;
