@@ -4,6 +4,7 @@ import employeeRouter from "./employee/employeeRouter.js";
 import divRouter from "./division/divisionRouter.js";
 import desRouter from "./designation/designationRouter.js";
 import deptRouter from "./department/departmentRouter.js";
+import ourProjectRouter from "./ourProject/ourProjectRouter.js";
 
 const router = Router();
 router.use(cpRouter);
@@ -11,4 +12,5 @@ router.use(employeeRouter);
 router.use(divRouter);
 router.use(desRouter);
 router.use(deptRouter);
+router.use(ourProjectRouter);
 export default router;

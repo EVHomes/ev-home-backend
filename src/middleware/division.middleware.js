@@ -1,17 +1,18 @@
 import { errorRes } from "../model/res.js";
 
 // Define the allowed fields for designation updates
-const ALLOWED_DES_FIELDS = [
+const ALLOWED_DEV_FIELDS = [
   "id",
-  "designation",
+  "division",
+  "location",
 ];
 
 // Middleware to validate and filter fields
-export const validatedesignationFields = (req, res, next) => {
+export const validateDivisionFields = (req, res, next) => {
   const filteredBody = {};
   let hasValidFields = false;
 
-  for (const field of ALLOWED_DES_FIELDS) {
+  for (const field of ALLOWED_DEV_FIELDS) {
     if (field in req.body && req.body[field] != null) {
       filteredBody[field] = req.body[field];
       hasValidFields = true;
