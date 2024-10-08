@@ -11,7 +11,7 @@ import {
 
 export const getChannelPartners = async (req, res, next) => {
   try {
-    const respCP = await cpModel.find().select("-password");
+    const respCP = await cpModel.find().select("-password -refreshToken");
 
     return res.send(
       successRes(200, "get Channel Partners", {
@@ -27,7 +27,7 @@ export const getChannelPartnerById = async (req, res, next) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respCP = await cpModel.findById(id);
+    const respCP = await cpModel.findById(id).select("-password -refreshToken");
 
     //if not found
     if (!respCP) {
