@@ -44,6 +44,7 @@ export const uploadMultiple = async (req, res) => {
   if (!req.files || req.files.length === 0) {
     return res.send(errorRes(400, "No files uploaded."));
   }
+
   if (req.files.length > 10) {
     return res.send(errorRes(400, "Only 10 file upload allowed at once"));
   }
@@ -58,6 +59,10 @@ export const uploadMultiple = async (req, res) => {
     const downloadUrl = `${req.protocol}://${req.get(
       "host"
     )}/file/${uniqueFileName}?token=${token}`;
+
+    if (downloadUrl.includes("api.")) {
+      downloadUrl.replace("api.", "cdn.");
+    }
 
     const respDb = new storageModel({
       ...file,

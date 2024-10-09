@@ -5,10 +5,11 @@ import config from "./config/config.js";
 import connectDatabase from "./config/database.js";
 import router from "./routes/router.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
+import { hostnameCheck } from "./utils/helper.js";
 
 connectDatabase();
 const app = express();
-
+app.use(hostnameCheck);
 app.use(express.json());
 app.use(cors());
 app.use(router);

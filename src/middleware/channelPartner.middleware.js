@@ -131,7 +131,7 @@ export const validateRegisterCPFields = (req, res, enxt) => {
   return next();
 };
 
-export const authenticateToken = async (req, res, next) => {
+export const authenticateTokenCp = async (req, res, next) => {
   try {
     const accessToken = req.headers.authorization?.split(" ")[1];
     const refreshToken = req.headers.refreshtoken?.split(" ")[1];
@@ -141,7 +141,7 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+      const decoded = jwt.verify(accessToken, config.SECRET_ACCESS_KEY);
       req.user = decoded.data;
       return next();
     } catch (error) {
@@ -156,7 +156,7 @@ export const authenticateToken = async (req, res, next) => {
           const user = await cpModel.findById(decoded.data._id);
 
           if (!user) {
-            return res.send(errorRes(401, "User not found"));
+            return res.send(errorRes(401, "Channel Partner not found"));
           }
           const { password, ...userWithoutPassword } = user;
           const newAccessToken = createJwtToken(
@@ -166,6 +166,7 @@ export const authenticateToken = async (req, res, next) => {
           );
 
           res.setHeader("Authorization", `Bearer ${newAccessToken}`);
+          // res.setHeader("NewAccessToken", `Bearer ${newAccessToken}`);
           req.user = {
             ...userWithoutPassword,
           };
@@ -189,7 +190,7 @@ export const authenticateToken = async (req, res, next) => {
 
 //   jwt.verify(token, ACCESS_TOKEN_SECRET, (err, user) => {
 //     if (err) return res.sendStatus(403);
-//     req.user = user;
+//     req.user= user;
 //     next();
 //   });
 // };

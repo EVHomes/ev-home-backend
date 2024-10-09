@@ -19,7 +19,7 @@ const __dirname = path.dirname(__filename);
 
 export const uploadsDir =
   config.STORAGE_ABSOLUTE_PATH ?? path.resolve(__dirname, "../../../uploads");
-console.log(uploadsDir);
+// console.log(uploadsDir);
 // Multer setup for file uploads
 export const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -47,7 +47,7 @@ function verifyTokenFromURL(req, res, next) {
 
 storageRouter.post("/upload", upload.single("file"), uploadFile);
 
-storageRouter.post("/upload", upload.array("files", 10), uploadMultiple);
+storageRouter.post("/uploads", upload.array("files", 10), uploadMultiple);
 
 storageRouter.get("/file/:filename", verifyTokenFromURL, getFileLink);
 

@@ -1,5 +1,6 @@
 import config from "../config/config.js";
 import cpModel from "../model/channelPartner.model.js";
+import employeeModel from "../model/employee.model.js";
 import { errorRes } from "../model/response.js";
 import { createJwtToken } from "../utils/helper.js";
 import jwt from "jsonwebtoken";
@@ -157,7 +158,7 @@ export const validateRegisterEmployeeFields = (req, res, next) => {
   return next();
 };
 
-export const authenticateToken = async (req, res, next) => {
+export const authenticateTokenEmp = async (req, res, next) => {
   try {
     const accessToken = req.headers.authorization?.split(" ")[1];
     const refreshToken = req.headers.refreshtoken?.split(" ")[1];
@@ -167,7 +168,7 @@ export const authenticateToken = async (req, res, next) => {
     }
 
     try {
-      const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+      const decoded = jwt.verify(accessToken, config.SECRET_ACCESS_KEY);
       req.user = decoded.data;
       return next();
     } catch (error) {
@@ -179,7 +180,7 @@ export const authenticateToken = async (req, res, next) => {
 
         try {
           const decoded = jwt.verify(refreshToken, config.SECRET_REFRESH_KEY);
-          const user = await cpModel.findById(decoded.data._id);
+          const user = await employeeModel.findById(decoded.data._id);
 
           if (!user) {
             return res.send(errorRes(401, "User not found"));
@@ -187,7 +188,7 @@ export const authenticateToken = async (req, res, next) => {
           const { password, ...userWithoutPassword } = user;
           const newAccessToken = createJwtToken(
             userWithoutPassword,
-            process.env.ACCESS_TOKEN_SECRET,
+            config.SECRET_ACCESS_KEY,
             "15m"
           );
 

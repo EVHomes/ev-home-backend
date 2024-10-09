@@ -5,6 +5,7 @@ const config = {
   SECRET_REFRESH_KEY: process.env.SECRET_REFRESH_KEY,
   SECRET_STORAGE_KEY: process.env.SECRET_STORAGE_KEY,
   STORAGE_ABSOLUTE_PATH: process.env.STORAGE_ABSOLUTE_PATH,
+  ALLOWED_HOSTS: process.env.ALLOWED_HOSTS,
 };
 
 export default config;
