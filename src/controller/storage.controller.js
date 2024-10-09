@@ -24,6 +24,10 @@ export const uploadFile = async (req, res) => {
     "host"
   )}/file/${uniqueFileName}?token=${token}`;
 
+  if (downloadUrl.includes("api.")) {
+    downloadUrl.replace("api.", "cdn.");
+  }
+
   const respDb = new storageModel({
     ...req.file,
     downloadUrl,
