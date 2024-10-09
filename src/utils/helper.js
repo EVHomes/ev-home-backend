@@ -57,7 +57,7 @@ export function generateOTP(length) {
 }
 
 export const hostnameCheck = (req, res, next) => {
-  let requestHost = req.get("Host");
+  let requestHost = req.get("host");
 
   if (requestHost.includes(":")) {
     requestHost = requestHost.split(":")[0];
