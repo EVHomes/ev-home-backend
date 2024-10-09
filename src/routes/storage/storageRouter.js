@@ -17,7 +17,8 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const uploadsDir = path.resolve(__dirname, "../../../uploads");
+export const uploadsDir =
+  config.STORAGE_ABSOLUTE_PATH ?? path.resolve(__dirname, "../../../uploads");
 
 // Multer setup for file uploads
 export const storage = multer.diskStorage({
