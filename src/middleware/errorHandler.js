@@ -1,8 +1,12 @@
 import httpStatus from "http-status";
+import { readFile } from "fs/promises";
 
-export function notFound(req, res, next) {
-  const error = new Error(`Route not found`);
-  error.code = 404;
+export async function notFound(req, res, next) {
+  // const error = new Error(`Route not found`);
+  // error.code = 404;
+  const htmlContent = await readFile("./src/templates/code_404.html", "utf8");
+  return res.type("html").send(htmlContent);
+
   next(error);
 }
 
