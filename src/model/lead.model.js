@@ -8,7 +8,6 @@ export const leadSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
       validate: {
         validator: function (value) {
           return emailFormat.test(value);
@@ -27,7 +26,7 @@ export const leadSchema = new mongoose.Schema(
     teamLeader: { type: mongoose.Schema.Types.ObjectId, ref: "employees", default: null },
     preSalesExecutive: { type: mongoose.Schema.Types.ObjectId, ref: "employees", default: null },
     countryCode: { type: String, default: "+91" },
-    phoneNumber: { type: Number, required: true, default: null, unique: true },
+    phoneNumber: { type: Number, required: true, default: null},
     altPhoneNumber: { type: Number, required: false, default: null },
     remark:{type:String,required:true,default:null},
     startDate: {
