@@ -55,3 +55,25 @@ export function generateOTP(length) {
   }
   return otp;
 }
+
+export const hostnameCheck = (req, res, next) => {
+  let requestHost = req.get("Host");
+
+  if (requestHost.includes(":")) {
+    requestHost = requestHost.split(":")[0];
+  }
+
+  requestHost = requestHost.toLowerCase().trim();
+  console.log("Request Host:", requestHost);
+
+  const allowedHosts = config.ALLOWED_HOSTS.split(",").map((host) =>
+    host.toLowerCase().trim()
+  );
+  console.log("Allowed Hosts:", allowedHosts);
+
+  if (allowedHosts.includes(requestHost)) {
+    next();
+  } else {
+    res.status(403).json({ message: "Forbidden: Invalid host" }); // Block the request
+  }
+};

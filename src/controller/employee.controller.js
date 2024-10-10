@@ -12,7 +12,7 @@ import {
 
 export const getEmployees = async (req, res, next) => {
   try {
-    const respCP = await cpModel.find().select("-password");
+    const respCP = await cpModel.find().select("-password -refreshToken");
 
     return res.send(
       successRes(200, "get Employees", {
@@ -28,7 +28,9 @@ export const getEmployeeById = async (req, res, next) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respEmployee = await employeeModel.findById(id);
+    const respEmployee = await employeeModel
+      .findById(id)
+      .select("-password -refreshToken");
 
     //if not found
     if (!respEmployee) {
