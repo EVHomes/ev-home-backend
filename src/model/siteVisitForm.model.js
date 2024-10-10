@@ -40,6 +40,16 @@ export const siteVisitSchema = new mongoose.Schema(
       ref: "employees",
       required: true,
     },
+    closingTeam:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "employees",
+      required: true,
+    },
+    teamLeader: {
+      type:mongoose.Schema.Types.ObjectId,
+      ref: "employees",
+      required: true,
+    },
     closingTeam: [
       {
         type: mongoose.Schema.Types.ObjectId,

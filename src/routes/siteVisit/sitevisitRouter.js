@@ -2,9 +2,9 @@ import { Router } from "express";
 import {
   addSiteVisits,
   deleteSiteVisits,
-  updateSiteVisits,
   getSiteVisits,
   getSiteVisitsById,
+  updateSiteVisits,
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
