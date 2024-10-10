@@ -40,8 +40,8 @@ export const addProjects = async (req, res) => {
   const body = req.body;
 
   const {
-    Amenities,
-    BhkList,
+    amenities,
+    bhkConfiguration,
     contactNumber,
     countryCode,
     description,
@@ -54,8 +54,8 @@ export const addProjects = async (req, res) => {
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
-    if (!Amenities || Amenities.length === 0) return res.send(errorRes(403, "Amenities are required"));
-    if (!BhkList || BhkList.length === 0) return res.send(errorRes(403, "BhkList is required"));
+    if (!amenities || amenities.length === 0) return res.send(errorRes(403, "Amenities are required"));
+    if (!bhkConfiguration || bhkConfiguration.length === 0) return res.send(errorRes(403, "BhkConfiguration is required"));
     if (!contactNumber) return res.send(errorRes(403, "Contact number is required"));
     if (!description) return res.send(errorRes(403, "Description is required"));
     if (!locationLink) return res.send(errorRes(403, "Location link is required"));
@@ -65,8 +65,8 @@ export const addProjects = async (req, res) => {
 
     // Create a new project
     const newProject = await ourProjectModel.create({
-      Amenities,     
-      BhkList,        
+      amenities,     
+      bhkConfiguration,        
       contactNumber, 
       countryCode,    
       description,    
@@ -96,8 +96,8 @@ export const updateProjects = async (req, res) => {
   const id = req.params.id;
 
   const {
-    Amenities,
-    BhkList,
+    amenities,
+    bhkConfiguration,
     contactNumber,
     countryCode,
     description,
@@ -112,8 +112,8 @@ export const updateProjects = async (req, res) => {
     // Validate the necessary fields
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
-    if (!Amenities || Amenities.length === 0) return res.send(errorRes(403, "Amenities are required"));
-    if (!BhkList || BhkList.length === 0) return res.send(errorRes(403, "BhkList is required"));
+    if (!amenities || amenities.length === 0) return res.send(errorRes(403, "Amenities are required"));
+    if (!bhkConfiguration || bhkConfiguration.length === 0) return res.send(errorRes(403, "BhkList is required"));
     if (!contactNumber) return res.send(errorRes(403, "Contact number is required"));
     if (!description) return res.send(errorRes(403, "Description is required"));
     if (!locationLink) return res.send(errorRes(403, "Location link is required"));
@@ -125,8 +125,8 @@ export const updateProjects = async (req, res) => {
     const updatedProject = await ourProjectModel.findByIdAndUpdate(
       id,   // Find by project ID
       {
-        Amenities,
-        BhkList,
+        amenities,
+        bhkConfiguration,
         contactNumber,
         countryCode,
         description,
