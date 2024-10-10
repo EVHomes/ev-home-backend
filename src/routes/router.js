@@ -6,11 +6,20 @@ import desRouter from "./designation/designationRouter.js";
 import deptRouter from "./department/departmentRouter.js";
 import ourProjectRouter from "./ourProject/ourProjectRouter.js";
 import leadRouter from "./lead/leadRouter.js";
-import storageRouter from "../model/storage.model.js";
 import clientRouter from "./client/clientRouter.js";
 import siteVisitRouter from "./siteVisit/sitevisitRouter.js";
+import storageRouter from "./storage/storageRouter.js";
+import { readFile } from "fs/promises";
 
 const router = Router();
+
+router.get("/", async (req, res) => {
+  const htmlContent = await readFile(
+    "./src/templates/api_welcome_page.html",
+    "utf8"
+  );
+  return res.type("html").send(htmlContent);
+});
 router.use(cpRouter);
 router.use(employeeRouter);
 router.use(divRouter);

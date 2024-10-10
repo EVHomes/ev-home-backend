@@ -6,13 +6,13 @@ import {
   updateDivision,
   deleteDivision,
 } from "../../controller/division.controller.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const divRouter = Router();
-divRouter.get("/division", getDivision);
-divRouter.get("/division/:id", getDivisionById);
-divRouter.post("/division-add", addDivision);
-divRouter.post("/division-update/:id", updateDivision);
-divRouter.delete("/division/:id", deleteDivision);
-
+divRouter.get("/division", authenticateToken, getDivision);
+divRouter.get("/division/:id", authenticateToken, getDivisionById);
+divRouter.post("/division-add", authenticateToken, addDivision);
+divRouter.post("/division-update/:id", authenticateToken, updateDivision);
+divRouter.delete("/division/:id", authenticateToken, deleteDivision);
 
 export default divRouter;

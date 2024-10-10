@@ -26,6 +26,13 @@ export const clientSchema = new mongoose.Schema({
   altPhoneNumber: { type: Number, required: false },
   address: { type: String, required: false, default: null },
   password: { type: String, required: true, minlength: 6 },
+  role: {
+    type: String,
+
+    required: true,
+    default: "customer",
+    enum: ["employee", "channel-partner", "customer"],
+  },
 });
 
 const clientModel = mongoose.model("clients", clientSchema, "clients");

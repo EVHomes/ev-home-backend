@@ -1,5 +1,4 @@
 import { Router } from "express";
-
 import {
   deleteEmployeeById,
   editEmployeeById,
@@ -10,27 +9,27 @@ import {
   registerEmployee,
   resetPasswordEmployee,
 } from "../../controller/employee.controller.js";
-import {
-  validateEmployeeFields,
-  validateRegisterEmployeeFields,
-} from "../../middleware/employee.middleware.js";
+import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const employeeRouter = Router();
 
-employeeRouter.get("/employee", getEmployees);
+employeeRouter.get("/employee", authenticateToken, getEmployees);
 
-employeeRouter.get("/employee/:id", getEmployeeById);
+employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
 
 employeeRouter.post(
   "/employee-register",
+  authenticateToken,
   validateEmployeeFields,
-  validateRegisterEmployeeFields,
+  // validateRegisterEmployeeFields,
   registerEmployee
 );
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(
   "/employee-edit/:id",
+  authenticateToken,
   validateEmployeeFields,
   editEmployeeById
 );
@@ -47,6 +46,6 @@ employeeRouter.post(
   resetPasswordEmployee
 );
 
-employeeRouter.delete("/employee/:id", deleteEmployeeById);
+employeeRouter.delete("/employee/:id", authenticateToken, deleteEmployeeById);
 
 export default employeeRouter;

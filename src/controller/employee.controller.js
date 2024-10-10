@@ -1,4 +1,5 @@
 import config from "../config/config.js";
+import { validateRegisterEmployeeFields } from "../middleware/employee.middleware.js";
 import cpModel from "../model/channelPartner.model.js";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
@@ -12,7 +13,7 @@ import {
 
 export const getEmployees = async (req, res, next) => {
   try {
-    const respCP = await cpModel.find().select("-password");
+    const respCP = await cpModel.find().select("-password -refreshToken");
 
     return res.send(
       successRes(200, "get Employees", {
@@ -28,7 +29,9 @@ export const getEmployeeById = async (req, res, next) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respEmployee = await employeeModel.findById(id);
+    const respEmployee = await employeeModel
+      .findById(id)
+      .select("-password -refreshToken");
 
     //if not found
     if (!respEmployee) {
@@ -100,7 +103,7 @@ export const deleteEmployeeById = async (req, res, next) => {
 };
 
 export const registerEmployee = async (req, res, next) => {
-  const body = req.body;
+  const body = req.filteredBody;
   const { email, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
@@ -110,6 +113,9 @@ export const registerEmployee = async (req, res, next) => {
         errorRes(400, "Password should be at least 6 character long.")
       );
     }
+    const validateFields = validateRegisterEmployeeFields(body);
+    if (!validateFields)
+      return res.send(errorRes(400, "All field is required."));
 
     const oldUser = await employeeModel
       .findOne({
