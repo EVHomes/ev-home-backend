@@ -1,20 +1,22 @@
 import { Router } from "express";
-import { 
- addProjects, 
- getOurProjects,
- getProjectsById,
- updateProjects,
- deleteProject,
+import {
+  addProjects,
+  getOurProjects,
+  getProjectsById,
+  updateProjects,
+  deleteProject,
 } from "../../controller/ourProjects.controller.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 
-const ourProjectRouter=Router();
-ourProjectRouter.get("/ourProjects",getOurProjects);
-ourProjectRouter.get("/ourProjects:/id",getProjectsById);
-ourProjectRouter.post("/ourProjects-add",addProjects);
-ourProjectRouter.post("/ourProjects-update/:id",updateProjects);
-ourProjectRouter.delete("/ourProjects/:id",deleteProject);
+const ourProjectRouter = Router();
+ourProjectRouter.get("/ourProjects", authenticateToken, getOurProjects);
+ourProjectRouter.get("/ourProjects:/id", authenticateToken, getProjectsById);
+ourProjectRouter.post("/ourProjects-add", authenticateToken, addProjects);
+ourProjectRouter.post(
+  "/ourProjects-update/:id",
+  authenticateToken,
+  updateProjects
+);
+ourProjectRouter.delete("/ourProjects/:id", authenticateToken, deleteProject);
 
 export default ourProjectRouter;
-
-
-
