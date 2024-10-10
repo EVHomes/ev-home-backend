@@ -5,7 +5,7 @@ export const siteVisitSchema = new mongoose.Schema(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     phoneNumber: { type: Number, required: true, unique: true },
-    countryCode:{type:Number,required:false,default:"+91"},
+    countryCode: { type: Number, required: false, default: "+91" },
     email: {
       type: String,
       required: true,
@@ -17,7 +17,7 @@ export const siteVisitSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
-    residence: { type: String, required: true,default:null },
+    residence: { type: String, required: true, default: null },
     projects: {
       type: String,
       required: true,
@@ -28,7 +28,7 @@ export const siteVisitSchema = new mongoose.Schema(
       type: String,
       required: true,
       default: "2BHK",
-      enum: ["1RK","1BHK","2BHK","3BHK","Jodi"],
+      enum: ["1RK", "1BHK", "2BHK", "3BHK", "Jodi"],
     },
     source: {
       type: String,
@@ -40,21 +40,25 @@ export const siteVisitSchema = new mongoose.Schema(
       ref: "employees",
       required: true,
     },
-    closingTeam:{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "employees",
-      required: true,
-    },
+    closingTeam: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "employees",
+        required: true,
+      },
+    ],
     teamLeader: {
-      type:mongoose.Schema.Types.ObjectId,
-      ref: "employees",
-      required: true,
-    },
-    team: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "employees",
       required: true,
     },
+    team: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "employees",
+        required: true,
+      },
+    ],
   }
   // {timestamps:true}
 );

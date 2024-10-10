@@ -65,10 +65,8 @@ export const addLead = async (req, res) => {
     altPhoneNumber,
     remark,
     startDate,
-    dataAnalyser,
     channelPartner,
     teamLeader,
-    preSalesExecutive,
     status,
     project,
     interestedStatus,
@@ -76,24 +74,33 @@ export const addLead = async (req, res) => {
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
+
     if (!email) return res.send(errorRes(403, "Email is required"));
+
     if (!firstName) return res.send(errorRes(403, "First name is required"));
+
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
+
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
-    if (!dataAnalyser)
-      return res.send(errorRes(403, "Data analyzer is required"));
+    // if (!dataAnalyser)
+    //   return res.send(errorRes(403, "Data analyzer is required"));
     if (!channelPartner)
       return res.send(errorRes(403, "Channel partner is required"));
+
     if (!teamLeader) return res.send(errorRes(403, "Team leader is required"));
+
     if (!status) return res.send(errorRes(403, "Status is required"));
-    if (!interestedStatus)
-      return res.send(errorRes(403, "Interested status is required"));
-    //if(!preSalesExecutive) return res.send(errorRes(403,"Pre sales executive is required"));
-    if (!remark) return res.send(errorRes(403, "Remark is required"));
+
+    // if (!interestedStatus)
+    //   return res.send(errorRes(403, "Interested status is required"));
+
+    // if (!remark) return res.send(errorRes(403, "Remark is required"));
+
     if (!project) return res.send(errorRes(403, "Project is required"));
 
     // Create a new lead object
+
     const newLead = await leadModel.create({
       email,
       firstName,
@@ -101,18 +108,14 @@ export const addLead = async (req, res) => {
       phoneNumber,
       altPhoneNumber,
       remark,
-      dataAnalyser: "6703dd099f4039f877e104f9",
-      teamLeader: "6703dd099f4039f877e104f9",
-      preSalesExecutive: "6703dd099f4039f877e104f9",
-      channelPartner: "6703954f719e24844ec82e60",
+      channelPartner,
       status,
       interestedStatus,
-      project: "6704efc3bca837e200d0abee",
-      startDate: startDate || Date.now(), // Use current date if not provided
+      project,
+      startDate: startDate || Date.now(),
       validTill: new Date(
         new Date(startDate || Date.now()).setMonth(new Date().getMonth() + 2)
-      ), // Valid for 2 months
-      // Additional optional fields can be added here (like address, status, etc.)
+      ),
     });
 
     // Save the new lead

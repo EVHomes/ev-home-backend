@@ -20,9 +20,7 @@ employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
 
 employeeRouter.post(
   "/employee-register",
-  authenticateToken,
   validateEmployeeFields,
-  // validateRegisterEmployeeFields,
   registerEmployee
 );
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
