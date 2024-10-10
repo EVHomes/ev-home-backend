@@ -37,18 +37,23 @@ export const siteVisitSchema = new mongoose.Schema(
     },
     closingManager: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "employees",
+      required: true,
+    },
+    closingTeam:{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "employees",
+      required: true,
     },
     teamLeader: {
       type:mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "employees",
+      required: true,
     },
     team: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "employees",
+      required: true,
     },
   }
   // {timestamps:true}
