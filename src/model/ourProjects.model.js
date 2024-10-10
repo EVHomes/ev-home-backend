@@ -2,15 +2,15 @@ import mongoose from "mongoose";
 
 export const ourProjectsSchema=new mongoose.Schema(
     {
-        Amenities:[{
+        amenities:[{
             image:{type:String,required:true,unique:true},
              name:{type:String,required:true,unique:true},
         }],
-        BhkList:[{
-            carpetArea:{type:String,required:true,unique:true},
+        bhkConfiguration:[{
+            carpetArea:{type:String,required:true},
             configuration:{type:String,required:true},
             image:{type:String,required:true},
-            price:{type:String,required:true},
+            price:{type:Number,required:true},
             reraID:{type:String,required:true},
         }],
         contactNumber:{type:String,required:true,unique:true},
@@ -24,5 +24,5 @@ export const ourProjectsSchema=new mongoose.Schema(
 
     },
 );
-const ourProjectModel=mongoose.model("ourprojects",ourProjectsSchema,"ourProjects");
+const ourProjectModel=mongoose.model("ourProjects",ourProjectsSchema,"ourProjects");
 export default ourProjectModel;
