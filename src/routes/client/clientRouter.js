@@ -36,6 +36,8 @@ clientRouter.post(
   resetPasswordClient
 );
 
+
+
 clientRouter.post("/client-update/:id", authenticateToken, updateClient);
 clientRouter.delete("/client/:id", authenticateToken, deleteClient);
 
