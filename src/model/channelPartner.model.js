@@ -48,6 +48,12 @@ export const channelPartnerSchema = new mongoose.Schema(
     isVerified: { type: Boolean, required: true, default: false },
     sameAdress: { type: Boolean, required: true, default: false },
     refreshToken: { type: String, default: null },
+    role: {
+      type: String,
+      required: true,
+      default: "channel-partner",
+      enum: ["employee", "channel-partner", "customer"],
+    },
   },
   { timestamps: true }
 );

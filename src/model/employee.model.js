@@ -56,6 +56,12 @@ export const employeeSchema = new mongoose.Schema(
     phoneNumber: { type: Number, required: true, default: null },
     isVerified: { type: Boolean, required: true, default: false },
     refreshToken: { type: String, default: null },
+    role: {
+      type: String,
+      required: true,
+      default: "employee",
+      enum: ["employee", "channel-partner", "customer"],
+    },
   },
   { timestamps: true }
 );
