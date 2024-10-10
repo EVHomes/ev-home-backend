@@ -1,4 +1,5 @@
 import config from "../config/config.js";
+import { validateRegisterCPFields } from "../middleware/channelPartner.middleware.js";
 import cpModel from "../model/channelPartner.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
@@ -117,6 +118,9 @@ export const registerChannelPartner = async (req, res, next) => {
         errorRes(400, "Password should be at least 6 character long.")
       );
     }
+    const validateFields = validateRegisterCPFields(body);
+    if (!validateFields)
+      return res.send(errorRes(401, "All field is required"));
     const oldUser = await cpModel
       .findOne({
         $or: [

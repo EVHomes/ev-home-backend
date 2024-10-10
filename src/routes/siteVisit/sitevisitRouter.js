@@ -6,12 +6,17 @@ import {
   getSiteVisitsById,
   updateSiteVisits,
 } from "../../controller/siteVisit.controller.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const siteVisitRouter = Router();
-siteVisitRouter.get("/siteVisit", getSiteVisits);
-siteVisitRouter.get("/siteVisit-id/:id", getSiteVisitsById);
-siteVisitRouter.post("/siteVisits-add", addSiteVisits);
-siteVisitRouter.post("/siteVisit-update/:id", updateSiteVisits);
-siteVisitRouter.delete("/siteVisit/:id", deleteSiteVisits);
+siteVisitRouter.get("/siteVisit", authenticateToken, getSiteVisits);
+siteVisitRouter.get("/siteVisit-id/:id", authenticateToken, getSiteVisitsById);
+siteVisitRouter.post("/siteVisits-add", authenticateToken, addSiteVisits);
+siteVisitRouter.post(
+  "/siteVisit-update/:id",
+  authenticateToken,
+  updateSiteVisits
+);
+siteVisitRouter.delete("/siteVisit/:id", authenticateToken, deleteSiteVisits);
 
 export default siteVisitRouter;

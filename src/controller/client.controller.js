@@ -1,7 +1,16 @@
 // import bcrypt from 'bcrypt';
+import config from "../config/config.js";
+import { validateRegisterClientFields } from "../middleware/client.middleware.js";
 import clientModel from "../model/client.model.js";
 import { errorRes, successRes } from "../model/response.js";
-import { encryptPassword } from "../utils/helper.js";
+import otpModel from "../model/otp.model.js";
+import {
+  comparePassword,
+  createJwtToken,
+  encryptPassword,
+  generateOTP,
+} from "../utils/helper.js";
+
 //GET BY ALL
 export const getClients = async (req, res) => {
   try {
@@ -37,14 +46,22 @@ export const getClientById = async (req, res) => {
   }
 };
 
-//add department
-export const addClient = async (req, res) => {
-  const body = req.body;
-  const { firstName, lastName, email, gender, phoneNumber, address, password } =
-    body;
-
+//REGISTER 
+export const registerClient = async (req, res, next) => {
+  const body = req.filteredBody;
+  const {
+    firstName,
+    lastName,
+    email,
+    gender,
+    phoneNumber,
+    altPhoneNumber,
+    address,
+    password,
+    role,
+  } = body;
   try {
-    if (!body) return res.send(errorRes(403, "Data is required"));
+    if (!body) return res.send(errorRes(403, "data is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
     if (!password) return res.send(errorRes(403, "Password is required"));
@@ -54,27 +71,253 @@ export const addClient = async (req, res) => {
       return res.send(errorRes(403, "Phone number is required"));
     if (!address) return res.send(errorRes(403, "Address is required"));
 
-    //const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds (cost factor)
-    const hashedPassword = await encryptPassword(password);
-    // Create a new client with the hashed password
-    const newClient = await clientModel.create({
-      firstName,
-      lastName,
-      email,
-      gender,
-      phoneNumber,
-      address,
-      password: hashedPassword, // Save the hashed password
-    });
+    if (password.length < 6) {
+      return res.send(
+        errorRes(400, "Password should be at least 6 character long.")
+      );
+    }
+    const validateFields = validateRegisterClientFields(body,res);
+    if (!validateFields)
+      return res.send(errorRes(400, "All field is required."));
 
-    await newClient.save();
+    const oldUser = await clientModel
+      .findOne({
+        email: email,
+      })
+      .lean();
+
+    if (oldUser) {
+      return res.send(errorRes(400, "Client already exist with this email"));
+    }
+
+    const hashPassword = await encryptPassword(password);
+
+    const newClient = new clientModel({
+      ...body,
+      password: hashPassword,
+    });
+    const savedClient = await newClient.save();
+
+    const { password: dbPassword, ...userWithoutPassword } = savedClient._doc;
+    const accessToken = createJwtToken(
+      userWithoutPassword,
+      config.SECRET_ACCESS_KEY,
+      "15m"
+    );
+    const refreshToken = createJwtToken(
+      userWithoutPassword,
+      config.SECRET_REFRESH_KEY,
+      "7d"
+    );
+    savedClient.refreshToken = refreshToken;
+    await savedClient.save();
+
     return res.send(
-      successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
-        newClient,
+      successRes(200, "Client is registered successfully", {
+        ...userWithoutPassword,
+        accessToken,
+        refreshToken,
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `Server error: ${error?.message}`));
+    if (error.code === 11000) {
+      const test= error;
+      return res.send(
+        errorRes(400, `${test} already exists.`)
+      );
+    }
+
+    return next(error);
+  }
+};
+
+//LOGIN
+export const loginClient = async (req, res, next) => {
+  const body = req.body;
+  const {
+    email,
+    phoneNumber,
+    altPhoneNumber,
+    password,
+  } = body;
+  try {
+    if (!body) return res.send(errorRes(403, "data is required"));
+    if (!password) return res.send(errorRes(403, "Password is required"));
+    if (!email) return res.send(errorRes(403, "Email is required"));
+    if (!phoneNumber)
+      return res.send(errorRes(403, "Phone number is required"));
+
+    const clientDb = await clientModel
+      .findOne({
+        email: email,
+      })
+      .lean();
+
+    if (!clientDb) {
+      return res.send(errorRes(400, "Client not found with given email"));
+    }
+
+    const hashPass = await comparePassword(password, clientDb.password);
+
+    if (!hashPass) {
+      return res.status(400).json({ message: "Password do not match" });
+    }
+
+    const { password: dbPassword, ...userWithoutPassword } = clientDb;
+    const accessToken = createJwtToken(
+      userWithoutPassword,
+      config.SECRET_ACCESS_KEY,
+      "15m"
+    );
+    const refreshToken = createJwtToken(
+      userWithoutPassword,
+      config.SECRET_REFRESH_KEY,
+      "7d"
+    );
+    await clientModel.updateOne(
+      { _id: clientDb._id },
+      {
+        refreshToken: refreshToken,
+      }
+    );
+
+    return res.send(
+      successRes(200, "Client Login successfully", {
+        ...userWithoutPassword,
+        accessToken,
+        refreshToken,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+//AUTHENTICATION
+export const reAuthClient = async (req, res, next) => {
+  const body = req.body;
+  const {
+    email,
+    phoneNumber,
+    altPhoneNumber,
+    password,
+  } = body;
+  try {
+    if (!body) return res.send(errorRes(403, "data is required"));
+    if (!password) return res.send(errorRes(403, "Password is required"));
+    if (!email) return res.send(errorRes(403, "Email is required"));
+    if (!phoneNumber)
+      return res.send(errorRes(403, "Phone number is required"));
+
+    const clientDb = await clientModel
+      .findOne({
+        email: email,
+      })
+      .lean();
+
+    if (!clientDb) {
+      return res.send(errorRes(400, "No client found with given email"));
+    }
+
+    const hashPass = await comparePassword(password, clientDb.password);
+
+    if (!hashPass) {
+      return res.send(errorRes(401, "Password didn't matched"));
+    }
+
+    return res.send(
+      successRes(200, "Client is registered", {
+        data: true,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const forgotPasswordClient = async (req, res, next) => {
+  const body = req.body;
+  const { email } = body;
+  try {
+    if (!body) return res.send(errorRes(403, "data is required"));
+    if (!email) return res.send(errorRes(403, "email is required"));
+
+    const oldOtp = await otpModel.findOne({ email: email }).lean();
+
+    if (oldOtp) {
+      return res.send(successRes(200, `otp re-sent to ${email}`, oldOtp));
+    }
+
+    const clientDb = await clientModel
+      .findOne({
+        email: email,
+      })
+      .lean();
+
+    if (!clientDb) {
+      return res.send(errorRes(400, `No Client found with ${email}`));
+    }
+
+    const newOtp = generateOTP(4);
+    const newOtpModel = new otpModel({
+      otp: newOtp,
+      docId: clientDb._id,
+      email: email,
+      type: "clients",
+      message: "forgot passsword",
+    });
+
+    const savedOtp = await newOtpModel.save();
+
+    return res.send(successRes(200, `otp sent to ${email}`, savedOtp._doc));
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const resetPasswordClient = async (req, res, next) => {
+  const body = req.body;
+  const { otp, email, password } = body;
+  try {
+    if (!body) return res.send(errorRes(403, "data is required"));
+    if (!otp) return res.send(errorRes(403, "otp is required"));
+    if (!email) return res.send(errorRes(403, "email is required"));
+    if (!password) return res.send(errorRes(403, "password is required"));
+
+    const otpDbResp = await otpModel
+      .findOne({
+        email: email,
+      })
+      .lean();
+
+    if (!otpDbResp) {
+      return res.send(errorRes(404, "Invalid Otp"));
+    }
+    if (otpDbResp.otp != otp) {
+      return res.send(errorRes(401, "Otp didn't matched"));
+    }
+    const clientDb = await clientModel.findById(otpDbResp.docId).lean();
+    if (!clientDb) {
+      return res.send(errorRes(404, "No client found with given email"));
+    }
+    const hashPassword = await encryptPassword(password);
+    const updatedClient = await clientModel.updateOne(
+      {
+        _id: clientDb._id,
+      },
+      {
+        password: hashPassword,
+      }
+    );
+    await otpModel.deleteOne({ _id: otpDbResp._id });
+
+    return res.send(
+      successRes(200, `Reset password sucessfully for: ${otpDbResp.email}`, {
+        data: updatedClient.acknowledged,
+      })
+    );
+  } catch (error) {
+    return next(error);
   }
 };
 

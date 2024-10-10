@@ -1,5 +1,4 @@
-import { errorRes } from "../model/res.js";
-
+import { errorRes } from "../model/response.js";
 // Define the allowed fields for designation updates
 const ALLOWED_ClIENT_FIELDS = [
   "id",
@@ -36,4 +35,67 @@ export const validateClientFields = (req, res, next) => {
   // Attach the filtered body to the request object
   req.filteredBody = filteredBody;
   next();
+};
+
+export const validateRegisterClientFields = (body,res) => {
+  const {
+    firstName,
+    lastName,
+    email,
+    gender,
+    phoneNumber,
+    altPhoneNumber,
+    address,
+    password,
+  } = body;
+
+  if (!firstName) {
+    return res.send(
+      errorRes(400, {
+        message: "First name is required",
+      })
+    );
+  }
+
+  if (!lastName) {
+    return res.send(
+      errorRes(400, {
+        message: "last name is required",
+      })
+    );
+  }
+
+  if (!phoneNumber) {
+    return res.send(
+      errorRes(400, {
+        message: "phone number is required",
+      })
+    );
+  }
+
+  if (!email) {
+    return res.send(
+      errorRes(400, {
+        message: "email is required",
+      })
+    );
+  }
+
+  if (!gender) {
+    return res.send(
+      errorRes(400, {
+        message: "gender is required",
+      })
+    );
+  }
+
+  if (!address) {
+    return res.send(
+      errorRes(400, {
+        message: "address is required",
+      })
+    );
+  }
+
+  return true;
 };

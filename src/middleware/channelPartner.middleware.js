@@ -1,8 +1,4 @@
-import config from "../config/config.js";
-import cpModel from "../model/channelPartner.model.js";
 import { errorRes } from "../model/response.js";
-import { createJwtToken } from "../utils/helper.js";
-import jwt from "jsonwebtoken";
 // Define the allowed fields for designation updates
 const ALLOWED_CP_FIELDS = [
   "id",
@@ -53,23 +49,16 @@ export const validateChannelPartnerFields = (req, res, next) => {
   next();
 };
 
-export const validateRegisterCPFields = (req, res, enxt) => {
+export const validateRegisterCPFields = (body) => {
   const {
     firstName,
     lastName,
     email,
-    password,
     firmName,
-    firmAddress,
-    homeAddress,
-    gender,
     phoneNumber,
-    dateOfBirth,
     haveReraRegistration,
     reraNumber,
     reraCertificate,
-    isVerified,
-    sameAdress,
   } = body;
 
   if (!firstName) {
@@ -128,59 +117,59 @@ export const validateRegisterCPFields = (req, res, enxt) => {
       );
   }
 
-  return next();
+  return true;
 };
 
-export const authenticateTokenCp = async (req, res, next) => {
-  try {
-    const accessToken = req.headers.authorization?.split(" ")[1];
-    const refreshToken = req.headers.refreshtoken?.split(" ")[1];
+// export const authenticateTokenCp = async (req, res, next) => {
+//   try {
+//     const accessToken = req.headers.authorization?.split(" ")[1];
+//     const refreshToken = req.headers.refreshtoken?.split(" ")[1];
 
-    if (!accessToken) {
-      return res.status(401).json({ message: "No token provided" });
-    }
+//     if (!accessToken) {
+//       return res.status(401).json({ message: "No token provided" });
+//     }
 
-    try {
-      const decoded = jwt.verify(accessToken, config.SECRET_ACCESS_KEY);
-      req.user = decoded.data;
-      return next();
-    } catch (error) {
-      if (error.name === "TokenExpiredError") {
-        // Token has expired, attempt to refresh
-        if (!refreshToken) {
-          return res.send(errorRes(401, "Refresh token not found"));
-        }
+//     try {
+//       const decoded = jwt.verify(accessToken, config.SECRET_ACCESS_KEY);
+//       req.user = decoded.data;
+//       return next();
+//     } catch (error) {
+//       if (error.name === "TokenExpiredError") {
+//         // Token has expired, attempt to refresh
+//         if (!refreshToken) {
+//           return res.send(errorRes(401, "Refresh token not found"));
+//         }
 
-        try {
-          const decoded = jwt.verify(refreshToken, config.SECRET_REFRESH_KEY);
-          const user = await cpModel.findById(decoded.data._id);
+//         try {
+//           const decoded = jwt.verify(refreshToken, config.SECRET_REFRESH_KEY);
+//           const user = await cpModel.findById(decoded.data._id);
 
-          if (!user) {
-            return res.send(errorRes(401, "Channel Partner not found"));
-          }
-          const { password, ...userWithoutPassword } = user;
-          const newAccessToken = createJwtToken(
-            userWithoutPassword,
-            process.env.ACCESS_TOKEN_SECRET,
-            "15m"
-          );
+//           if (!user) {
+//             return res.send(errorRes(401, "Channel Partner not found"));
+//           }
+//           const { password, ...userWithoutPassword } = user;
+//           const newAccessToken = createJwtToken(
+//             userWithoutPassword,
+//             process.env.ACCESS_TOKEN_SECRET,
+//             "15m"
+//           );
 
-          res.setHeader("Authorization", `Bearer ${newAccessToken}`);
-          // res.setHeader("NewAccessToken", `Bearer ${newAccessToken}`);
-          req.user = {
-            ...userWithoutPassword,
-          };
-          return next();
-        } catch (refreshError) {
-          return res.status(401).json({ message: "Invalid refresh token" });
-        }
-      }
-      return res.status(401).json({ message: "Invalid token" });
-    }
-  } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
+//           res.setHeader("Authorization", `Bearer ${newAccessToken}`);
+//           // res.setHeader("NewAccessToken", `Bearer ${newAccessToken}`);
+//           req.user = {
+//             ...userWithoutPassword,
+//           };
+//           return next();
+//         } catch (refreshError) {
+//           return res.status(401).json({ message: "Invalid refresh token" });
+//         }
+//       }
+//       return res.status(401).json({ message: "Invalid token" });
+//     }
+//   } catch (error) {
+//     return res.status(500).json({ message: "Internal server error" });
+//   }
+// };
 
 // const authenticateToken = (req, res, next) => {
 //   const authHeader = req.headers['authorization'];

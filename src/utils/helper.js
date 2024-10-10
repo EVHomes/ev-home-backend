@@ -39,12 +39,7 @@ export const createJwtToken = (data, secretKey, validity) => {
 // };
 
 export const verifyJwtToken = (token, secretKey) => {
-  try {
-    const result = jwt.verify(token, secretKey);
-    return result;
-  } catch (error) {
-    return null;
-  }
+  return jwt.verify(token, secretKey);
 };
 
 export function generateOTP(length) {

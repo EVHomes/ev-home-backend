@@ -9,21 +9,14 @@ import {
   registerChannelPartner,
   resetPasswordChannelPartner,
 } from "../../controller/channelPartner.controller.js";
-import {
-  authenticateTokenCp,
-  validateChannelPartnerFields,
-} from "../../middleware/channelPartner.middleware.js";
-import { authenticateTokenEmp } from "../../middleware/employee.middleware.js";
+import { validateChannelPartnerFields } from "../../middleware/channelPartner.middleware.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const cpRouter = Router();
 
-cpRouter.get("/channel-partner", authenticateTokenEmp, getChannelPartners);
+cpRouter.get("/channel-partner", authenticateToken, getChannelPartners);
 
-cpRouter.get(
-  "/channel-partner/:id",
-  authenticateTokenEmp,
-  getChannelPartnerById
-);
+cpRouter.get("/channel-partner/:id", authenticateToken, getChannelPartnerById);
 
 cpRouter.post(
   "/channel-partner-register",
@@ -39,7 +32,7 @@ cpRouter.post(
 
 cpRouter.post(
   "/channel-partner-edit/:id",
-  authenticateTokenEmp,
+  authenticateToken,
   validateChannelPartnerFields,
   editChannelPartnerById
 );
@@ -58,7 +51,7 @@ cpRouter.post(
 
 cpRouter.delete(
   "/channel-partner/:id",
-  authenticateTokenEmp,
+  authenticateToken,
   deleteChannelPartnerById
 );
 

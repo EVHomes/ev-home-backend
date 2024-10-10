@@ -28,8 +28,6 @@ export const clientSchema = new mongoose.Schema({
   password: { type: String, required: true, minlength: 6 },
   role: {
     type: String,
-
-    required: true,
     default: "customer",
     enum: ["employee", "channel-partner", "customer"],
   },

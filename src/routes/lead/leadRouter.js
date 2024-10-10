@@ -7,13 +7,18 @@ import {
   getLeadById,
   updateLead,
 } from "../../controller/lead.controller.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const leadRouter = Router();
-leadRouter.get("/leads", getAllLeads);
-leadRouter.get("/lead/:id", getLeadById);
-leadRouter.post("/leads-add", addLead);
-leadRouter.post("/lead-update/:id", updateLead);
-leadRouter.delete("/lead/:id", deleteLead);
-leadRouter.get("/leads-exists/:phoneNumber",checkLeadsExists);
+leadRouter.get("/leads", authenticateToken, getAllLeads);
+leadRouter.get("/lead/:id", authenticateToken, getLeadById);
+leadRouter.post("/leads-add", authenticateToken, addLead);
+leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
+leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
+leadRouter.get(
+  "/leads-exists/:phoneNumber",
+  authenticateToken,
+  checkLeadsExists
+);
 
 export default leadRouter;
