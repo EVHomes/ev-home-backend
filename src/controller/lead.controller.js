@@ -111,6 +111,8 @@ export const addLead = async (req, res) => {
     startDate,
     channelPartner,
     teamLeader,
+    preSalesExecutive,
+    validTill,
     status,
     project,
     interestedStatus,
@@ -135,15 +137,35 @@ export const addLead = async (req, res) => {
     if (!teamLeader) return res.send(errorRes(403, "Team leader is required"));
 
     if (!status) return res.send(errorRes(403, "Status is required"));
-
-    // if (!interestedStatus)
-    //   return res.send(errorRes(403, "Interested status is required"));
-
-    // if (!remark) return res.send(errorRes(403, "Remark is required"));
-
+    if (!interestedStatus)
+      return res.send(errorRes(403, "Interested status is required"));
+    if (!remark) return res.send(errorRes(403, "Remark is required"));
     if (!project) return res.send(errorRes(403, "Project is required"));
 
-    // Create a new lead object
+    // Get current date and 60 days ago
+    const currentDate = new Date();
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(currentDate.getDate() - 60);
+
+    // Check if the lead exists with the conditions
+    const existingLead = await leadModel.findOne({
+      $or: [{ phoneNumber: phoneNumber }, { altPhoneNumber: phoneNumber }],
+      $or: [
+        { startDate: { $gte: sixtyDaysAgo } },
+        { validTill: { $gte: sixtyDaysAgo } },
+      ],
+      status: "Approved",
+    });
+
+    if (existingLead) {
+      return res.send(
+        errorRes(
+          409,
+          `Lead already exists with the following details:Phone Number: ${existingLead.phoneNumber}Alt Phone Number: ${existingLead.altPhoneNumber}Start Date: ${existingLead.startDate}Valid Till: ${existingLead.validTill}Status: ${existingLead.status}`
+        )
+      );
+    }
+
 
     const newLead = await leadModel.create({
       email,
@@ -300,3 +322,60 @@ export const checkLeadsExists = async (req, res) => {
     return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
+
+// export const getAllLeadsWithValidity = async (req, res, next) => {
+//   try {
+//     // Get the current date and calculate the date 60 days ago
+//     const currentDate = new Date();
+//     const sixtyDaysAgo = new Date();
+//     sixtyDaysAgo.setDate(currentDate.getDate() - 60);
+
+//     // Fetch all leads with phone numbers and validity dates (startDate, validTillDate)
+//     const respLeads = await leadModel.find({
+//       phoneNumber, altPhoneNumber, startDate, validTill, status}
+//     );
+
+//     if (!respLeads || respLeads.length === 0) {
+//       return res.send(errorRes(404, "No leads found"));
+//     }
+
+//     // Filter leads that are within the last 60 days
+//     const recentLeads = respLeads.filter((lead) => {
+//       return (
+//         (lead.startDate &&
+//           new Date(lead.startDate) >= sixtyDaysAgo &&
+//           lead.status == "Approved") ||
+//         (lead.validTillDate &&
+//           new Date(lead.validTillDate) >= sixtyDaysAgo &&
+//           lead.status == "Approved")
+//       );
+//     });
+
+//     if (recentLeads.length === 0) {
+//       return res.send(errorRes(404, "No leads found within the last 60 days"));
+//     }
+//     // const filterLeads=recentLeads.filter(lead.phoneNumber,lead.startDate ,lead.validTill, lead.status);
+
+//     const savedLeads = [];
+//     for (const lead of filterLeads) {
+//       // You can modify this part based on whether you're creating new leads or updating them
+//       const newLead = new leadModel({
+//         phoneNumber: lead.phoneNumber,
+//         altPhoneNumber: lead.altPhoneNumber,
+//         startDate: lead.startDate,
+//         validTillDate: lead.validTillDate,
+//         status: lead.status,
+//       });
+
+//       const savedLead = await newLead.save();
+//       savedLeads.push(savedLead);
+//     }
+//     return res.send(
+//       successRes(200, "Leads within 60 days saved to database", {
+//         data: savedLeads,
+//       })
+//     );
+//   } catch (error) {
+//     next(error); // Pass the error to the error handler middleware
+//   }
+// };

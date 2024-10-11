@@ -5,6 +5,7 @@ import {
   getProjectsById,
   updateProjects,
   deleteProject,
+  searchProjects,
 } from "../../controller/ourProjects.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
@@ -18,5 +19,6 @@ ourProjectRouter.post(
   updateProjects
 );
 ourProjectRouter.delete("/ourProjects/:id", authenticateToken, deleteProject);
+ourProjectRouter.get("/ourProjects-search",authenticateToken,searchProjects);
 
 export default ourProjectRouter;

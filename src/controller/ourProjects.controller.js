@@ -165,3 +165,44 @@ export const deleteProject = async (req, res) => {
     return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
+
+export const searchProjects= async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+
+    let searchFilter = {
+      $or: [
+        { name: { $regex: query, $options: "i" } },
+        { location: { $regex: query, $options: "i" } },
+      ]
+    };
+
+    const respProject = await ourProjectModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .select("");
+
+    // Count the total items matching the filter
+    const totalItems = await ourProjectModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get Projects", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respProject,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
