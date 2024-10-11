@@ -6,13 +6,14 @@ import {
   getAllLeads,
   getLeadById,
   updateLead,
+ // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const leadRouter = Router();
-leadRouter.get("/leads", authenticateToken, getAllLeads);
+leadRouter.get("/leads", authenticateToken,getAllLeads);
 leadRouter.get("/lead/:id", authenticateToken, getLeadById);
-leadRouter.post("/leads-add", authenticateToken, addLead);
+leadRouter.post("/leads-add", authenticateToken,addLead);
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
 leadRouter.get(
@@ -20,5 +21,6 @@ leadRouter.get(
   authenticateToken,
   checkLeadsExists
 );
+// leadRouter.get("/lead-valid",getAllLeadsWithValidity);
 
 export default leadRouter;

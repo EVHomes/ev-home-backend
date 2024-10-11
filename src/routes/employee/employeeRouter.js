@@ -8,6 +8,7 @@ import {
   loginEmployee,
   registerEmployee,
   resetPasswordEmployee,
+  searchEmployee,
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -47,5 +48,10 @@ employeeRouter.post(
 );
 
 employeeRouter.delete("/employee/:id", authenticateToken, deleteEmployeeById);
+employeeRouter.get(
+  "/search-employee",
+//  authenticateToken,
+  searchEmployee,
+);
 
 export default employeeRouter;

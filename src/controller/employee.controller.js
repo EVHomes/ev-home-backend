@@ -342,3 +342,51 @@ export const resetPasswordEmployee = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const searchEmployee = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        // { phoneNumber: { $regex: query, $options: "i" } },
+        isNumberQuery ? { phoneNumber: Number(query) } : null,
+        { email: { $regex: query, $options: "i" } },
+        { firmName: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { reraNumber: { $regex: query, $options: "i" } },
+      ].filter(Boolean),
+    };
+
+    const respEmp = await employeeModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .select("-password -refreshToken");
+
+    // Count the total items matching the filter
+    const totalItems = await employeeModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get Employee", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respEmp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
