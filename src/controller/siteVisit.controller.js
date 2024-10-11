@@ -39,6 +39,54 @@ export const getSiteVisitsById = async (req, res) => {
   }
 };
 
+export const searchSiteVisits = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+
+    const isNumberQuery = !isNaN(query);
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } }, 
+        { lastName: { $regex: query, $options: "i" } },
+        isNumberQuery ? { phoneNumber: Number(query) } : null, 
+        { email: { $regex: query, $options: "i" } },
+        { source: { $regex: query, $options: "i" } },
+        // { closingManager: { $regex: query, $options: "i" } },
+        // { teamLeader: { $regex: query, $options: "i" } },
+      ].filter(Boolean), // Remove any null values
+    };
+
+    // Perform the search with pagination
+    const respSite = await siteVisitModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .select("");
+
+    // Count the total items matching the filter
+    const totalItems = await siteVisitModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get site visits", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respSite,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const addSiteVisits = async (req, res) => {
   const body = req.body;
   const {
