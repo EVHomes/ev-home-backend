@@ -48,6 +48,8 @@ export const employeeSchema = new mongoose.Schema(
       },
     },
     address: { type: String, default: null },
+    isVerifiedPhone: { type: Boolean, default: false },
+    isVerifiedEmail: { type: Boolean, default: false },
     department: { type: String, required: true, ref: "departments" },
     designation: { type: String, required: true, ref: "designations" },
     division: { type: String, required: true, ref: "divisions" },

@@ -24,6 +24,54 @@ export const getChannelPartners = async (req, res, next) => {
   }
 };
 
+export const searchChannelPartners = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        // { phoneNumber: { $regex: query, $options: "i" } },
+        isNumberQuery ? { phoneNumber: Number(query) } : null,
+        { email: { $regex: query, $options: "i" } },
+        { firmName: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { reraNumber: { $regex: query, $options: "i" } },
+      ].filter(Boolean),
+    };
+
+    const respCP = await cpModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .select("-password -refreshToken");
+
+    // Count the total items matching the filter
+    const totalItems = await cpModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get Channel Partners", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getChannelPartnerById = async (req, res, next) => {
   const id = req.params.id;
   try {
@@ -63,18 +111,24 @@ export const editChannelPartnerById = async (req, res, next) => {
         errorRes(404, `Channel Partner not found with id: ${id}`)
       );
     }
-
-    const updateResp = await cpModel.updateOne(
-      { _id: id },
+    await respCP.updateOne(
       {
         ...body,
-      }
+      },
+      { new: true }
     );
+
+    // const updateResp = await cpModel.updateOne(
+    //   { _id: id },
+    //   {
+    //     ...body,
+    //   }
+    // );
 
     //if all ok
     return res.send(
       successRes(200, `updated Channel Partner by id ${id}`, {
-        data: updateResp,
+        data: respCP,
       })
     );
   } catch (error) {
@@ -217,6 +271,7 @@ export const loginChannelPartner = async (req, res, next) => {
       config.SECRET_REFRESH_KEY,
       "7d"
     );
+
     await cpModel.updateOne(
       { _id: channelPartnerDb._id },
       {
@@ -265,7 +320,7 @@ export const reAuthChannelPartner = async (req, res, next) => {
     }
 
     return res.send(
-      successRes(200, "channel partner is registered", {
+      successRes(200, "channel partner is verified", {
         status: true,
       })
     );
@@ -350,6 +405,7 @@ export const resetPasswordChannelPartner = async (req, res, next) => {
         password: hashPassword,
       }
     );
+
     await otpModel.deleteOne({ _id: otpDbResp._id });
 
     return res.send(

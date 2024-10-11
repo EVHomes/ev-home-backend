@@ -28,6 +28,51 @@ export const getClients = async (req, res) => {
   }
 };
 
+export const searchClients = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        isNumberQuery ? { phoneNumber: Number(query) } : null,
+        isNumberQuery ? { altPhoneNumber: Number(query) } : null,
+        { email: { $regex: query, $options: "i" } },
+      ].filter(Boolean),
+    };
+
+    const respCP = await clientModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .select("-password -refreshToken");
+
+    // Count the total items matching the filter
+    const totalItems = await clientModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get Channel Partners", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 //GET BY ID
 export const getClientById = async (req, res) => {
   const id = req.params.id;
@@ -46,7 +91,7 @@ export const getClientById = async (req, res) => {
   }
 };
 
-//REGISTER 
+//REGISTER
 export const registerClient = async (req, res, next) => {
   const body = req.filteredBody;
   const {
@@ -76,7 +121,7 @@ export const registerClient = async (req, res, next) => {
         errorRes(400, "Password should be at least 6 character long.")
       );
     }
-    const validateFields = validateRegisterClientFields(body,res);
+    const validateFields = validateRegisterClientFields(body, res);
     if (!validateFields)
       return res.send(errorRes(400, "All field is required."));
 
@@ -121,10 +166,8 @@ export const registerClient = async (req, res, next) => {
     );
   } catch (error) {
     if (error.code === 11000) {
-      const test= error;
-      return res.send(
-        errorRes(400, `${test} already exists.`)
-      );
+      const test = error;
+      return res.send(errorRes(400, `${test} already exists.`));
     }
 
     return next(error);
@@ -134,12 +177,7 @@ export const registerClient = async (req, res, next) => {
 //LOGIN
 export const loginClient = async (req, res, next) => {
   const body = req.body;
-  const {
-    email,
-    phoneNumber,
-    altPhoneNumber,
-    password,
-  } = body;
+  const { email, phoneNumber, altPhoneNumber, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!password) return res.send(errorRes(403, "Password is required"));
@@ -196,12 +234,7 @@ export const loginClient = async (req, res, next) => {
 //AUTHENTICATION
 export const reAuthClient = async (req, res, next) => {
   const body = req.body;
-  const {
-    email,
-    phoneNumber,
-    altPhoneNumber,
-    password,
-  } = body;
+  const { email, phoneNumber, altPhoneNumber, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!password) return res.send(errorRes(403, "Password is required"));

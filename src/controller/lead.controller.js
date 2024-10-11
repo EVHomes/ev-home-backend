@@ -17,6 +17,50 @@ export const getAllLeads = async (req, res, next) => {
   }
 };
 
+export const searchLeads = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        isNumberQuery ? { phoneNumber: Number(query) } : null,
+        isNumberQuery ? { altPhoneNumber: Number(query) } : null,
+        { email: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { status: { $regex: query, $options: "i" } },
+        { interestedStatus: { $regex: query, $options: "i" } },
+      ].filter(Boolean),
+    };
+
+    const respCP = await leadModel.find(searchFilter).skip(skip).limit(limit);
+
+    // Count the total items matching the filter
+    const totalItems = await leadModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get Channel Partners", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getLeadById = async (req, res, next) => {
   const id = req.params.id;
   try {

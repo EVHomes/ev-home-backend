@@ -10,6 +10,7 @@ import clientRouter from "./client/clientRouter.js";
 import siteVisitRouter from "./siteVisit/sitevisitRouter.js";
 import storageRouter from "./storage/storageRouter.js";
 import { readFile } from "fs/promises";
+import oneSignalRouter from "./oneSignal/oneSignalRouter.js";
 
 const router = Router();
 
@@ -30,4 +31,5 @@ router.use(leadRouter);
 router.use(clientRouter);
 router.use(storageRouter);
 router.use(siteVisitRouter);
+router.use(oneSignalRouter);
 export default router;

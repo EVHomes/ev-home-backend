@@ -48,6 +48,8 @@ export const channelPartnerSchema = new mongoose.Schema(
     isVerified: { type: Boolean, required: true, default: false },
     sameAdress: { type: Boolean, required: true, default: false },
     refreshToken: { type: String, default: null },
+    isVerifiedPhone: { type: Boolean, default: false },
+    isVerifiedEmail: { type: Boolean, default: false },
     role: {
       type: String,
       required: true,

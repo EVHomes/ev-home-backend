@@ -8,6 +8,7 @@ import {
   loginChannelPartner,
   registerChannelPartner,
   resetPasswordChannelPartner,
+  searchChannelPartners,
 } from "../../controller/channelPartner.controller.js";
 import { validateChannelPartnerFields } from "../../middleware/channelPartner.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -15,6 +16,12 @@ import { authenticateToken } from "../../middleware/auth.middleware.js";
 const cpRouter = Router();
 
 cpRouter.get("/channel-partner", authenticateToken, getChannelPartners);
+
+cpRouter.get(
+  "/search-channel-partner",
+  authenticateToken,
+  searchChannelPartners
+);
 
 cpRouter.get("/channel-partner/:id", authenticateToken, getChannelPartnerById);
 
