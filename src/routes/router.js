@@ -11,6 +11,7 @@ import siteVisitRouter from "./siteVisit/sitevisitRouter.js";
 import storageRouter from "./storage/storageRouter.js";
 import { readFile } from "fs/promises";
 import oneSignalRouter from "./oneSignal/oneSignalRouter.js";
+import blockTokenRouter from "./bockedToken/blockTokenRouter.js";
 
 const router = Router();
 
@@ -32,4 +33,5 @@ router.use(clientRouter);
 router.use(storageRouter);
 router.use(siteVisitRouter);
 router.use(oneSignalRouter);
+router.use(blockTokenRouter);
 export default router;
