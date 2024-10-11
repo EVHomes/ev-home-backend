@@ -59,12 +59,12 @@ export const hostnameCheck = (req, res, next) => {
   }
 
   requestHost = requestHost.toLowerCase().trim();
-  console.log("Request Host:", requestHost);
+  // console.log("Request Host:", requestHost);
 
   const allowedHosts = config.ALLOWED_HOSTS.split(",").map((host) =>
     host.toLowerCase().trim()
   );
-  console.log("Allowed Hosts:", allowedHosts);
+  // console.log("Allowed Hosts:", allowedHosts);
 
   if (allowedHosts.includes(requestHost)) {
     next();

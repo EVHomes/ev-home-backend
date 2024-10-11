@@ -17,6 +17,50 @@ export const getAllLeads = async (req, res, next) => {
   }
 };
 
+export const searchLeads = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        isNumberQuery ? { phoneNumber: Number(query) } : null,
+        isNumberQuery ? { altPhoneNumber: Number(query) } : null,
+        { email: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { status: { $regex: query, $options: "i" } },
+        { interestedStatus: { $regex: query, $options: "i" } },
+      ].filter(Boolean),
+    };
+
+    const respCP = await leadModel.find(searchFilter).skip(skip).limit(limit);
+
+    // Count the total items matching the filter
+    const totalItems = await leadModel.countDocuments(searchFilter);
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get Channel Partners", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        items: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getLeadById = async (req, res, next) => {
   const id = req.params.id;
   try {
@@ -65,7 +109,6 @@ export const addLead = async (req, res) => {
     altPhoneNumber,
     remark,
     startDate,
-    dataAnalyser,
     channelPartner,
     teamLeader,
     preSalesExecutive,
@@ -77,16 +120,22 @@ export const addLead = async (req, res) => {
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
+
     if (!email) return res.send(errorRes(403, "Email is required"));
+
     if (!firstName) return res.send(errorRes(403, "First name is required"));
+
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
+
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
-    if (!dataAnalyser)
-      return res.send(errorRes(403, "Data analyzer is required"));
+    // if (!dataAnalyser)
+    //   return res.send(errorRes(403, "Data analyzer is required"));
     if (!channelPartner)
       return res.send(errorRes(403, "Channel partner is required"));
+
     if (!teamLeader) return res.send(errorRes(403, "Team leader is required"));
+
     if (!status) return res.send(errorRes(403, "Status is required"));
     if (!interestedStatus)
       return res.send(errorRes(403, "Interested status is required"));
@@ -117,6 +166,7 @@ export const addLead = async (req, res) => {
       );
     }
 
+
     const newLead = await leadModel.create({
       email,
       firstName,
@@ -124,17 +174,14 @@ export const addLead = async (req, res) => {
       phoneNumber,
       altPhoneNumber,
       remark,
-      dataAnalyser: "6703dd099f4039f877e104f9",
-      teamLeader: "6703dd099f4039f877e104f9",
-      preSalesExecutive: "6703dd099f4039f877e104f9",
-      channelPartner: "6703954f719e24844ec82e60",
+      channelPartner,
       status,
       interestedStatus,
-      project: "6704efc3bca837e200d0abee",
-      startDate: startDate || Date.now(), // Use current date if not provided
+      project,
+      startDate: startDate || Date.now(),
       validTill: new Date(
         new Date(startDate || Date.now()).setMonth(new Date().getMonth() + 2)
-      ), // Valid for 2 months
+      ),
     });
 
     // Save the new lead

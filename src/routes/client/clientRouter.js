@@ -8,12 +8,15 @@ import {
   resetPasswordClient,
   registerClient,
   loginClient,
+  searchClients,
 } from "../../controller/client.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateClientFields } from "../../middleware/client.middleware.js";
 
 const clientRouter = Router();
 clientRouter.get("/client", authenticateToken, getClients);
+clientRouter.get("/search-client", authenticateToken, searchClients);
+
 clientRouter.get("/client:/id", authenticateToken, getClientById);
 clientRouter.post("/client-register", validateClientFields, registerClient);
 clientRouter.post("/client-login", validateClientFields, loginClient);
