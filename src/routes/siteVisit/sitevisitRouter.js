@@ -4,6 +4,7 @@ import {
   deleteSiteVisits,
   getSiteVisits,
   getSiteVisitsById,
+  searchSiteVisits,
   updateSiteVisits,
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -18,5 +19,6 @@ siteVisitRouter.post(
   updateSiteVisits
 );
 siteVisitRouter.delete("/siteVisit/:id", authenticateToken, deleteSiteVisits);
+siteVisitRouter.get("/siteVisits-search",searchSiteVisits);
 
 export default siteVisitRouter;
