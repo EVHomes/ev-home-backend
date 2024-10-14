@@ -47,6 +47,6 @@ employeeRouter.post(
 
 employeeRouter.delete("/employee/:id", authenticateToken, deleteEmployeeById);
 
-employeeRouter.get("/search-employee", authenticateToken, searchEmployee);
+employeeRouter.get("/search-employee", searchEmployee);
 
 export default employeeRouter;

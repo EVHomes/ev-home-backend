@@ -16,6 +16,11 @@ export const employeeSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
+    profilePic: {
+      type: String,
+      default: null,
+    },
+
     employeeId: {
       type: String,
       required: true,
@@ -50,10 +55,26 @@ export const employeeSchema = new mongoose.Schema(
     address: { type: String, default: null },
     isVerifiedPhone: { type: Boolean, default: false },
     isVerifiedEmail: { type: Boolean, default: false },
-    department: { type: String, required: true, ref: "departments" },
-    designation: { type: String, required: true, ref: "designations" },
-    division: { type: String, required: true, ref: "divisions" },
-    reportingTo: { type: String, ref: "employees", default: null },
+    department: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "departments",
+    },
+    designation: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "designations",
+    },
+    division: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "divisions",
+    },
+    reportingTo: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "employees",
+      default: null,
+    },
     countryCode: { type: String, default: "+91" },
     phoneNumber: { type: Number, required: true, default: null },
     isVerified: { type: Boolean, required: true, default: false },

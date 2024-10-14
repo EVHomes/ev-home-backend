@@ -15,15 +15,19 @@ import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const cpRouter = Router();
 
-cpRouter.get("/channel-partner", authenticateToken, getChannelPartners);
+cpRouter.get("/channel-partner", getChannelPartners);
 
 cpRouter.get(
   "/search-channel-partner",
-  authenticateToken,
+  // authenticateToken,
   searchChannelPartners
 );
 
-cpRouter.get("/channel-partner/:id", authenticateToken, getChannelPartnerById);
+cpRouter.get(
+  "/channel-partner/:id",
+  // authenticateToken,
+  getChannelPartnerById
+);
 
 cpRouter.post(
   "/channel-partner-register",

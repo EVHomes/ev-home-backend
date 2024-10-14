@@ -3,6 +3,7 @@ import { validateRegisterCPFields } from "../middleware/channelPartner.middlewar
 import cpModel from "../model/channelPartner.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { respCode } from "../utils/constant.js";
 import {
   comparePassword,
   createJwtToken,
@@ -166,15 +167,22 @@ export const registerChannelPartner = async (req, res, next) => {
   const body = req.filteredBody;
   const { email, phoneNumber, password } = body;
   try {
-    if (!body) return res.send(errorRes(403, "data is required"));
+    if (!body)
+      return res.send(errorRes(403, "data is required", respCode.FIELDS_EMPTY));
     if (password.length < 6) {
       return res.send(
-        errorRes(400, "Password should be at least 6 character long.")
+        errorRes(
+          400,
+          "Password should be at least 6 character long.",
+          respCode.PASSWORD_MIN_LENGTH_ERROR
+        )
       );
     }
     const validateFields = validateRegisterCPFields(body);
     if (!validateFields)
-      return res.send(errorRes(401, "All field is required"));
+      return res.send(
+        errorRes(401, "All field is required", respCode.FIELDS_EMPTY)
+      );
     const oldUser = await cpModel
       .findOne({
         $or: [
@@ -188,7 +196,11 @@ export const registerChannelPartner = async (req, res, next) => {
 
     if (oldUser) {
       return res.send(
-        errorRes(400, "Account already exist with this email Or Phone number")
+        errorRes(
+          400,
+          "Account already exist with this email or phone number",
+          respCode.CP_ALREADY_EXIST
+        )
       );
     }
 
@@ -215,11 +227,16 @@ export const registerChannelPartner = async (req, res, next) => {
     await savedCp.save();
 
     return res.send(
-      successRes(200, "channel partner is registered", {
-        ...userWithoutPassword,
-        accessToken,
-        refreshToken,
-      })
+      successRes(
+        200,
+        "channel partner is registered",
+        {
+          ...userWithoutPassword,
+          accessToken,
+          refreshToken,
+        },
+        respCode.CP_REGISTERED
+      )
     );
   } catch (error) {
     return next(error);
@@ -227,8 +244,8 @@ export const registerChannelPartner = async (req, res, next) => {
 };
 
 export const loginChannelPartner = async (req, res, next) => {
-  const body = req.body;
-  const { email, phoneNumber, password } = body;
+  const body = req.filteredBody;
+  const { email, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!email) return res.send(errorRes(403, "email is required"));
@@ -242,7 +259,7 @@ export const loginChannelPartner = async (req, res, next) => {
 
     if (!channelPartnerDb) {
       return res.send(
-        errorRes(400, "No Channel Partner found with given email")
+        errorRes(404, "No Channel Partner found", respCode.CP_NOT_FOUND)
       );
     }
 
@@ -251,7 +268,9 @@ export const loginChannelPartner = async (req, res, next) => {
     const hashPass = await comparePassword(password, channelPartnerDb.password);
 
     if (!hashPass) {
-      return res.status(400).json({ message: "Password didn't Matched" });
+      return res.send(
+        errorRes(401, "Password didn't Matched", respCode.PASSWORD_NOT_MATCHED)
+      );
     }
 
     // const newChannelPartner = new cpModel({
@@ -282,11 +301,18 @@ export const loginChannelPartner = async (req, res, next) => {
     // await savedCp.save();
 
     return res.send(
-      successRes(200, "channel partner login successful", {
-        ...userWithoutPassword,
-        accessToken,
-        refreshToken,
-      })
+      successRes(
+        200,
+        "Login Successful",
+        {
+          data: {
+            ...userWithoutPassword,
+            accessToken,
+            refreshToken,
+          },
+        },
+        respCode.LOGIN_SUCCESS
+      )
     );
   } catch (error) {
     return next(error);
@@ -309,20 +335,27 @@ export const reAuthChannelPartner = async (req, res, next) => {
 
     if (!channelPartnerDb) {
       return res.send(
-        errorRes(400, "No Channel Partner found with given email")
+        errorRes(400, "No Channel Partner found", respCode.CP_NOT_FOUND)
       );
     }
 
     const hashPass = await comparePassword(password, channelPartnerDb.password);
 
     if (!hashPass) {
-      return res.send(errorRes(401, "Password didn't Matched"));
+      return res.send(
+        errorRes(401, "Password didn't Matched", respCode.PASSWORD_NOT_MATCHED)
+      );
     }
 
     return res.send(
-      successRes(200, "channel partner is verified", {
-        status: true,
-      })
+      successRes(
+        200,
+        "channel partner is verified",
+        {
+          status: true,
+        },
+        respCode.CP_VERIFIED
+      )
     );
   } catch (error) {
     return next(error);
@@ -333,13 +366,25 @@ export const forgotPasswordChannelPartner = async (req, res, next) => {
   const body = req.body;
   const { email } = body;
   try {
-    if (!body) return res.send(errorRes(403, "data is required"));
-    if (!email) return res.send(errorRes(403, "email is required"));
+    if (!body)
+      return res.send(errorRes(403, "data is required"), respCode.FIELDS_EMPTY);
+    if (!email)
+      return res.send(
+        errorRes(403, "email is required"),
+        respCode.FIELDS_EMPTY
+      );
 
     const oldOtp = await otpModel.findOne({ email: email }).lean();
 
     if (oldOtp) {
-      return res.send(successRes(200, `otp re-sent to ${email}`, oldOtp));
+      return res.send(
+        successRes(
+          200,
+          `otp re-sent to ${email}`,
+          oldOtp,
+          respCode.OTP_RESENT_SUCCESS
+        )
+      );
     }
 
     const channelPartnerDb = await cpModel
@@ -349,7 +394,9 @@ export const forgotPasswordChannelPartner = async (req, res, next) => {
       .lean();
 
     if (!channelPartnerDb) {
-      return res.send(errorRes(400, `No Channel Partner found with ${email}`));
+      return res.send(
+        errorRes(404, `Account not with ${email}`, respCode.CP_NOT_FOUND)
+      );
     }
 
     const newOtp = generateOTP(4);
@@ -363,55 +410,91 @@ export const forgotPasswordChannelPartner = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
 
-    return res.send(successRes(200, `otp sent to ${email}`, savedOtp._doc));
+    return res.send(
+      successRes(
+        200,
+        `otp sent to ${email}`,
+        savedOtp._doc,
+        respCode.OTP_SENT_SUCCESS
+      )
+    );
   } catch (error) {
     return next(error);
   }
 };
 
 export const resetPasswordChannelPartner = async (req, res, next) => {
-  const body = req.body;
+  const body = req.filteredBody;
   const { otp, email, password } = body;
   try {
-    if (!body) return res.send(errorRes(403, "data is required"));
-    if (!otp) return res.send(errorRes(403, "otp is required"));
-    if (!email) return res.send(errorRes(403, "email is required"));
-    if (!password) return res.send(errorRes(403, "password is required"));
+    if (!body)
+      return res.send(errorRes(403, "data is required"), respCode.FIELDS_EMPTY);
+    if (!otp)
+      return res.send(errorRes(403, "otp is required"), respCode.FIELDS_EMPTY);
+    if (!email)
+      return res.send(
+        errorRes(403, "email is required"),
+        respCode.FIELDS_EMPTY
+      );
+    if (!password)
+      return res.send(
+        errorRes(403, "password is required"),
+        respCode.FIELDS_EMPTY
+      );
 
-    const otpDbResp = await otpModel
-      .findOne({
-        email: email,
-      })
-      .lean();
+    const otpDbResp = await otpModel.findOne({
+      email: email,
+    });
 
     if (!otpDbResp) {
-      return res.send(errorRes(404, "Invalid Otp"));
+      return res.send(
+        errorRes(404, "Invalid Otp", respCode.INVALID_OTP_SUCCESS)
+      );
     }
     if (otpDbResp.otp != otp) {
-      return res.send(errorRes(401, "Otp didn't matched"));
+      return res.send(
+        errorRes(401, "Otp didn't matched", respCode.OTP_MATCHED)
+      );
     }
-    const channelPartnerDb = await cpModel.findById(otpDbResp.docId).lean();
+    const channelPartnerDb = await cpModel.findById(otpDbResp.docId);
     if (!channelPartnerDb) {
       return res.send(
-        errorRes(404, "No Channel Partner found with given email")
+        errorRes(
+          404,
+          "No Channel Partner found with given email",
+          respCode.CP_NOT_FOUND
+        )
       );
     }
     const hashPassword = await encryptPassword(password);
-    const updatedPassChannelPartner = await cpModel.updateOne(
-      {
-        _id: channelPartnerDb._id,
-      },
+
+    await channelPartnerDb.updateOne(
       {
         password: hashPassword,
-      }
+      },
+      { new: true }
     );
 
-    await otpModel.deleteOne({ _id: otpDbResp._id });
+    // const updatedPassChannelPartner = await cpModel.updateOne(
+    //   {
+    //     _id: channelPartnerDb._id,
+    //   },
+    //   {
+    //     password: hashPassword,
+    //   }
+    // );
+    await otpDbResp.deleteOne();
+    // await otpModel.deleteOne({ _id: otpDbResp._id });
 
     return res.send(
-      successRes(200, `Reset password sucessfully for: ${otpDbResp.email}`, {
-        status: updatedPassChannelPartner.acknowledged,
-      })
+      successRes(
+        200,
+        `Reset password sucessfully for: ${otpDbResp.email}`,
+        {
+          status: channelPartnerDb.acknowledged,
+        },
+        respCode.PASSWORD_RESET_SUCCESS
+      )
     );
   } catch (error) {
     return next(error);

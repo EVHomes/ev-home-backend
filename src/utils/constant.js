@@ -1,0 +1,17 @@
+export const respCode = {
+  CP_ALREADY_EXIST: "channel-partner-already-exist",
+  CP_NOT_FOUND: "channel-partner-not-found",
+  CP_NOT_VERIFIED: "channel-partner-not-verified",
+  CP_VERIFIED: "channel-partner-verified",
+  CP_REGISTERED: "channel-partner-registered",
+  LOGIN_SUCCESS: "login-successful",
+  LOGIN_FAILED: "login-failed",
+  OTP_RESENT_SUCCESS: "otp-resent-success",
+  INVALID_OTP_SUCCESS: "otp-resent-invalid",
+  OTP_MATCHED: "otp-resent-matched",
+  OTP_SENT_SUCCESS: "otp-sent-success",
+  PASSWORD_RESET_SUCCESS: "password-reset-success",
+  FIELDS_EMPTY: "field-is-empty",
+  PASSWORD_NOT_MATCHED: "password-not-matched",
+  PASSWORD_MIN_LENGTH_ERROR: "password-min-length-error",
+};

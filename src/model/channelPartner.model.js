@@ -21,6 +21,7 @@ export const channelPartnerSchema = new mongoose.Schema(
     gender: {
       type: String,
       required: true,
+      default: "male",
       enum: ["male", "female", "other"],
       message: "Gender must be either male, female, or other.",
     },
