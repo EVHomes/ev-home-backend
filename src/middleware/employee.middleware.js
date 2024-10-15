@@ -46,7 +46,7 @@ export const validateEmployeeFields = (req, res, next) => {
   next();
 };
 
-export const validateRegisterEmployeeFields = (body) => {
+export const validateRegisterEmployeeFields = (body, res) => {
   const {
     firstName,
     lastName,

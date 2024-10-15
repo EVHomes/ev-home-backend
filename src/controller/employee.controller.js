@@ -113,7 +113,7 @@ export const registerEmployee = async (req, res, next) => {
         errorRes(400, "Password should be at least 6 character long.")
       );
     }
-    const validateFields = validateRegisterEmployeeFields(body);
+    const validateFields = validateRegisterEmployeeFields(body, res);
     if (!validateFields)
       return res.send(errorRes(400, "All field is required."));
 

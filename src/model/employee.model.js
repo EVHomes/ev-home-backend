@@ -81,7 +81,7 @@ export const employeeSchema = new mongoose.Schema(
     refreshToken: { type: String, default: null },
     role: {
       type: String,
-      required: true,
+      // required: true,
       default: "employee",
       enum: ["employee", "channel-partner", "customer"],
     },
