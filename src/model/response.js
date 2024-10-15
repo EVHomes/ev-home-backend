@@ -1,18 +1,16 @@
 import httpStatus from "http-status";
 
-export function successRes(status, message, data, code) {
+export function successRes(status, message, data) {
   return {
-    status: status || 200,
-    code: code || `response-code-${status}`,
+    code: status || 200,
     message,
     ...data,
   };
 }
 
-export function errorRes(status, message, code) {
+export function errorRes(status, message) {
   return {
-    status: status,
-    code: code || `response-code-${status}`,
+    code: status,
     message: message || httpStatus[`${status}_MESSAGE`],
   };
 }

@@ -8,6 +8,7 @@ import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { hostnameCheck } from "./utils/helper.js";
 
 connectDatabase();
+
 const app = express();
 app.use(hostnameCheck);
 app.use(express.json({ limit: "100mb" }));
