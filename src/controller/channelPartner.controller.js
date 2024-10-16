@@ -202,13 +202,20 @@ export const registerChannelPartner = async (req, res, next) => {
     const savedCp = await newChannelPartner.save();
 
     const { password: dbPassword, ...userWithoutPassword } = savedCp._doc;
+
+    const dataToken = {
+      _id: savedCp._id,
+      email: savedCp.email,
+      role: savedCp.role,
+    };
+
     const accessToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_ACCESS_KEY,
       "15m"
     );
     const refreshToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_REFRESH_KEY,
       "7d"
     );
@@ -263,15 +270,19 @@ export const loginChannelPartner = async (req, res, next) => {
       ...userWithoutPassword
     } = channelPartnerDb._doc;
     // console.log(userWithoutPassword);
-
+    const dataToken = {
+      _id: channelPartnerDb._id,
+      email: channelPartnerDb.email,
+      role: channelPartnerDb.role,
+    };
     const accessToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_ACCESS_KEY,
       "15m"
     );
 
     const refreshToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_REFRESH_KEY,
       "7d"
     );

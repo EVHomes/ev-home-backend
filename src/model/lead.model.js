@@ -1,4 +1,3 @@
-import { request } from "express";
 import mongoose from "mongoose";
 const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const passwordFormat = /^\d+$/;
@@ -17,8 +16,9 @@ export const leadSchema = new mongoose.Schema(
     },
     project: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "ourProjects",
+        type: String,
+        // type: mongoose.Schema.Types.ObjectId,
+        // ref: "ourProjects",
         required: true,
       },
     ],

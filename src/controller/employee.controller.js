@@ -117,11 +117,10 @@ export const registerEmployee = async (req, res, next) => {
     if (!validateFields)
       return res.send(errorRes(400, "All field is required."));
 
-    const oldUser = await employeeModel
-      .findOne({
-        email: email,
-      })
-      .lean();
+    const oldUser = await employeeModel.findOne({
+      email: email,
+    });
+    // .lean();
 
     if (oldUser) {
       return res.send(errorRes(400, "Employee already exist with this email"));
@@ -136,13 +135,19 @@ export const registerEmployee = async (req, res, next) => {
     const savedEmployee = await newChannelPartner.save();
 
     const { password: dbPassword, ...userWithoutPassword } = savedEmployee._doc;
+    const dataToken = {
+      _id: savedEmployee._id,
+      email: savedEmployee.email,
+      role: savedEmployee.role,
+    };
+
     const accessToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_ACCESS_KEY,
       "15m"
     );
     const refreshToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_REFRESH_KEY,
       "7d"
     );
@@ -175,11 +180,10 @@ export const loginEmployee = async (req, res, next) => {
     if (!email) return res.send(errorRes(403, "email is required"));
     if (!password) return res.send(errorRes(403, "password is required"));
 
-    const employeeDb = await employeeModel
-      .findOne({
-        email: email,
-      })
-      .lean();
+    const employeeDb = await employeeModel.findOne({
+      email: email,
+    });
+    // .lean();
 
     if (!employeeDb) {
       return res.send(errorRes(400, "No Employee found with given email"));
@@ -191,29 +195,41 @@ export const loginEmployee = async (req, res, next) => {
       return res.status(400).json({ message: "Password didn't Matched" });
     }
 
-    const { password: dbPassword, ...userWithoutPassword } = employeeDb;
+    const { password: dbPassword, ...userWithoutPassword } = employeeDb._doc;
+    const dataToken = {
+      _id: employeeDb._id,
+      email: employeeDb.email,
+      role: employeeDb.role,
+    };
+
     const accessToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_ACCESS_KEY,
       "15m"
     );
     const refreshToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_REFRESH_KEY,
       "7d"
     );
-    await employeeModel.updateOne(
-      { _id: employeeDb._id },
+    await employeeDb.updateOne(
       {
         refreshToken: refreshToken,
-      }
+      },
+      { new: true }
     );
+    // await employeeModel.updateOne(
+    //   { _id: employeeDb._id },
+    //   {
+    //     refreshToken: refreshToken,
+    //   }
+    // );
     // employeeDb.refreshToken = refreshToken;
     // await employeeDb.save();
 
     return res.send(
       successRes(200, "Employee Login successful", {
-        ...userWithoutPassword,
+        data: userWithoutPassword,
         accessToken,
         refreshToken,
       })

@@ -1,3 +1,4 @@
+import employeeModel from "../model/employee.model.js";
 import leadModel, { leadSchema } from "../model/lead.model.js";
 import { errorRes, successRes } from "../model/response.js";
 
@@ -99,6 +100,54 @@ export const getLeadById = async (req, res, next) => {
   }
 };
 
+export const assignLeadToTeamLeader = async (req, res, next) => {
+  const id = req.params.id;
+
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+
+    const respLead = await leadModel
+      .findById({ _id: id })
+      .populate({
+        path: "project",
+        select: "",
+      })
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+      });
+
+    if (!respLead) return errorRes(404, "No lead found");
+
+    if (respLead.teamLeader)
+      return errorRes(404, "Team Leader is Already Assigned");
+
+    const teamLeaders = await employeeModel.find({
+      designation: "670e5493de5adb5e87eb8d8c",
+    });
+    console.log(teamLeaders);
+    return res.send(
+      successRes(200, "lead assigned to TL", {
+        data: respLead,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const addLead = async (req, res) => {
   const body = req.body;
   const {
@@ -165,7 +214,6 @@ export const addLead = async (req, res) => {
         )
       );
     }
-
 
     const newLead = await leadModel.create({
       email,
