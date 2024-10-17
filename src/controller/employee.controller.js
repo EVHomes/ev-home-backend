@@ -248,7 +248,15 @@ export const loginEmployee = async (req, res, next) => {
       .populate("designation")
       .populate("department")
       .populate("division")
-      .populate("reportingTo");
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
 
     // .lean();
 
