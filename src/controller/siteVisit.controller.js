@@ -95,6 +95,7 @@ export const addSiteVisits = async (req, res) => {
     email,
     phoneNumber,
     residence,
+    address,
     projects,
     choiceApt,
     source,
@@ -108,7 +109,7 @@ export const addSiteVisits = async (req, res) => {
     if (!body) return res.send(errorRes(403, "Data is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!residence) return res.send(errorRes(403, "Residence is required"));
+    // if (!residence) return res.send(errorRes(403, "Residence is required"));
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!projects) return res.send(errorRes(403, "Project is required"));
     if (!phoneNumber)
@@ -122,7 +123,7 @@ export const addSiteVisits = async (req, res) => {
       lastName,
       email,
       phoneNumber,
-      residence,
+      residence: address ?? residence,
       projects,
       choiceApt,
       source,

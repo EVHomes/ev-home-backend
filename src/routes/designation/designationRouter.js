@@ -9,10 +9,30 @@ import {
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const desRouter = Router();
-desRouter.get("/designation", authenticateToken, getDesignation);
-desRouter.get("/designation/:id", authenticateToken, getDesignationById);
-desRouter.post("/designation-add", authenticateToken, addDesignation);
-desRouter.post("/designation-update/:id", authenticateToken, updateDesignation);
-desRouter.delete("/designation/:id", authenticateToken, deleteDesignation);
+desRouter.get(
+  "/designation",
+  //  authenticateToken,
+  getDesignation
+);
+desRouter.get(
+  "/designation/:id",
+  // authenticateToken,
+  getDesignationById
+);
+desRouter.post(
+  "/designation-add",
+  // authenticateToken,
+  addDesignation
+);
+desRouter.post(
+  "/designation-update/:id",
+  // authenticateToken,
+  updateDesignation
+);
+desRouter.delete(
+  "/designation/:id",
+  // authenticateToken,
+  deleteDesignation
+);
 
 export default desRouter;

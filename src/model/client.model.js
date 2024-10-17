@@ -29,7 +29,6 @@ export const clientSchema = new mongoose.Schema({
   altPhoneNumber: { type: Number, required: false },
   address: { type: String, required: false, default: null },
   password: { type: String, required: true, minlength: 6 },
-  confirmPassword: { type: String, required: true, minlength: 6 },
   projects: [
     {
       type: String,

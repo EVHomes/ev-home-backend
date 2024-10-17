@@ -5,7 +5,7 @@ export const siteVisitSchema = new mongoose.Schema(
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
     phoneNumber: { type: Number, required: true, unique: true },
-    countryCode: { type: Number, required: false, default: "+91" },
+    countryCode: { type: Number, default: "+91" },
     email: {
       type: String,
       required: true,
@@ -16,7 +16,7 @@ export const siteVisitSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
-    residence: { type: String, required: true, default: null },
+    residence: { type: String, default: null },
     projects: [
       {
         type: String,
