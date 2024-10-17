@@ -18,7 +18,11 @@ clientRouter.get("/client", authenticateToken, getClients);
 clientRouter.get("/search-client", authenticateToken, searchClients);
 
 clientRouter.get("/client:/id", authenticateToken, getClientById);
-clientRouter.post("/client-register", validateClientFields, registerClient);
+clientRouter.post(
+  "/client-register",
+  // validateClientFields,
+  registerClient
+);
 clientRouter.post("/client-login", validateClientFields, loginClient);
 
 clientRouter.post(

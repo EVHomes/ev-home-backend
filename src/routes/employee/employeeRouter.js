@@ -3,6 +3,7 @@ import {
   deleteEmployeeById,
   editEmployeeById,
   forgotPasswordEmployee,
+  getClosingManagers,
   getEmployeeById,
   getEmployees,
   loginEmployee,
@@ -15,9 +16,18 @@ import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const employeeRouter = Router();
 
-employeeRouter.get("/employee", authenticateToken, getEmployees);
+employeeRouter.get(
+  "/employee",
+  // authenticateToken,
+  getEmployees
+);
 
 employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
+employeeRouter.get(
+  "/employee-closing-manager",
+  // authenticateToken,
+  getClosingManagers
+);
 
 employeeRouter.post(
   "/employee-register",

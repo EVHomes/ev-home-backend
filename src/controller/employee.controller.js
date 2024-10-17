@@ -13,7 +13,57 @@ import {
 
 export const getEmployees = async (req, res, next) => {
   try {
-    const respCP = await cpModel.find().select("-password -refreshToken");
+    const respCP = await employeeModel
+      .find()
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+export const getClosingManagers = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        $or: [
+          {
+            designation: "670e5434de5adb5e87eb8d77",
+          },
+          {
+            designation: "670e544bde5adb5e87eb8d7d",
+          },
+        ],
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
 
     return res.send(
       successRes(200, "get Employees", {
@@ -31,8 +81,19 @@ export const getEmployeeById = async (req, res, next) => {
     if (!id) return res.send(errorRes(403, "id is required"));
     const respEmployee = await employeeModel
       .findById(id)
-      .select("-password -refreshToken");
-
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
     //if not found
     if (!respEmployee) {
       return res.send(errorRes(404, `Employee not found with id: ${id}`));
@@ -180,9 +241,15 @@ export const loginEmployee = async (req, res, next) => {
     if (!email) return res.send(errorRes(403, "email is required"));
     if (!password) return res.send(errorRes(403, "password is required"));
 
-    const employeeDb = await employeeModel.findOne({
-      email: email,
-    });
+    const employeeDb = await employeeModel
+      .findOne({
+        email: email,
+      })
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate("reportingTo");
+
     // .lean();
 
     if (!employeeDb) {

@@ -30,13 +30,14 @@ export const siteVisitSchema = new mongoose.Schema(
         type: String,
         required: true,
         default: null,
-        enum: ["1RK", "1BHK", "2BHK", "3BHK", "Jodi"],
+        // enum: ["1RK", "1BHK", "2BHK", "3BHK", "Jodi"],
       },
     ],
     source: {
       type: String,
-      required: true,
-      enum: ["Walk-in", "CP", "Reference"],
+      // required: true,
+      default: null,
+      // enum: ["Walk-in", "CP", "Reference"],
     },
     closingManager: {
       type: mongoose.Schema.Types.ObjectId,
@@ -54,7 +55,7 @@ export const siteVisitSchema = new mongoose.Schema(
     teamLeader: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "employees",
-      required: true,
+      // required: true,
       default: null,
     },
     teamLeaderTeam: [
@@ -67,7 +68,7 @@ export const siteVisitSchema = new mongoose.Schema(
     dataEntryBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "employees",
-      required: true,
+      // required: true,
       default: null,
     },
   }

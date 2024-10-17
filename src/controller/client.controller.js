@@ -93,7 +93,7 @@ export const getClientById = async (req, res) => {
 
 //REGISTER
 export const registerClient = async (req, res, next) => {
-  const body = req.filteredBody;
+  const body = req.body;
   const {
     firstName,
     lastName,

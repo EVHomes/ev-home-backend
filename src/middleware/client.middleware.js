@@ -10,6 +10,10 @@ const ALLOWED_ClIENT_FIELDS = [
   "altPhoneNumber",
   "address",
   "password",
+  "confirmPassword",
+  "choiceOfApt",
+  "closingManager",
+  "projects",
 ];
 
 // Middleware to validate and filter fields
@@ -37,7 +41,7 @@ export const validateClientFields = (req, res, next) => {
   next();
 };
 
-export const validateRegisterClientFields = (body,res) => {
+export const validateRegisterClientFields = (body, res) => {
   const {
     firstName,
     lastName,

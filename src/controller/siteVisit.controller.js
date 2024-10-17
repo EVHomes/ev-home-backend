@@ -29,11 +29,11 @@ export const getSiteVisitsById = async (req, res) => {
           data: respSite,
         })
       );
-      return res.send(
-        successRes(200, "lead by id", {
-          data: respSite,
-        })
-      );
+    return res.send(
+      successRes(200, "lead by id", {
+        data: respSite,
+      })
+    );
   } catch (error) {
     return res.send(errorRes(500, `server error:${error?.message}`));
   }
@@ -50,9 +50,9 @@ export const searchSiteVisits = async (req, res, next) => {
     const isNumberQuery = !isNaN(query);
     let searchFilter = {
       $or: [
-        { firstName: { $regex: query, $options: "i" } }, 
+        { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
-        isNumberQuery ? { phoneNumber: Number(query) } : null, 
+        isNumberQuery ? { phoneNumber: Number(query) } : null,
         { email: { $regex: query, $options: "i" } },
         { source: { $regex: query, $options: "i" } },
         // { closingManager: { $regex: query, $options: "i" } },
@@ -113,13 +113,9 @@ export const addSiteVisits = async (req, res) => {
     if (!projects) return res.send(errorRes(403, "Project is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
-    if (!source) res.send(errorRes(403, "Source is required"));
     if (!closingManager) res.send(errorRes(403, "Closing Manager is required"));
-    if (!closingTeam) res.send(errorRes(403, "Closing Team is required"));
     if (!choiceApt)
       return res.send(errorRes(403, "Choice of Apartment is required"));
-    if (!teamLeader) res.send(errorRes(403, "Team Leader is required"));
-    if (!team) res.send(errorRes(403, "Team is required"));
 
     const newSiteVisit = await siteVisitModel.create({
       firstName,
@@ -130,10 +126,7 @@ export const addSiteVisits = async (req, res) => {
       projects,
       choiceApt,
       source,
-      closingManager: "6706217f765622c7ffb1793f",
-      closingTeam: "6706217f765622c7ffb1793f",
-      teamLeader: "6706217f765622c7ffb1793f",
-      team: "6706217f765622c7ffb1793f",
+      closingManager: closingManager,
     });
 
     await newSiteVisit.save();
@@ -145,19 +138,19 @@ export const addSiteVisits = async (req, res) => {
       .populate({
         path: "closingManager",
         select: "-refreshToken -password",
-      })
-      .populate({
-        path: "closingTeam",
-        select: "-refreshToken -password",
-      })
-      .populate({
-        path: "teamLeader",
-        select: "-refreshToken -password",
-      })
-      .populate({
-        path: "team",
-        select: "-refreshToken -password",
       });
+    // .populate({
+    //   path: "closingTeam",
+    //   select: "-refreshToken -password",
+    // })
+    // .populate({
+    //   path: "teamLeader",
+    //   select: "-refreshToken -password",
+    // })
+    // .populate({
+    //   path: "team",
+    //   select: "-refreshToken -password",
+    // });
 
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {

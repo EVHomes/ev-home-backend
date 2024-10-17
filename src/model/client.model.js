@@ -15,6 +15,7 @@ export const clientSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid email.`,
     },
   },
+
   gender: {
     type: String,
     required: true,
@@ -23,17 +24,34 @@ export const clientSchema = new mongoose.Schema({
   },
   isVerifiedPhone: { type: Boolean, default: false },
   isVerifiedEmail: { type: Boolean, default: false },
-
   phoneNumber: { type: Number, required: true, unique: true },
   countryCode: { type: Number, default: "+91" },
   altPhoneNumber: { type: Number, required: false },
   address: { type: String, required: false, default: null },
   password: { type: String, required: true, minlength: 6 },
-  role: {
-    type: String,
-    default: "customer",
-    enum: ["employee", "channel-partner", "customer"],
+  confirmPassword: { type: String, required: true, minlength: 6 },
+  projects: [
+    {
+      type: String,
+      required: true,
+      default: null,
+      // enum: ["EV 9 Square", "EV Heart City", "Marina Bay"],
+    },
+  ],
+  closingManager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "employees",
+    required: true,
+    default: null,
   },
+  choiceApt: [
+    {
+      type: String,
+      required: true,
+      default: null,
+      // enum: ["1RK", "1BHK", "2BHK", "3BHK", "Jodi"],
+    },
+  ],
 });
 
 const clientModel = mongoose.model("clients", clientSchema, "clients");
