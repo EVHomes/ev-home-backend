@@ -12,9 +12,7 @@ export const getDepartment = async (req, res) => {
       })
     );
   } catch (error) {
-    return res.json({
-      message: `error: ${error}`,
-    });
+    return res.send(errorRes(500, error));
   }
 };
 
@@ -23,16 +21,23 @@ export const getDepartmentById = async (req, res) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
+
     const respDept = await departmentModel.findOne({ _id: id });
 
     if (!respDept)
       return res.send(
-        successRes(404, `Department not found with id:${id}`, {
+        successRes(404, `Department not found`, {
           data: respDept,
         })
       );
+
+    return res.send(
+      successRes(200, "Department found", {
+        data: respDept,
+      })
+    );
   } catch (error) {
-    return res.send(errorRes(500, `server error:${error?.message}`));
+    return res.send(errorRes(500, error));
   }
 };
 
@@ -54,7 +59,7 @@ export const addDepartment = async (req, res) => {
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `server error:${error?.message}`));
+    return res.send(errorRes(500, error));
   }
 };
 
@@ -73,14 +78,14 @@ export const updateDepartment = async (req, res) => {
       { new: true }
     );
     if (!updateDepartment)
-      return res.send(errorRes(402, `department not updated:${department}`));
+      return res.send(errorRes(402, `department not updated: ${department}`));
     return res.send(
-      successRes(200, `department updated successfully:${(id, department)}`, {
+      successRes(200, `department updated successfully: ${department}`, {
         data: updatedDepartment,
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `server error:${error?.message}`));
+    return res.send(errorRes(500, error));
   }
 };
 
@@ -92,15 +97,18 @@ export const deleteDepartment = async (req, res) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
     if (!body) return res.send(errorRes(403, "data is required"));
+
     const deletedDepartment = await departmentModel.findByIdAndDelete(id);
+
     if (!deleteDepartment)
-      return res.send(errorRes(402, `department not deleted:${id}`));
+      return res.send(errorRes(402, `department not deleted: ${department}`));
+
     return res.send(
-      successRes(200, `department deleted successfull:${(id, department)}`, {
+      successRes(200, `department deleted successfully`, {
         deletedDepartment,
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `server error:${error?.message}`));
+    return res.send(errorRes(500, error));
   }
 };

@@ -51,6 +51,12 @@ export const clientSchema = new mongoose.Schema({
       // enum: ["1RK", "1BHK", "2BHK", "3BHK", "Jodi"],
     },
   ],
+  role: {
+    type: String,
+    // required: true,
+    default: "customer",
+    enum: ["employee", "channel-partner", "customer"],
+  },
 });
 
 const clientModel = mongoose.model("clients", clientSchema, "clients");

@@ -182,14 +182,22 @@ export const loginClient = async (req, res, next) => {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!password) return res.send(errorRes(403, "Password is required"));
     if (!email) return res.send(errorRes(403, "Email is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    // if (!phoneNumber)
+    //   return res.send(errorRes(403, "Phone number is required"));
 
     const clientDb = await clientModel
       .findOne({
         email: email,
       })
-      .lean();
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
 
     if (!clientDb) {
       return res.send(errorRes(400, "Client not found with given email"));
@@ -201,27 +209,34 @@ export const loginClient = async (req, res, next) => {
       return res.status(400).json({ message: "Password do not match" });
     }
 
-    const { password: dbPassword, ...userWithoutPassword } = clientDb;
+    const { password: dbPassword, ...userWithoutPassword } = clientDb._doc;
+    const dataToken = {
+      _id: clientDb._id,
+      email: clientDb.email,
+      role: clientDb.role,
+    };
+
     const accessToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_ACCESS_KEY,
       "15m"
     );
     const refreshToken = createJwtToken(
-      userWithoutPassword,
+      dataToken,
       config.SECRET_REFRESH_KEY,
       "7d"
     );
-    await clientModel.updateOne(
-      { _id: clientDb._id },
-      {
-        refreshToken: refreshToken,
-      }
-    );
+    await clientDb.updateOne({ refreshToken: refreshToken }, { new: true });
+    // await clientModel.updateOne(
+    //   { _id: clientDb._id },
+    //   {
+    //     refreshToken: refreshToken,
+    //   }
+    // );
 
     return res.send(
       successRes(200, "Client Login successfully", {
-        ...userWithoutPassword,
+        data: userWithoutPassword,
         accessToken,
         refreshToken,
       })
