@@ -42,6 +42,18 @@ export const verifyJwtToken = (token, secretKey) => {
   return jwt.verify(token, secretKey);
 };
 
+export const validateToken = () => {
+  try {
+    const decoded = jwt.verify(token, secret);
+    return { valid: true, decoded };
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return { valid: false, expired: true };
+    }
+    return { valid: false, expired: false };
+  }
+};
+
 export function generateOTP(length) {
   const digits = "0123456789";
   let otp = "";

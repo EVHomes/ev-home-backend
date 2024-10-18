@@ -5,6 +5,7 @@ import {
   deleteBLockedToken,
   getBlockedTokens,
   searchBlockedTokens,
+  validateTokens,
 } from "../../controller/blockToken.controller.js";
 
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -26,5 +27,7 @@ blockTokenRouter.delete(
   authenticateToken,
   deleteBLockedToken
 );
+
+blockTokenRouter.post("/validate-token", validateTokens);
 
 export default blockTokenRouter;

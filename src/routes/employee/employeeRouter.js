@@ -22,11 +22,7 @@ employeeRouter.get(
   getEmployees
 );
 
-employeeRouter.get(
-  "/employee/:id",
-  //  authenticateToken,
-  getEmployeeById
-);
+employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
 
 employeeRouter.get(
   "/employee-closing-manager",

@@ -8,7 +8,8 @@ import { createJwtToken, verifyJwtToken } from "../utils/helper.js";
 export const authenticateToken = async (req, res, next) => {
   try {
     const accessToken = req.headers.authorization?.split(" ")[1];
-    const refreshToken = req.headers.refreshtoken?.split(" ")[1];
+    // const refreshToken = req.headers.refreshtoken?.split(" ")[1];
+    const refreshToken = req.headers["x-refresh-token"];
 
     if (!accessToken) {
       return res.status(401).json({ message: "No token provided" });
@@ -55,9 +56,14 @@ export const authenticateToken = async (req, res, next) => {
             return res.send(errorRes(401, "No valid Session found"));
           }
           const { password, ...userWithoutPassword } = user;
+          const dataToken = {
+            _id: user._id,
+            email: user.email,
+            role: user.role,
+          };
 
           const newAccessToken = createJwtToken(
-            userWithoutPassword,
+            dataToken,
             config.SECRET_ACCESS_KEY,
             "15m"
           );

@@ -22,6 +22,7 @@ router.get("/", async (req, res) => {
   );
   return res.type("html").send(htmlContent);
 });
+
 router.use(cpRouter);
 router.use(employeeRouter);
 router.use(divRouter);
