@@ -5,12 +5,12 @@ import { successRes } from "../../model/response.js";
 const oneSignalRouter = Router();
 
 oneSignalRouter.post("/save-player-id", async (req, res, next) => {
-  const { docId, type, playerId } = req.body;
+  const { docId, role, playerId } = req.body;
 
   try {
     const user = await oneSignalModel.findOne({
       docId,
-      type,
+      role,
     });
 
     if (user) {
@@ -24,7 +24,7 @@ oneSignalRouter.post("/save-player-id", async (req, res, next) => {
     }
     const oneSignal = new oneSignalModel({
       docId,
-      type,
+      role,
       playerId,
     });
 
