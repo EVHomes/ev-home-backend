@@ -1,6 +1,9 @@
 import employeeModel from "../model/employee.model.js";
 import leadModel from "../model/lead.model.js";
+import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import TeamLeaderAssignTurn from "../model/teamLeaderAssignTurn.model.js";
+import { sendNotification } from "./oneSignal.controller.js";
 
 export const getAllLeads = async (req, res, next) => {
   try {
@@ -323,10 +326,32 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
     if (respLead.teamLeader)
       return errorRes(404, "Team Leader is Already Assigned");
 
-    const teamLeaders = await employeeModel.find({
-      designation: "670e5493de5adb5e87eb8d8c",
+    const teamLeaders = await employeeModel
+      .find({
+        designation: "670e5493de5adb5e87eb8d8c",
+      })
+      .sort({ createdAt: 1 });
+    const whichTurn = await TeamLeaderAssignTurn.findOne({});
+
+    // await TeamLeaderAssignTurn.addMissingTeamLeaders();
+    // const nextTL = await TeamLeaderAssignTurn.getNextTeamLeader();
+    await leadModel.updateOne(
+      {
+        teamLeader: teamLeaders[whichTurn.currentOrder]._id,
+      },
+      { new: true }
+    );
+
+    const foundTLPlayerId = await oneSignalModel.findOne({
+      docId: teamLeaders[whichTurn.currentOrder]._id,
+      role: teamLeaders[whichTurn.currentOrder].role,
     });
-    console.log(teamLeaders);
+    console.log(foundTLPlayerId);
+    if (foundTLPlayerId) {
+      await sendNotification(foundTLPlayerId.playerId, `New Lead is Assigned`);
+    }
+    // console.log(nextTL);
+
     return res.send(
       successRes(200, "lead assigned to TL", {
         data: respLead,
@@ -367,6 +392,7 @@ export const addLead = async (req, res) => {
 
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
+
     if (!project) return res.send(errorRes(403, "Project is required"));
 
     // Get current date and 60 days ago
