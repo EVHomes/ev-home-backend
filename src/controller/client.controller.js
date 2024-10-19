@@ -246,6 +246,68 @@ export const loginClient = async (req, res, next) => {
   }
 };
 
+//client login using phone
+export const loginPhone = async (req, res, next) => {
+  const { phoneNumber } = req.body;
+
+  try {
+    if (!phoneNumber) {
+      return res.status(403).send({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+    const clientDb = await clientModel
+      .findOne({ phoneNumber: phoneNumber })
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+    if (!clientDb) {
+      return res.send(
+        errorRes(400, "Client not found with given phone Number")
+      );
+    }
+
+    const { password: dbPassword, ...userWithoutPhone } = clientDb._doc;
+    const dataToken = {
+      _id: clientDb._id,
+      phoneNumber: clientDb.phoneNumber,
+      role: clientDb.role,
+    };
+
+    const accessToken = createJwtToken(
+      dataToken,
+      config.SECRET_ACCESS_KEY,
+      "15m"
+    );
+    const refreshToken = createJwtToken(
+      dataToken,
+      config.SECRET_REFRESH_KEY,
+      "7d"
+    );
+
+    await clientDb.updateOne({ refreshToken: refreshToken }, { new: true });
+
+    await clientDb.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Client login successful",
+      data: userWithoutPhone,
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 //AUTHENTICATION
 export const reAuthClient = async (req, res, next) => {
   const body = req.body;

@@ -9,6 +9,7 @@ import {
   registerClient,
   loginClient,
   searchClients,
+  loginPhone,
 } from "../../controller/client.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateClientFields } from "../../middleware/client.middleware.js";
@@ -24,6 +25,7 @@ clientRouter.post(
   registerClient
 );
 clientRouter.post("/client-login", validateClientFields, loginClient);
+clientRouter.post("/client-phoneLogin",validateClientFields,loginPhone);
 
 clientRouter.post(
   "/client-edit/:id",
