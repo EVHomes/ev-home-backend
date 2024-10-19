@@ -115,25 +115,42 @@ export const editEmployeeById = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
     if (!body) return res.send(errorRes(403, "valid data is required"));
+    console.log(body);
 
+    // return res.send(errorRes(404, `test success`));
     const respEmployee = await employeeModel.findById(id);
-
     //if not found
     if (!respEmployee) {
       return res.send(errorRes(404, `Employee not found with id: ${id}`));
     }
+    let newData = {
+      ...body,
+    };
 
-    const updateResp = await employeeModel.updateOne(
-      { _id: id },
-      {
-        ...body,
-      }
-    );
+    if (body.designation && body.designation.id) {
+      newData.designation = body.designation.id;
+    }
+    if (body.department && body.department.id) {
+      newData.department = body.department.id;
+    }
+    if (body.division && body.division.id) {
+      newData.division = body.division.id;
+    }
+    if (body.reportingTo && body.reportingTo.id) {
+      newData.reportingTo = body.reportingTo.id;
+    }
+    await respEmployee.updateOne({ ...newData }, { new: true });
+    // const updateResp = await employeeModel.updateOne(
+    //   { _id: id },
+    //   {
+    //     ...newData,
+    //   }
+    // );
 
     //if all ok
     return res.send(
       successRes(200, `updated Employee by id ${id}`, {
-        data: updateResp.acknowledged,
+        data: respEmployee,
       })
     );
   } catch (error) {

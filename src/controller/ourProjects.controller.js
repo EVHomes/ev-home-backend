@@ -4,7 +4,7 @@ import { errorRes, successRes } from "../model/response.js";
 //GET BY ALL
 export const getOurProjects = async (req, res) => {
   try {
-    const respPro= await ourProjectModel.find();
+    const respPro = await ourProjectModel.find();
     return res.send(
       successRes(200, "Get our projects", {
         data: respPro,
@@ -19,21 +19,20 @@ export const getOurProjects = async (req, res) => {
 
 //GET BY ID
 export const getProjectsById = async (req, res) => {
-    const id = req.params.id;
-    try {
-      if (!id) return res.send(errorRes(403, "id is required"));
-      const respPro = await divisionModel.findOne({ _id: id });
-      if (!respPro)
-        return res.send(
-          successRes(404, `Department not found with id:${id}`, {
-            data: respPro,
-          })
-        );
-    } catch (error) {
-      return res.send(errorRes(500, `server error:${error?.message}`));
-    }
-  };
-
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+    const respPro = await divisionModel.findOne({ _id: id });
+    if (!respPro)
+      return res.send(
+        successRes(404, `Department not found with id:${id}`, {
+          data: respPro,
+        })
+      );
+  } catch (error) {
+    return res.send(errorRes(500, `server error:${error?.message}`));
+  }
+};
 
 //ADD PROJECTS
 export const addProjects = async (req, res) => {
@@ -41,7 +40,7 @@ export const addProjects = async (req, res) => {
 
   const {
     amenities,
-    bhkConfiguration,
+    configurations,
     contactNumber,
     countryCode,
     description,
@@ -50,38 +49,33 @@ export const addProjects = async (req, res) => {
     name,
     brochure,
     showCaseImage,
-  } = body; 
+  } = body;
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
-    if (!amenities || amenities.length === 0) return res.send(errorRes(403, "Amenities are required"));
-    if (!bhkConfiguration || bhkConfiguration.length === 0) return res.send(errorRes(403, "BhkConfiguration is required"));
-    if (!contactNumber) return res.send(errorRes(403, "Contact number is required"));
+    if (!amenities || amenities.length === 0)
+      return res.send(errorRes(403, "Amenities are required"));
+    if (!configurations || configurations.length === 0)
+      return res.send(errorRes(403, "configurations is required"));
+    if (!contactNumber)
+      return res.send(errorRes(403, "Contact number is required"));
     if (!description) return res.send(errorRes(403, "Description is required"));
-    if (!locationLink) return res.send(errorRes(403, "Location link is required"));
-    if (!locationName) return res.send(errorRes(403, "Location name is required"));
+    if (!locationLink)
+      return res.send(errorRes(403, "Location link is required"));
+    if (!locationName)
+      return res.send(errorRes(403, "Location name is required"));
     if (!name) return res.send(errorRes(403, "Project name is required"));
-    if (!showCaseImage) return res.send(errorRes(403, "Showcase image is required"));
+    if (!showCaseImage)
+      return res.send(errorRes(403, "Showcase image is required"));
 
     // Create a new project
-    const newProject = await ourProjectModel.create({
-      amenities,     
-      bhkConfiguration,        
-      contactNumber, 
-      countryCode,    
-      description,    
-      locationLink,   
-      locationName,   
-      name,           
-      brochure,     
-      showCaseImage   
-    });
+    const newProject = await ourProjectModel.create({ ...body });
 
-    await newProject.save(); 
+    await newProject.save();
 
-    // Send a success response
+    // Send a success response000
     return res.send(
-      successRes(200, `Project added successfully: ${name,locationName}`, {
+      successRes(200, `Project added successfully: ${(name, locationName)}`, {
         newProject,
       })
     );
@@ -106,24 +100,30 @@ export const updateProjects = async (req, res) => {
     name,
     brochure,
     showCaseImage,
-  } = body;  // Destructuring the body fields
+  } = body; // Destructuring the body fields
 
   try {
     // Validate the necessary fields
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
-    if (!amenities || amenities.length === 0) return res.send(errorRes(403, "Amenities are required"));
-    if (!bhkConfiguration || bhkConfiguration.length === 0) return res.send(errorRes(403, "BhkList is required"));
-    if (!contactNumber) return res.send(errorRes(403, "Contact number is required"));
+    if (!amenities || amenities.length === 0)
+      return res.send(errorRes(403, "Amenities are required"));
+    if (!bhkConfiguration || bhkConfiguration.length === 0)
+      return res.send(errorRes(403, "BhkList is required"));
+    if (!contactNumber)
+      return res.send(errorRes(403, "Contact number is required"));
     if (!description) return res.send(errorRes(403, "Description is required"));
-    if (!locationLink) return res.send(errorRes(403, "Location link is required"));
-    if (!locationName) return res.send(errorRes(403, "Location name is required"));
+    if (!locationLink)
+      return res.send(errorRes(403, "Location link is required"));
+    if (!locationName)
+      return res.send(errorRes(403, "Location name is required"));
     if (!name) return res.send(errorRes(403, "Project name is required"));
-    if (!showCaseImage) return res.send(errorRes(403, "Showcase image is required"));
+    if (!showCaseImage)
+      return res.send(errorRes(403, "Showcase image is required"));
 
     // Perform the update
     const updatedProject = await ourProjectModel.findByIdAndUpdate(
-      id,   // Find by project ID
+      id, // Find by project ID
       {
         amenities,
         bhkConfiguration,
@@ -134,17 +134,20 @@ export const updateProjects = async (req, res) => {
         locationName,
         name,
         brochure,
-        showCaseImage
+        showCaseImage,
       },
-      { new: true }  // Return the updated document
+      { new: true } // Return the updated document
     );
 
-    if (!updatedProject) return res.send(errorRes(404, `Project not found with ID: ${id}`));
+    if (!updatedProject)
+      return res.send(errorRes(404, `Project not found with ID: ${id}`));
 
     // Send a success response
-    return res.send(successRes(200, `Project updated successfully: ${name}`, {
-      updatedProject,
-    }));
+    return res.send(
+      successRes(200, `Project updated successfully: ${name}`, {
+        updatedProject,
+      })
+    );
   } catch (error) {
     return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
@@ -152,21 +155,24 @@ export const updateProjects = async (req, res) => {
 
 //DELETE PROJECTS
 export const deleteProject = async (req, res) => {
-  const id = req.params.id;  
+  const id = req.params.id;
 
   try {
     if (!id) return res.send(errorRes(403, "Project ID is required"));
     const deletedProject = await ourProjectModel.findByIdAndDelete(id);
-    if (!deletedProject) return res.send(errorRes(404, `Project not found with ID: ${id}`));
-    return res.send(successRes(200, `Project deleted successfully: ${deletedProject.name}`, {
-      deletedProject,
-    }));
+    if (!deletedProject)
+      return res.send(errorRes(404, `Project not found with ID: ${id}`));
+    return res.send(
+      successRes(200, `Project deleted successfully: ${deletedProject.name}`, {
+        deletedProject,
+      })
+    );
   } catch (error) {
     return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
 
-export const searchProjects= async (req, res, next) => {
+export const searchProjects = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let page = parseInt(req.query.page) || 1;
@@ -178,7 +184,7 @@ export const searchProjects= async (req, res, next) => {
       $or: [
         { name: { $regex: query, $options: "i" } },
         { location: { $regex: query, $options: "i" } },
-      ]
+      ],
     };
 
     const respProject = await ourProjectModel
