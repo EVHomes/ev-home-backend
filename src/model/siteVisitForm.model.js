@@ -5,7 +5,7 @@ export const siteVisitSchema = new mongoose.Schema(
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
     phoneNumber: { type: Number, required: true, unique: true },
-    countryCode: { type: Number, default: "+91" },
+    countryCode: { type: String, default: "+91" },
     email: {
       type: String,
       required: true,
