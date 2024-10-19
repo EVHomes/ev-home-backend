@@ -36,7 +36,24 @@ export const getSiteVisitsById = async (req, res) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respSite = await siteVisitModel.findOne({ _id: id });
+    const respSite = await siteVisitModel.findOne({ _id: id }).populate({
+      path: "closingManager",
+      select: "-password -refreshToken",
+      populate: [
+        { path: "designation" },
+        { path: "department" },
+        { path: "division" },
+        {
+          path: "reportingTo",
+          select: "-password -refreshToken",
+          populate: [
+            { path: "designation" },
+            { path: "department" },
+            { path: "division" },
+          ],
+        },
+      ],
+    });
 
     if (!respSite)
       return res.send(
@@ -80,7 +97,25 @@ export const searchSiteVisits = async (req, res, next) => {
       .find(searchFilter)
       .skip(skip)
       .limit(limit)
-      .select("");
+      .select("")
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
 
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter);
@@ -153,7 +188,21 @@ export const addSiteVisits = async (req, res) => {
       .findById(newSiteVisit._id)
       .populate({
         path: "closingManager",
-        select: "-refreshToken -password",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
     // .populate({
     //   path: "closingTeam",
@@ -219,24 +268,43 @@ export const updateSiteVisits = async (req, res) => {
     if (!teamLeader) return res.send(errorRes(403, "Team Leader is required"));
     if (!team) return res.send(errorRes(403, "Team is required"));
 
-    const updatedSite = await siteVisitModel.findByIdAndUpdate(
-      id,
-      {
-        firstName,
-        lastName,
-        email,
-        phoneNumber,
-        residence,
-        projects,
-        choiceApt,
-        source,
-        closingManager,
-        closingTeam,
-        teamLeader,
-        team,
-      },
-      { new: true }
-    );
+    const updatedSite = await siteVisitModel
+      .findByIdAndUpdate(
+        id,
+        {
+          firstName,
+          lastName,
+          email,
+          phoneNumber,
+          residence,
+          projects,
+          choiceApt,
+          source,
+          closingManager,
+          closingTeam,
+          teamLeader,
+          team,
+        },
+        { new: true }
+      )
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
 
     if (!updatedSite)
       return res.send(errorRes(404, `Site not found with ID: ${id}`));
