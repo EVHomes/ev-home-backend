@@ -70,13 +70,11 @@ export const leadSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      required: true,
       default: "Pending",
       enum: ["Pending", "Rejected", "Approved"],
     },
     interestedStatus: {
       type: String,
-      required: true,
       default: "Cold",
       enum: ["Cold", "Hot", "Warm"],
     },

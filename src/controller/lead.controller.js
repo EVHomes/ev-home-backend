@@ -1,10 +1,66 @@
 import employeeModel from "../model/employee.model.js";
-import leadModel, { leadSchema } from "../model/lead.model.js";
+import leadModel from "../model/lead.model.js";
 import { errorRes, successRes } from "../model/response.js";
 
 export const getAllLeads = async (req, res, next) => {
   try {
-    const respLeads = await leadModel.find();
+    const respLeads = await leadModel
+      .find()
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
 
     if (!respLeads) return errorRes(404, "No leads found");
 
@@ -40,7 +96,65 @@ export const searchLeads = async (req, res, next) => {
       ].filter(Boolean),
     };
 
-    const respCP = await leadModel.find(searchFilter).skip(skip).limit(limit);
+    const respCP = await leadModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
 
     // Count the total items matching the filter
     const totalItems = await leadModel.countDocuments(searchFilter);
@@ -67,11 +181,7 @@ export const getLeadById = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
     const respLead = await leadModel
-      .findById({ _id: id })
-      .populate({
-        path: "project",
-        select: "",
-      })
+      .findById(id)
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -79,15 +189,55 @@ export const getLeadById = async (req, res, next) => {
       .populate({
         path: "teamLeader",
         select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       })
       .populate({
         path: "dataAnalyser",
         select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       })
       .populate({
         path: "preSalesExecutive",
         select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
+
     if (!respLead) return errorRes(404, "No lead found");
 
     return res.send(
@@ -107,11 +257,11 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
     if (!id) return res.send(errorRes(403, "id is required"));
 
     const respLead = await leadModel
-      .findById({ _id: id })
-      .populate({
-        path: "project",
-        select: "",
-      })
+      .findById(id)
+      // .populate({
+      //   path: "project",
+      //   select: "",
+      // })
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -119,14 +269,53 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "teamLeader",
         select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       })
       .populate({
         path: "dataAnalyser",
         select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       })
       .populate({
         path: "preSalesExecutive",
         select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
 
     if (!respLead) return errorRes(404, "No lead found");
@@ -178,17 +367,6 @@ export const addLead = async (req, res) => {
 
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
-    // if (!dataAnalyser)
-    //   return res.send(errorRes(403, "Data analyzer is required"));
-    if (!channelPartner)
-      return res.send(errorRes(403, "Channel partner is required"));
-
-    if (!teamLeader) return res.send(errorRes(403, "Team leader is required"));
-
-    if (!status) return res.send(errorRes(403, "Status is required"));
-    if (!interestedStatus)
-      return res.send(errorRes(403, "Interested status is required"));
-    if (!remark) return res.send(errorRes(403, "Remark is required"));
     if (!project) return res.send(errorRes(403, "Project is required"));
 
     // Get current date and 60 days ago
@@ -199,18 +377,14 @@ export const addLead = async (req, res) => {
     // Check if the lead exists with the conditions
     const existingLead = await leadModel.findOne({
       $or: [{ phoneNumber: phoneNumber }, { altPhoneNumber: phoneNumber }],
-      $or: [
-        { startDate: { $gte: sixtyDaysAgo } },
-        { validTill: { $gte: sixtyDaysAgo } },
-      ],
-      status: "Approved",
     });
 
+    // if lead exist
     if (existingLead) {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with the following details:Phone Number: ${existingLead.phoneNumber}Alt Phone Number: ${existingLead.altPhoneNumber}Start Date: ${existingLead.startDate}Valid Till: ${existingLead.validTill}Status: ${existingLead.status}`
+          `Lead already exists with the following details:Phone Number: ${existingLead.phoneNumber} Alt Phone Number: ${existingLead.altPhoneNumber} Start Date: ${existingLead.startDate} Valid Till: ${existingLead.validTill} Status: ${existingLead.status}`
         )
       );
     }

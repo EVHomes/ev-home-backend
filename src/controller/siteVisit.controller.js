@@ -3,17 +3,32 @@ import { errorRes, successRes } from "../model/response.js";
 
 export const getSiteVisits = async (req, res) => {
   try {
-    const respSite = await siteVisitModel.find();
+    const respSite = await siteVisitModel.find().populate({
+      path: "closingManager",
+      select: "-password -refreshToken",
+      populate: [
+        { path: "designation" },
+        { path: "department" },
+        { path: "division" },
+        {
+          path: "reportingTo",
+          select: "-password -refreshToken",
+          populate: [
+            { path: "designation" },
+            { path: "department" },
+            { path: "division" },
+          ],
+        },
+      ],
+    });
 
     return res.send(
-      successRes(200, "Get Clients", {
+      successRes(200, "Get Site Visit", {
         data: respSite,
       })
     );
   } catch (error) {
-    return res.json({
-      message: `error: ${error}`,
-    });
+    return res.send(errorRes(500, `server error:${error?.message}`));
   }
 };
 
@@ -155,7 +170,7 @@ export const addSiteVisits = async (req, res) => {
 
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
-        populateNewSiteVisit,
+        data: populateNewSiteVisit,
       })
     );
   } catch (error) {

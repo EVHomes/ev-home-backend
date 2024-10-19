@@ -71,8 +71,8 @@ export const siteVisitSchema = new mongoose.Schema(
       // required: true,
       default: null,
     },
-  }
-  // {timestamps:true}
+  },
+  { timestamps: true }
 );
 
 const siteVisitModel = mongoose.model(
