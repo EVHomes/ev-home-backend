@@ -128,7 +128,7 @@ export const leadSchema = new mongoose.Schema(
     ],
     approvalHistory: [
       {
-        employeeId: {
+        employee: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "employees",
           required: true,
@@ -142,7 +142,7 @@ export const leadSchema = new mongoose.Schema(
     ],
     updateHistory: [
       {
-        employeeId: {
+        employee: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "employees",
           required: true,

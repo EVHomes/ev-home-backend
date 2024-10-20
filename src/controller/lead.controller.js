@@ -254,38 +254,26 @@ export const getLeadById = async (req, res, next) => {
   }
 };
 
-export const assignLeadToTeamLeader = async (req, res, next) => {
+export const getSimilarLeadsById = async (req, res, next) => {
   const id = req.params.id;
-
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-
     const respLead = await leadModel.findById(id);
-    if (!respLead) return res.send(errorRes(404, "No lead found"));
 
-    if (respLead.teamLeader)
-      return res.send(errorRes(401, "Team Leader is Already Assigned"));
+    if (!respLead) return errorRes(404, "No lead found");
 
-    const teamLeaders = await employeeModel
+    const similarLeads = await leadModel
       .find({
-        designation: "670e5493de5adb5e87eb8d8c",
+        $and: [
+          {
+            $or: [
+              { phoneNumber: respLead.phoneNumber },
+              { altPhoneNumber: respLead.phoneNumber },
+            ],
+          },
+          { _id: { $ne: id } }, // Exclude the lead with the same ID
+        ],
       })
-      .sort({ createdAt: 1 });
-    const whichTurn = await TeamLeaderAssignTurn.findOne({});
-
-    // await respLead.updateOne(
-    //   {
-    //     teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
-    //   },
-    //   { new: true }
-    // );
-
-    const updatedLead = await leadModel
-      .findByIdAndUpdate(
-        id,
-        { teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString() },
-        { new: true }
-      )
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -342,35 +330,9 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         ],
       });
 
-    const foundTLPlayerId = await oneSignalModel.findOne({
-      docId: teamLeaders[whichTurn.currentOrder]._id.toString(),
-      role: teamLeaders[whichTurn.currentOrder].role,
-    });
-
-    if (foundTLPlayerId) {
-      // console.log(foundTLPlayerId);
-      await sendNotificationWithInfo({
-        playerIds: [foundTLPlayerId.playerId],
-        title: "You've Got a New Lead!",
-        message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
-      });
-    }
-    let nextOrder = whichTurn.currentOrder + 1;
-
-    // Reset to 0 if nextOrder exceeds the length of teamLeaders
-    if (nextOrder >= teamLeaders.length) {
-      nextOrder = 0;
-    }
-    // Update the currentOrder in the database
-    await whichTurn.updateOne({
-      lastAssignTeamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
-      nextAssignTeamLeader: teamLeaders[nextOrder]._id.toString(),
-      currentOrder: nextOrder,
-    });
-
     return res.send(
-      successRes(200, "lead assigned to TL", {
-        data: updatedLead,
+      successRes(200, "Similar Leads", {
+        data: similarLeads,
       })
     );
   } catch (error) {
@@ -388,7 +350,7 @@ export const addLead = async (req, res, next) => {
     altPhoneNumber,
     remark,
     startDate,
-    channelPartner,
+    channelPartner, // Channel Partner ID
     teamLeader,
     preSalesExecutive,
     validTill,
@@ -405,32 +367,84 @@ export const addLead = async (req, res, next) => {
     if (!validFields.isValid) {
       return res.send(errorRes(400, validFields.message));
     }
-    // Get current date and 60 days ago
+
     const currentDate = new Date();
-    const sixtyDaysAgo = new Date();
+    const ninetyOneDaysAgo = new Date(currentDate);
+    ninetyOneDaysAgo.setDate(currentDate.getDate() - 91);
+
+    const sixtyDaysAgo = new Date(currentDate);
     sixtyDaysAgo.setDate(currentDate.getDate() - 60);
 
-    // Check if the lead exists with the conditions
-    const existingLead = await leadModel.findOne({
-      $or: [{ phoneNumber: phoneNumber }, { altPhoneNumber: phoneNumber }],
+    // Condition 1: Check if the same CP is trying to create the same lead within 91 days
+    if (channelPartner) {
+      const existingLeadForCP = await leadModel.findOne({
+        phoneNumber: phoneNumber,
+        channelPartner: channelPartner,
+        startDate: {
+          $gte: ninetyOneDaysAgo,
+          $lte: currentDate,
+        },
+      });
+
+      if (existingLeadForCP) {
+        return res.send(
+          errorRes(
+            409,
+            `You cannot create the same lead with phone number ${phoneNumber} within 91 days.`
+          )
+        );
+      }
+    }
+
+    // Condition 2: Check if a different CP created a lead with the same phone number within 60 days
+    const existingLeadForOtherCP = await leadModel.findOne({
+      phoneNumber: phoneNumber,
+      channelPartner: { $ne: channelPartner }, // Other CPs
+      startDate: {
+        $gte: sixtyDaysAgo,
+        $lte: currentDate,
+      },
     });
 
-    // if lead exist
-    if (existingLead) {
+    if (existingLeadForOtherCP) {
+      const newLead = await leadModel.create({ ...body });
+      const dataAnalyser = await employeeModel
+        .find({
+          designation: "670e5473de5adb5e87eb8d86",
+        })
+        .sort({ createdAt: 1 });
+
+      const getIds = dataAnalyser.map((dt) => dt._id.toString());
+      const foundTLPlayerId = await oneSignalModel.find({
+        docId: { $in: getIds },
+        role: "employee",
+      });
+
+      if (foundTLPlayerId.length > 0) {
+        // console.log(foundTLPlayerId);
+        const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+        await sendNotificationWithInfo({
+          playerIds: getPlayerIds,
+          title: "You've Got a New Lead!",
+          message: `A new lead is now available for you to review. Please check the details and take the required steps to approve or update it`,
+        });
+      }
+
       return res.send(
-        errorRes(
-          409,
-          `Lead already exists with the following details: Phone Number: ${existingLead.phoneNumber}`
+        successRes(
+          201,
+          `Lead created successfully, but the same client lead exists with another channel partner.`,
+          {
+            existingLead: existingLeadForOtherCP,
+            newLead,
+          }
         )
       );
     }
 
-    const newLead = await leadModel.create({
-      ...body,
-    });
-
-    // Save the new lead
-    await newLead.save();
+    // Condition 3: If no existing lead exists, create a new one
+    const newLead = await leadModel.create({ ...body });
 
     const dataAnalyser = await employeeModel
       .find({
@@ -462,9 +476,109 @@ export const addLead = async (req, res, next) => {
     );
   } catch (error) {
     return next(error);
-    // return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
+
+// export const addLead = async (req, res, next) => {
+//   const body = req.filteredBody;
+//   const {
+//     email,
+//     firstName,
+//     lastName,
+//     phoneNumber,
+//     altPhoneNumber,
+//     remark,
+//     startDate,
+//     channelPartner,
+//     teamLeader,
+//     preSalesExecutive,
+//     validTill,
+//     status,
+//     requirement,
+//     project,
+//     interestedStatus,
+//   } = body;
+
+//   try {
+//     if (!body) return res.send(errorRes(403, "Data is required"));
+//     const validFields = validateRequiredLeadsFields(body);
+
+//     if (!validFields.isValid) {
+//       return res.send(errorRes(400, validFields.message));
+//     }
+//     const currentDate = new Date();
+
+//     // Get current date and 60 days ago
+//     const pastDate = new Date();
+//     pastDate.setDate(currentDate.getDate() - 60);
+
+//     // const currentDate = new Date();
+//     // const sixtyDaysAgo = new Date();
+//     // sixtyDaysAgo.setDate(currentDate.getDate() - 60);
+
+//     // Check if the lead exists with the conditions
+//     const existingLead = await leadModel.findOne({
+//       $or: [{ phoneNumber: phoneNumber }, { altPhoneNumber: phoneNumber }],
+//       startDate: {
+//         $gte: pastDate,
+//         $lte: currentDate,
+//       },
+//     });
+
+//     // if lead exist
+//     if (existingLead) {
+//       const newLeadExist = await leadModel.create({
+//         ...body,
+//       });
+
+//       return res.send(
+//         errorRes(
+//           409,
+//           `Lead already exists with the following details: Phone Number: ${existingLead.phoneNumber}`
+//         )
+//       );
+//     }
+
+//     const newLead = await leadModel.create({
+//       ...body,
+//     });
+
+//     // Save the new lead
+//     await newLead.save();
+
+//     const dataAnalyser = await employeeModel
+//       .find({
+//         designation: "670e5473de5adb5e87eb8d86",
+//       })
+//       .sort({ createdAt: 1 });
+
+//     const getIds = dataAnalyser.map((dt) => dt._id.toString());
+//     const foundTLPlayerId = await oneSignalModel.find({
+//       docId: { $in: getIds },
+//       role: "employee",
+//     });
+
+//     if (foundTLPlayerId.length > 0) {
+//       // console.log(foundTLPlayerId);
+//       const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+//       await sendNotificationWithInfo({
+//         playerIds: getPlayerIds,
+//         title: "You've Got a New Lead!",
+//         message: `A new lead is now available for you to review. Please check the details and take the required steps to approve or update it`,
+//       });
+//     }
+
+//     return res.send(
+//       successRes(200, `Lead added successfully: ${firstName} ${lastName}`, {
+//         newLead,
+//       })
+//     );
+//   } catch (error) {
+//     return next(error);
+//     // return res.send(errorRes(500, `Server error: ${error?.message}`));
+//   }
+// };
 
 export const updateLead = async (req, res, next) => {
   const body = req.body;
@@ -554,6 +668,167 @@ export const deleteLead = async (req, res, next) => {
   }
 };
 
+export const assignLeadToTeamLeader = async (req, res, next) => {
+  const id = req.params.id;
+  const user = req.user;
+  const { remarks } = req.body;
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+
+    const respLead = await leadModel.findById(id);
+    if (!respLead) return res.send(errorRes(404, "No lead found"));
+
+    if (respLead.teamLeader)
+      return res.send(errorRes(401, "Team Leader is Already Assigned"));
+
+    const teamLeaders = await employeeModel
+      .find({
+        designation: "670e5493de5adb5e87eb8d8c",
+      })
+      .sort({ createdAt: 1 });
+    const whichTurn = await TeamLeaderAssignTurn.findOne({});
+
+    // await respLead.updateOne(
+    //   {
+    //     teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+    //   },
+    //   { new: true }
+    // );
+
+    const updatedLead = await leadModel
+      .findByIdAndUpdate(
+        id,
+        {
+          teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+          status: "Approved",
+          $addToSet: {
+            approvalHistory: {
+              employee: user?._id,
+              approvedAt: Date.now(),
+              remarks: remarks ?? "Approved",
+            },
+          },
+        },
+        { new: true, runValidators: true }
+      )
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+
+    const foundTLPlayerId = await oneSignalModel.findOne({
+      docId: teamLeaders[whichTurn.currentOrder]._id.toString(),
+      role: teamLeaders[whichTurn.currentOrder].role,
+    });
+
+    if (foundTLPlayerId) {
+      // console.log(foundTLPlayerId);
+      await sendNotificationWithInfo({
+        playerIds: [foundTLPlayerId.playerId],
+        title: "You've Got a New Lead!",
+        message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+      });
+    }
+    let nextOrder = whichTurn.currentOrder + 1;
+
+    // Reset to 0 if nextOrder exceeds the length of teamLeaders
+    if (nextOrder >= teamLeaders.length) {
+      nextOrder = 0;
+    }
+    // Update the currentOrder in the database
+    await whichTurn.updateOne({
+      lastAssignTeamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+      nextAssignTeamLeader: teamLeaders[nextOrder]._id.toString(),
+      currentOrder: nextOrder,
+    });
+
+    return res.send(
+      successRes(
+        200,
+        `lead assigned to ${teamLeaders[whichTurn.currentOrder].firstName} ${
+          teamLeaders[whichTurn.currentOrder].lastName
+        }`,
+        {
+          data: updatedLead,
+        }
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+export const updateCallHistoryByPreSaleExcutive = async (req, res, next) => {
+  const { callerId, remarks, feedback, documentUrl, recordingUrl } = req.body;
+  try {
+    const updatedLead = await leadModel.findByIdAndUpdate(
+      leadId,
+      {
+        $push: {
+          callHistory: {
+            caller: callerId,
+            remarks: remarks,
+            feedback: feedback,
+            document: documentUrl,
+            recording: recordingUrl,
+          },
+        },
+      },
+      { new: true }
+    );
+  } catch (error) {}
+};
+
 export const updateCallHistory = async (
   leadId,
   callerId,
@@ -593,7 +868,7 @@ export const markLeadAsApproved = async (leadId, employeeId, remarks) => {
       {
         $addToSet: {
           approvalHistory: {
-            employeeId: employeeId,
+            employee: employeeId,
             approvedAt: Date.now(),
             remarks: remarks,
           },
@@ -616,7 +891,7 @@ export const updateLeadDetails = async (leadId, employeeId, changes) => {
       {
         $addToSet: {
           updateHistory: {
-            employeeId: employeeId,
+            employee: employeeId,
             updatedAt: Date.now(),
             changes: changes,
           },
