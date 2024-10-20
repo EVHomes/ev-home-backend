@@ -259,12 +259,32 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
 
-    const respLead = await leadModel
-      .findById(id)
-      // .populate({
-      //   path: "project",
-      //   select: "",
-      // })
+    const respLead = await leadModel.findById(id);
+    if (!respLead) return res.send(errorRes(404, "No lead found"));
+
+    if (respLead.teamLeader)
+      return res.send(errorRes(401, "Team Leader is Already Assigned"));
+
+    const teamLeaders = await employeeModel
+      .find({
+        designation: "670e5493de5adb5e87eb8d8c",
+      })
+      .sort({ createdAt: 1 });
+    const whichTurn = await TeamLeaderAssignTurn.findOne({});
+
+    // await respLead.updateOne(
+    //   {
+    //     teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+    //   },
+    //   { new: true }
+    // );
+
+    const updatedLead = await leadModel
+      .findByIdAndUpdate(
+        id,
+        { teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString() },
+        { new: true }
+      )
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -321,40 +341,34 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         ],
       });
 
-    if (!respLead) return errorRes(404, "No lead found");
-
-    if (respLead.teamLeader)
-      return errorRes(404, "Team Leader is Already Assigned");
-
-    const teamLeaders = await employeeModel
-      .find({
-        designation: "670e5493de5adb5e87eb8d8c",
-      })
-      .sort({ createdAt: 1 });
-    const whichTurn = await TeamLeaderAssignTurn.findOne({});
-
-    // await TeamLeaderAssignTurn.addMissingTeamLeaders();
-    // const nextTL = await TeamLeaderAssignTurn.getNextTeamLeader();
-    await leadModel.updateOne(
-      {
-        teamLeader: teamLeaders[whichTurn.currentOrder]._id,
-      },
-      { new: true }
-    );
-
     const foundTLPlayerId = await oneSignalModel.findOne({
-      docId: teamLeaders[whichTurn.currentOrder]._id,
+      docId: teamLeaders[whichTurn.currentOrder]._id.toString(),
       role: teamLeaders[whichTurn.currentOrder].role,
     });
-    console.log(foundTLPlayerId);
+
     if (foundTLPlayerId) {
-      await sendNotification(foundTLPlayerId.playerId, `New Lead is Assigned`);
+      // console.log(foundTLPlayerId);
+      await sendNotification({
+        playerId: foundTLPlayerId.playerId,
+        message: `New Lead is Assigned: for ${respLead.firstName} ${respLead.lastName}`,
+      });
     }
-    // console.log(nextTL);
+    let nextOrder = whichTurn.currentOrder + 1;
+
+    // Reset to 0 if nextOrder exceeds the length of teamLeaders
+    if (nextOrder >= teamLeaders.length) {
+      nextOrder = 0;
+    }
+    // Update the currentOrder in the database
+    await whichTurn.updateOne({
+      lastAssignTeamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+      nextAssignTeamLeader: teamLeaders[nextOrder]._id.toString(),
+      currentOrder: nextOrder,
+    });
 
     return res.send(
       successRes(200, "lead assigned to TL", {
-        data: respLead,
+        data: updatedLead,
       })
     );
   } catch (error) {
@@ -390,8 +404,7 @@ export const addLead = async (req, res) => {
 
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
 
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
 
     if (!project) return res.send(errorRes(403, "Project is required"));
 
@@ -468,8 +481,7 @@ export const updateLead = async (req, res) => {
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
     if (!status) return res.send(errorRes(403, "Status is required"));
     if (!interestedStatus)
       return res.send(errorRes(403, "Interested status is required"));
@@ -498,8 +510,7 @@ export const updateLead = async (req, res) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully: ${firstName} ${lastName}`, {
@@ -521,8 +532,7 @@ export const deleteLead = async (req, res) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -537,8 +547,7 @@ export const deleteLead = async (req, res) => {
 export const checkLeadsExists = async (req, res) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone Number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone Number is required"));
 
     const existingLead = await leadModel.findOne({
       $or: [
@@ -554,9 +563,7 @@ export const checkLeadsExists = async (req, res) => {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with phone number: ${
-            (phoneNumber, altPhoneNumber)
-          }`
+          `Lead already exists with phone number: ${(phoneNumber, altPhoneNumber)}`
         )
       ); // 409 Conflict
     }
