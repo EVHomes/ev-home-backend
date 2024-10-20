@@ -5,6 +5,7 @@ const ALLOWED_EMPLOYEE_FIELDS = [
   "email",
   "employeeId",
   "password",
+  "confirmPassword",
   "firstName",
   "lastName",
   "gender",
@@ -17,7 +18,6 @@ const ALLOWED_EMPLOYEE_FIELDS = [
   "countryCode",
   "phoneNumber",
   "isVerified",
-  "refreshToken",
 ];
 
 // Middleware to validate and filter fields
@@ -33,185 +33,50 @@ export const validateEmployeeFields = (req, res, next) => {
   }
 
   if (!hasValidFields) {
-    return res.send(
-      errorRes(400, {
-        message: "No valid fields to found",
-      })
-    );
+    return res.send(errorRes(400, "No valid fields to found"));
   }
-  // const validateResp = validateAllFieldsExist(filteredBody, req, res);
-  // if (validateResp == false) return;
-  // Attach the filtered body to the request object
   req.filteredBody = filteredBody;
   next();
 };
 
-export const validateRegisterEmployeeFields = (body, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    employeeId,
-    designation,
-    department,
-    division,
-    password,
-    gender,
-    phoneNumber,
-    dateOfBirth,
-    address,
-    isVerified,
-  } = body;
+export const validateRegisterEmployeeFields = (body) => {
+  const requiredFields = [
+    "email",
+    "employeeId",
+    "password",
+    "confirmPassword",
+    "firstName",
+    "lastName",
+    "gender",
+    "dateOfBirth",
+    "address",
+    "department",
+    "designation",
+    "division",
+    "phoneNumber",
+  ];
 
-  if (!firstName) {
-    return res.send(
-      errorRes(400, {
-        message: "First name is required",
-      })
-    );
+  for (let field of requiredFields) {
+    if (!body[field]) {
+      return { isValid: false, message: `${field} is required` };
+    }
   }
 
-  if (!lastName) {
-    return res.send(
-      errorRes(400, {
-        message: "last name is required",
-      })
-    );
+  if (body.password && body.password.length < 6) {
+    return { isValid: false, message: "Password should be at least 6 character long" };
   }
 
-  if (!phoneNumber) {
-    return res.send(
-      errorRes(400, {
-        message: "phone number is required",
-      })
-    );
+  if (body.confirmPassword && body.confirmPassword) {
+    return { isValid: false, message: "Password should be at least 6 character long" };
   }
 
-  if (!email) {
-    return res.send(
-      errorRes(400, {
-        message: "email is required",
-      })
-    );
+  if (body.password !== body.confirmPassword) {
+    return { isValid: false, message: "Password and confirm password didn't matched" };
   }
 
-  if (!employeeId) {
-    return res.send(
-      errorRes(400, {
-        message: "EmployeeId is required",
-      })
-    );
+  if (body.phoneNumber && body.phoneNumber.length < 10) {
+    return { isValid: false, message: "Phone Number should be 10 Digit" };
   }
 
-  if (!gender) {
-    return res.send(
-      errorRes(400, {
-        message: "gender is required",
-      })
-    );
-  }
-
-  if (!designation) {
-    return res.send(
-      errorRes(400, {
-        message: "designation is required",
-      })
-    );
-  }
-
-  if (!department) {
-    return res.send(
-      errorRes(400, {
-        message: "department is required",
-      })
-    );
-  }
-
-  if (!division) {
-    return res.send(
-      errorRes(400, {
-        message: "division is required",
-      })
-    );
-  }
-
-  if (!dateOfBirth) {
-    return res.send(
-      errorRes(400, {
-        message: "date Of Birth is required",
-      })
-    );
-  }
-  if (!address) {
-    return res.send(
-      errorRes(400, {
-        message: "address is required",
-      })
-    );
-  }
-
-  return true;
+  return { isValid: true };
 };
-
-// export const authenticateTokenEmp = async (req, res, next) => {
-//   try {
-//     const accessToken = req.headers.authorization?.split(" ")[1];
-//     const refreshToken = req.headers.refreshtoken?.split(" ")[1];
-
-//     if (!accessToken) {
-//       return res.status(401).json({ message: "No token provided" });
-//     }
-
-//     try {
-//       const decoded = jwt.verify(accessToken, config.SECRET_ACCESS_KEY);
-//       req.user = decoded.data;
-//       return next();
-//     } catch (error) {
-//       if (error.name === "TokenExpiredError") {
-//         // Token has expired, attempt to refresh
-//         if (!refreshToken) {
-//           return res.send(errorRes(401, "Refresh token not found"));
-//         }
-
-//         try {
-//           const decoded = jwt.verify(refreshToken, config.SECRET_REFRESH_KEY);
-//           const user = await employeeModel.findById(decoded.data._id);
-
-//           if (!user) {
-//             return res.send(errorRes(401, "User not found"));
-//           }
-//           const { password, ...userWithoutPassword } = user;
-//           const newAccessToken = createJwtToken(
-//             userWithoutPassword,
-//             config.SECRET_ACCESS_KEY,
-//             "15m"
-//           );
-
-//           res.setHeader("Authorization", `Bearer ${newAccessToken}`);
-//           req.user = {
-//             ...userWithoutPassword,
-//           };
-//           return next();
-//         } catch (refreshError) {
-//           return res.status(401).json({ message: "Invalid refresh token" });
-//         }
-//       }
-//       return res.status(401).json({ message: "Invalid token" });
-//     }
-//   } catch (error) {
-//     return res.status(500).json({ message: "Internal server error" });
-//   }
-// };
-
-// const authenticateToken = (req, res, next) => {
-//   const authHeader = req.headers['authorization'];
-//   const token = authHeader && authHeader.split(' ')[1];
-
-//   if (token == null) return res.sendStatus(401);
-
-//   jwt.verify(token, ACCESS_TOKEN_SECRET, (err, user) => {
-//     if (err) return res.sendStatus(403);
-//     req.user = user;
-//     next();
-//   });
-// };

@@ -1,6 +1,32 @@
 import mongoose from "mongoose";
 const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const passwordFormat = /^\d+$/;
+const callHistorySchema = new mongoose.Schema({
+  caller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "employees", // Reference to the employee making the call
+    required: true,
+  },
+  callDate: {
+    type: Date,
+    default: Date.now,
+  },
+  remarks: {
+    type: String,
+    default: null,
+  },
+  feedback: {
+    type: String,
+    default: null,
+  },
+  document: {
+    type: String,
+    default: null,
+  },
+  recording: {
+    type: String,
+    default: null,
+  },
+});
 
 export const leadSchema = new mongoose.Schema(
   {
@@ -15,6 +41,14 @@ export const leadSchema = new mongoose.Schema(
       },
     },
     project: [
+      {
+        type: String,
+        // type: mongoose.Schema.Types.ObjectId,
+        // ref: "ourProjects",
+        required: true,
+      },
+    ],
+    requirement: [
       {
         type: String,
         // type: mongoose.Schema.Types.ObjectId,
@@ -78,6 +112,48 @@ export const leadSchema = new mongoose.Schema(
       default: "Cold",
       enum: ["Cold", "Hot", "Warm"],
     },
+    callHistory: [callHistorySchema],
+    viewedBy: [
+      {
+        employeeId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "employees",
+          required: true,
+        },
+        viewedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    approvalHistory: [
+      {
+        employeeId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "employees",
+          required: true,
+        },
+        approvedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        remarks: { type: String, default: null },
+      },
+    ],
+    updateHistory: [
+      {
+        employeeId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "employees",
+          required: true,
+        },
+        updatedAt: {
+          type: Date,
+          default: Date.now,
+        },
+        changes: { type: String, required: true }, // Description of changes made
+      },
+    ],
   },
   { timestamps: true }
 );

@@ -4,6 +4,7 @@ import cpModel from "../model/channelPartner.model.js";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { errorMessage } from "../utils/constant.js";
 import {
   comparePassword,
   createJwtToken,
@@ -22,11 +23,7 @@ export const getEmployees = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -58,11 +55,7 @@ export const getClosingManagers = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -88,15 +81,11 @@ export const getEmployeeById = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
     //if not found
     if (!respEmployee) {
-      return res.send(errorRes(404, `Employee not found with id: ${id}`));
+      return res.send(errorRes(404, errorMessage.EMP_NOT_FOUND));
     }
     //if found
     return res.send(
@@ -115,41 +104,23 @@ export const editEmployeeById = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
     if (!body) return res.send(errorRes(403, "valid data is required"));
-    console.log(body);
+    // console.log(body);
 
     // return res.send(errorRes(404, `test success`));
-    const respEmployee = await employeeModel.findById(id);
+    const respEmployee = await employeeModel
+      .findById(id)
+      .select("-password -refreshToken");
+
     //if not found
     if (!respEmployee) {
-      return res.send(errorRes(404, `Employee not found with id: ${id}`));
+      return res.send(errorRes(404, errorMessage.EMP_NOT_FOUND));
     }
-    let newData = {
-      ...body,
-    };
 
-    if (body.designation && body.designation.id) {
-      newData.designation = body.designation.id;
-    }
-    if (body.department && body.department.id) {
-      newData.department = body.department.id;
-    }
-    if (body.division && body.division.id) {
-      newData.division = body.division.id;
-    }
-    if (body.reportingTo && body.reportingTo.id) {
-      newData.reportingTo = body.reportingTo.id;
-    }
-    await respEmployee.updateOne({ ...newData }, { new: true });
-    // const updateResp = await employeeModel.updateOne(
-    //   { _id: id },
-    //   {
-    //     ...newData,
-    //   }
-    // );
+    await respEmployee.updateOne({ ...body }, { new: true });
 
     //if all ok
     return res.send(
-      successRes(200, `updated Employee by id ${id}`, {
+      successRes(200, errorMessage.EMP_INFO_UPDATED, {
         data: respEmployee,
       })
     );
@@ -166,12 +137,12 @@ export const deleteEmployeeById = async (req, res, next) => {
 
     //if not found
     if (!respCP) {
-      return res.send(errorRes(404, `Employee not found with id: ${id}`));
+      return res.send(errorRes(404, errorMessage.EMP_NOT_FOUND));
     }
     const deletedResp = await respCP.deleteOne();
     //if found
     return res.send(
-      successRes(200, `Deleted Employee by id ${id}`, {
+      successRes(200, errorMessage.EMP_DELETED, {
         data: deletedResp.acknowledged,
       })
     );
@@ -185,23 +156,18 @@ export const registerEmployee = async (req, res, next) => {
   const { email, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
+    const validateFields = validateRegisterEmployeeFields(body);
 
-    if (password.length < 6) {
-      return res.send(
-        errorRes(400, "Password should be at least 6 character long.")
-      );
+    if (!validateFields.isValid) {
+      return res.send(errorRes(400, validateFields.message));
     }
-    const validateFields = validateRegisterEmployeeFields(body, res);
-    if (!validateFields)
-      return res.send(errorRes(400, "All field is required."));
 
     const oldUser = await employeeModel.findOne({
       email: email,
     });
-    // .lean();
 
     if (oldUser) {
-      return res.send(errorRes(400, "Employee already exist with this email"));
+      return res.send(errorRes(400, errorMessage.EMP_EMAIL_EXIST));
     }
 
     const hashPassword = await encryptPassword(password);
@@ -212,38 +178,33 @@ export const registerEmployee = async (req, res, next) => {
     });
     const savedEmployee = await newChannelPartner.save();
 
-    const { password: dbPassword, ...userWithoutPassword } = savedEmployee._doc;
+    const {
+      password: dbPassword,
+      refreshToken: dbRefreshToken,
+      ...userWithoutPassword
+    } = savedEmployee._doc;
+
     const dataToken = {
       _id: savedEmployee._id,
       email: savedEmployee.email,
       role: savedEmployee.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     savedEmployee.refreshToken = refreshToken;
     await savedEmployee.save();
 
     return res.send(
-      successRes(200, "Employee is registered successfully", {
-        ...userWithoutPassword,
+      successRes(200, errorMessage.EMP_REGISTER_SUCCESS, {
+        data: userWithoutPassword,
         accessToken,
         refreshToken,
       })
     );
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(
-        errorRes(400, `${error.keyValue.employeeId} already exists.`)
-      );
+      return res.send(errorRes(400, `${error.keyValue.employeeId} already exists.`));
     }
 
     return next(error);
@@ -251,8 +212,8 @@ export const registerEmployee = async (req, res, next) => {
 };
 
 export const loginEmployee = async (req, res, next) => {
-  const body = req.body;
-  const { email, phoneNumber, password } = body;
+  const body = req.filteredBody;
+  const { email, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!email) return res.send(errorRes(403, "email is required"));
@@ -268,23 +229,19 @@ export const loginEmployee = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     // .lean();
 
     if (!employeeDb) {
-      return res.send(errorRes(400, "No Employee found with given email"));
+      return res.send(errorRes(400, errorMessage.EMP_EMAIL_NOT_EXIST));
     }
 
     const hashPass = await comparePassword(password, employeeDb.password);
 
     if (!hashPass) {
-      return res.status(400).json({ message: "Password didn't Matched" });
+      return res.status(400).json({ message: errorMessage.INVALID_PASS });
     }
 
     const { password: dbPassword, ...userWithoutPassword } = employeeDb._doc;
@@ -294,33 +251,17 @@ export const loginEmployee = async (req, res, next) => {
       role: employeeDb.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     await employeeDb.updateOne(
       {
         refreshToken: refreshToken,
       },
       { new: true }
     );
-    // await employeeModel.updateOne(
-    //   { _id: employeeDb._id },
-    //   {
-    //     refreshToken: refreshToken,
-    //   }
-    // );
-    // employeeDb.refreshToken = refreshToken;
-    // await employeeDb.save();
 
     return res.send(
-      successRes(200, "Employee Login successful", {
+      successRes(200, errorMessage.EMP_LOGIN_SUCCESS, {
         data: userWithoutPassword,
         accessToken,
         refreshToken,
@@ -346,17 +287,17 @@ export const reAuthEmployee = async (req, res, next) => {
       .lean();
 
     if (!employeeDb) {
-      return res.send(errorRes(400, "No Employee found with given email"));
+      return res.send(errorRes(400, errorMessage.EMP_NOT_FOUND));
     }
 
     const hashPass = await comparePassword(password, employeeDb.password);
 
     if (!hashPass) {
-      return res.send(errorRes(401, "Password didn't matched"));
+      return res.send(errorRes(401, errorMessage.INVALID_PASS));
     }
 
     return res.send(
-      successRes(200, "Employee is registered", {
+      successRes(200, "You have been successfully authenticated", {
         data: true,
       })
     );
@@ -375,7 +316,7 @@ export const forgotPasswordEmployee = async (req, res, next) => {
     const oldOtp = await otpModel.findOne({ email: email }).lean();
 
     if (oldOtp) {
-      return res.send(successRes(200, `otp re-sent to ${email}`, oldOtp));
+      return res.send(successRes(200, `Your OTP has been re-sent to ${email}`, oldOtp));
     }
 
     const employeeDb = await employeeModel
@@ -385,7 +326,7 @@ export const forgotPasswordEmployee = async (req, res, next) => {
       .lean();
 
     if (!employeeDb) {
-      return res.send(errorRes(400, `No Channel Partner found with ${email}`));
+      return res.send(errorRes(400, `No Employee found with given email: ${email}`));
     }
 
     const newOtp = generateOTP(4);
@@ -399,7 +340,7 @@ export const forgotPasswordEmployee = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
 
-    return res.send(successRes(200, `otp sent to ${email}`, savedOtp._doc));
+    return res.send(successRes(200, `Your OTP has been sent to ${email}`, savedOtp._doc));
   } catch (error) {
     return next(error);
   }

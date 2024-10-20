@@ -50,74 +50,28 @@ export const validateChannelPartnerFields = (req, res, next) => {
 };
 
 export const validateRegisterCPFields = (body) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    firmName,
-    phoneNumber,
-    haveReraRegistration,
-    reraNumber,
-    reraCertificate,
-  } = body;
+  // Define the required fields and their error messages
+  const requiredFields = ["firstName", "lastName", "phoneNumber", "email", "firmName"];
 
-  if (!firstName) {
-    return res.send(
-      errorRes(400, {
-        message: "First name is required",
-      })
-    );
+  // Validate common required fields
+  for (let field of requiredFields) {
+    if (!body[field]) {
+      return { isValid: false, message: `${field} is required` };
+    }
   }
 
-  if (!lastName) {
-    return res.send(
-      errorRes(400, {
-        message: "last name is required",
-      })
-    );
+  // Additional validation if 'haveReraRegistration' is true
+  if (body.haveReraRegistration) {
+    if (!body.reraNumber) {
+      return { isValid: false, message: "RERA Number is required" };
+    }
+    if (!body.reraCertificate) {
+      return { isValid: false, message: "RERA Certificate is required" };
+    }
   }
 
-  if (!phoneNumber) {
-    return res.send(
-      errorRes(400, {
-        message: "phone number is required",
-      })
-    );
-  }
-
-  if (!email) {
-    return res.send(
-      errorRes(400, {
-        message: "email is required",
-      })
-    );
-  }
-
-  if (!firmName) {
-    return res.send(
-      errorRes(400, {
-        message: "Firm Name is required",
-      })
-    );
-  }
-
-  if (haveReraRegistration == true) {
-    if (!reraNumber)
-      return res.send(
-        errorRes(400, {
-          message: "email is required",
-        })
-      );
-
-    if (!reraCertificate)
-      return res.send(
-        errorRes(400, {
-          message: "email is required",
-        })
-      );
-  }
-
-  return true;
+  // Return true if all validations pass
+  return { isValid: true };
 };
 
 // export const authenticateTokenCp = async (req, res, next) => {

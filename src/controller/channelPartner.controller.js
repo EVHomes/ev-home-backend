@@ -3,7 +3,6 @@ import { validateRegisterCPFields } from "../middleware/channelPartner.middlewar
 import cpModel from "../model/channelPartner.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
-import { respCode } from "../utils/constant.js";
 import {
   comparePassword,
   createJwtToken,
@@ -81,9 +80,7 @@ export const getChannelPartnerById = async (req, res, next) => {
 
     //if not found
     if (!respCP) {
-      return res.send(
-        errorRes(404, `Channel Partner not found with id: ${id}`)
-      );
+      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
     }
     //if found
     return res.send(
@@ -108,9 +105,7 @@ export const editChannelPartnerById = async (req, res, next) => {
 
     //if not found
     if (!respCP) {
-      return res.send(
-        errorRes(404, `Channel Partner not found with id: ${id}`)
-      );
+      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
     }
     await respCP.updateOne(
       {
@@ -146,9 +141,7 @@ export const deleteChannelPartnerById = async (req, res, next) => {
 
     //if not found
     if (!respCP) {
-      return res.send(
-        errorRes(404, `Channel Partner not found with id: ${id}`)
-      );
+      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
     }
     const deletedResp = await respCP.deleteOne();
     //if found
@@ -169,13 +162,13 @@ export const registerChannelPartner = async (req, res, next) => {
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (password.length < 6) {
-      return res.send(
-        errorRes(400, "Password should be at least 6 character long.")
-      );
+      return res.send(errorRes(400, "Password should be at least 6 character long."));
     }
     const validateFields = validateRegisterCPFields(body);
-    if (!validateFields)
-      return res.send(errorRes(401, "All field is required"));
+    if (!validateFields.isValid) {
+      return res.send(errorRes(400, validateFields.message));
+    }
+
     const oldUser = await cpModel
       .findOne({
         $or: [
@@ -209,22 +202,14 @@ export const registerChannelPartner = async (req, res, next) => {
       role: savedCp.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     savedCp.refreshToken = refreshToken;
     await savedCp.save();
 
     return res.send(
       successRes(200, "channel partner is registered", {
-        ...userWithoutPassword,
+        data: userWithoutPassword,
         accessToken,
         refreshToken,
       })
@@ -258,34 +243,20 @@ export const loginChannelPartner = async (req, res, next) => {
       return res.send(errorRes(401, "Password didn't Matched"));
     }
 
-    // const newChannelPartner = new cpModel({
-    //   ...body,
-    //   password: hashPassword,
-    // });
-    // const savedCp = await newChannelPartner.save();
-
     const {
       password: dbPassword,
       refreshToken: dbRefreshToken,
       ...userWithoutPassword
     } = channelPartnerDb._doc;
-    // console.log(userWithoutPassword);
+
     const dataToken = {
       _id: channelPartnerDb._id,
       email: channelPartnerDb.email,
       role: channelPartnerDb.role,
     };
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
 
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     await channelPartnerDb.updateOne({
       refreshToken: refreshToken,
     });
@@ -302,7 +273,7 @@ export const loginChannelPartner = async (req, res, next) => {
     return res.send(
       successRes(200, "Login Successful", {
         data: {
-          ...userWithoutPassword,
+          data: userWithoutPassword,
           accessToken,
           refreshToken,
         },
@@ -408,9 +379,7 @@ export const resetPasswordChannelPartner = async (req, res, next) => {
     }
     const channelPartnerDb = await cpModel.findById(otpDbResp.docId);
     if (!channelPartnerDb) {
-      return res.send(
-        errorRes(404, "No Channel Partner found with given email")
-      );
+      return res.send(errorRes(404, "No Channel Partner found with given email"));
     }
     const hashPassword = await encryptPassword(password);
 

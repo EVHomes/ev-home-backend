@@ -11,6 +11,7 @@ import {
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
+import { validateLeadsFields } from "../../middleware/lead.middleware.js";
 
 const leadRouter = Router();
 leadRouter.get(
@@ -29,15 +30,12 @@ leadRouter.post(
 leadRouter.post(
   "/leads-add",
   // authenticateToken,
+  validateLeadsFields,
   addLead
 );
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
-leadRouter.get(
-  "/leads-exists/:phoneNumber",
-  authenticateToken,
-  checkLeadsExists
-);
+leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
 // leadRouter.get("/lead-valid",getAllLeadsWithValidity);
 
 export default leadRouter;

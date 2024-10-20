@@ -12,17 +12,26 @@ import storageRouter from "./storage/storageRouter.js";
 import { readFile } from "fs/promises";
 import oneSignalRouter from "./oneSignal/oneSignalRouter.js";
 import blockTokenRouter from "./bockedToken/blockTokenRouter.js";
+import { sendEmail } from "../utils/brevo.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const htmlContent = await readFile(
-    "./src/templates/api_welcome_page.html",
-    "utf8"
-  );
+  const htmlContent = await readFile("./src/templates/api_welcome_page.html", "utf8");
   return res.type("html").send(htmlContent);
 });
-
+router.post("/email", async (req, res, next) => {
+  try {
+    const resp = await sendEmail(
+      "aktarul.evgroup@gmail.com",
+      "test email sent for app otp",
+      "0000"
+    );
+    res.send(resp);
+  } catch (error) {
+    next(error);
+  }
+});
 router.use(cpRouter);
 router.use(employeeRouter);
 router.use(divRouter);

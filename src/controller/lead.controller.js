@@ -1,9 +1,10 @@
+import { validateRequiredLeadsFields } from "../middleware/lead.middleware.js";
 import employeeModel from "../model/employee.model.js";
 import leadModel from "../model/lead.model.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import TeamLeaderAssignTurn from "../model/teamLeaderAssignTurn.model.js";
-import { sendNotification } from "./oneSignal.controller.js";
+import { sendNotificationWithInfo } from "./oneSignal.controller.js";
 
 export const getAllLeads = async (req, res, next) => {
   try {
@@ -348,9 +349,10 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
 
     if (foundTLPlayerId) {
       // console.log(foundTLPlayerId);
-      await sendNotification({
-        playerId: foundTLPlayerId.playerId,
-        message: `New Lead is Assigned: for ${respLead.firstName} ${respLead.lastName}`,
+      await sendNotificationWithInfo({
+        playerIds: [foundTLPlayerId.playerId],
+        title: "You've Got a New Lead!",
+        message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
       });
     }
     let nextOrder = whichTurn.currentOrder + 1;
@@ -376,8 +378,8 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
   }
 };
 
-export const addLead = async (req, res) => {
-  const body = req.body;
+export const addLead = async (req, res, next) => {
+  const body = req.filteredBody;
   const {
     email,
     firstName,
@@ -391,23 +393,18 @@ export const addLead = async (req, res) => {
     preSalesExecutive,
     validTill,
     status,
+    requirement,
     project,
     interestedStatus,
   } = body;
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
+    const validFields = validateRequiredLeadsFields(body);
 
-    if (!email) return res.send(errorRes(403, "Email is required"));
-
-    if (!firstName) return res.send(errorRes(403, "First name is required"));
-
-    if (!lastName) return res.send(errorRes(403, "Last name is required"));
-
-    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
-
-    if (!project) return res.send(errorRes(403, "Project is required"));
-
+    if (!validFields.isValid) {
+      return res.send(errorRes(400, validFields.message));
+    }
     // Get current date and 60 days ago
     const currentDate = new Date();
     const sixtyDaysAgo = new Date();
@@ -423,30 +420,40 @@ export const addLead = async (req, res) => {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with the following details:Phone Number: ${existingLead.phoneNumber} Alt Phone Number: ${existingLead.altPhoneNumber} Start Date: ${existingLead.startDate} Valid Till: ${existingLead.validTill} Status: ${existingLead.status}`
+          `Lead already exists with the following details: Phone Number: ${existingLead.phoneNumber}`
         )
       );
     }
 
     const newLead = await leadModel.create({
-      email,
-      firstName,
-      lastName,
-      phoneNumber,
-      altPhoneNumber,
-      remark,
-      channelPartner,
-      status,
-      interestedStatus,
-      project,
-      startDate: startDate || Date.now(),
-      validTill: new Date(
-        new Date(startDate || Date.now()).setMonth(new Date().getMonth() + 2)
-      ),
+      ...body,
     });
 
     // Save the new lead
     await newLead.save();
+
+    const dataAnalyser = await employeeModel
+      .find({
+        designation: "670e5473de5adb5e87eb8d86",
+      })
+      .sort({ createdAt: 1 });
+
+    const getIds = dataAnalyser.map((dt) => dt._id.toString());
+    const foundTLPlayerId = await oneSignalModel.find({
+      docId: { $in: getIds },
+      role: "employee",
+    });
+
+    if (foundTLPlayerId.length > 0) {
+      // console.log(foundTLPlayerId);
+      const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+      await sendNotificationWithInfo({
+        playerIds: getPlayerIds,
+        title: "You've Got a New Lead!",
+        message: `A new lead is now available for you to review. Please check the details and take the required steps to approve or update it`,
+      });
+    }
 
     return res.send(
       successRes(200, `Lead added successfully: ${firstName} ${lastName}`, {
@@ -454,11 +461,12 @@ export const addLead = async (req, res) => {
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `Server error: ${error?.message}`));
+    return next(error);
+    // return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
 
-export const updateLead = async (req, res) => {
+export const updateLead = async (req, res, next) => {
   const body = req.body;
   const id = req.params.id;
 
@@ -518,11 +526,12 @@ export const updateLead = async (req, res) => {
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `Server error: ${error?.message}`));
+    return next(error);
+    // return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
 
-export const deleteLead = async (req, res) => {
+export const deleteLead = async (req, res, next) => {
   const id = req.params.id;
 
   try {
@@ -540,11 +549,91 @@ export const deleteLead = async (req, res) => {
       })
     );
   } catch (error) {
-    return res.send(errorRes(500, `Server error: ${error?.message}`));
+    return next(error);
+    // return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
 
-export const checkLeadsExists = async (req, res) => {
+export const updateCallHistory = async (
+  leadId,
+  callerId,
+  remarks,
+  feedback,
+  documentUrl,
+  recordingUrl
+) => {
+  try {
+    const updatedLead = await leadModel.findByIdAndUpdate(
+      leadId,
+      {
+        $push: {
+          callHistory: {
+            caller: callerId,
+            remarks: remarks,
+            feedback: feedback,
+            document: documentUrl, // Store the document URL
+            recording: recordingUrl, // Store the recording URL
+          },
+        },
+      },
+      { new: true }
+    );
+
+    return updatedLead;
+  } catch (error) {
+    console.error("Error updating call history:", error);
+    throw new Error("Could not update call history");
+  }
+};
+
+export const markLeadAsApproved = async (leadId, employeeId, remarks) => {
+  try {
+    const updatedLead = await leadModel.findByIdAndUpdate(
+      leadId,
+      {
+        $addToSet: {
+          approvalHistory: {
+            employeeId: employeeId,
+            approvedAt: Date.now(),
+            remarks: remarks,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    return updatedLead;
+  } catch (error) {
+    console.error("Error marking lead as approved:", error);
+    throw new Error("Could not mark lead as approved");
+  }
+};
+
+export const updateLeadDetails = async (leadId, employeeId, changes) => {
+  try {
+    const updatedLead = await leadModel.findByIdAndUpdate(
+      leadId,
+      {
+        $addToSet: {
+          updateHistory: {
+            employeeId: employeeId,
+            updatedAt: Date.now(),
+            changes: changes,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    return updatedLead;
+  } catch (error) {
+    console.error("Error updating lead:", error);
+    throw new Error("Could not update lead");
+  }
+};
+
+//not needed right now
+export const checkLeadsExists = async (req, res, next) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
     if (!phoneNumber) return res.send(errorRes(403, "Phone Number is required"));
@@ -574,7 +663,8 @@ export const checkLeadsExists = async (req, res) => {
       message: "No lead found with this phone number. You can proceed.",
     });
   } catch (error) {
-    return res.send(errorRes(500, `Server error: ${error?.message}`));
+    return next(error);
+    // return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
 
