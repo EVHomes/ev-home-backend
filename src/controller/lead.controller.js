@@ -322,7 +322,7 @@ export const getSimilarLeadsById = async (req, res, next) => {
               { altPhoneNumber: respLead.phoneNumber },
             ],
           },
-          { _id: { $ne: id } }, // Exclude the lead with the same ID
+          { _id: { $ne: id } },
         ],
       })
       .populate({
@@ -365,6 +365,57 @@ export const getSimilarLeadsById = async (req, res, next) => {
       })
       .populate({
         path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
         select: "-password -refreshToken",
         populate: [
           { path: "designation" },
@@ -665,20 +716,21 @@ export const updateLead = async (req, res, next) => {
     const updatedLead = await leadModel.findByIdAndUpdate(
       id,
       {
-        email,
-        firstName,
-        lastName,
-        phoneNumber,
-        altPhoneNumber,
-        remark,
-        status,
-        interestedStatus,
-        startDate: body.startDate || Date.now(), // Use current date if not provided
-        validTill: new Date(
-          new Date(body.startDate || Date.now()).setMonth(
-            new Date(body.startDate || Date.now()).getMonth() + 2
-          )
-        ),
+        ...body,
+        // email,
+        // firstName,
+        // lastName,
+        // phoneNumber,
+        // altPhoneNumber,
+        // remark,
+        // status,
+        // interestedStatus,
+        // startDate: body.startDate || Date.now(), // Use current date if not provided
+        // validTill: new Date(
+        //   new Date(body.startDate || Date.now()).setMonth(
+        //     new Date(body.startDate || Date.now()).getMonth() + 2
+        //   )
+        // ),
       },
       { new: true } // Return the updated document
     );
@@ -727,17 +779,13 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
   const user = req.user;
   const { remarks } = req.body;
   try {
-    console.log("pass 1");
     if (!id) return res.send(errorRes(403, "id is required"));
 
     const respLead = await leadModel.findById(id);
-    console.log("pass 2");
     if (!respLead) return res.send(errorRes(404, "No lead found"));
-    console.log("pass 2.5");
 
     if (respLead.teamLeader)
       return res.send(errorRes(401, "Team Leader is Already Assigned"));
-    console.log("pass 3");
 
     const teamLeaders = await employeeModel
       .find({
@@ -745,7 +793,6 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       })
       .sort({ createdAt: 1 });
     const whichTurn = await TeamLeaderAssignTurn.findOne({});
-    console.log("pass 4");
 
     // await respLead.updateOne(
     //   {
@@ -759,6 +806,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         id,
         {
           teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+          dataAnalyser: user?._id,
           status: "Approved",
           $addToSet: {
             approvalHistory: {
@@ -825,7 +873,6 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
           },
         ],
       });
-    console.log("pass 5");
 
     const foundTLPlayerId = await oneSignalModel.findOne({
       docId: teamLeaders[whichTurn.currentOrder]._id.toString(),
@@ -840,7 +887,6 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
       });
     }
-    console.log("pass 6");
     let nextOrder = whichTurn.currentOrder + 1;
 
     // Reset to 0 if nextOrder exceeds the length of teamLeaders
@@ -853,7 +899,6 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       nextAssignTeamLeader: teamLeaders[nextOrder]._id.toString(),
       currentOrder: nextOrder,
     });
-    console.log("pass 7");
 
     return res.send(
       successRes(
@@ -867,7 +912,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       )
     );
   } catch (error) {
-    console.log("got error" + error?.message);
+    // console.log("got error" + error?.message);
 
     next(error);
   }

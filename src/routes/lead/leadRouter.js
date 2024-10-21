@@ -23,7 +23,11 @@ leadRouter.get(
 leadRouter.get("/search-lead", authenticateToken, searchLeads);
 
 leadRouter.get("/lead/:id", authenticateToken, getLeadById);
-leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
+leadRouter.get(
+  "/similar-leads/:id",
+  // authenticateToken,
+  getSimilarLeadsById
+);
 
 leadRouter.post(
   "/lead-assign-tl/:id",

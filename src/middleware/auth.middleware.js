@@ -18,7 +18,32 @@ export const authenticateToken = async (req, res, next) => {
 
     try {
       const decoded = verifyJwtToken(accessToken, config.SECRET_ACCESS_KEY);
-      req.user = decoded.data;
+      let user = null;
+      if (decoded.data.role === "channel-partner") {
+        user = await cpModel.findById(decoded.data._id).lean();
+
+        if (!user) {
+          return res.send(errorRes(401, "Channel Partner not found"));
+        }
+      } else if (decoded.data.role === "employee") {
+        user = await employeeModel.findById(decoded.data._id).lean();
+
+        if (!user) {
+          return res.send(errorRes(401, "Channel Partner not found"));
+        }
+      } else if (decoded.data.role === "customer") {
+        user = await clientModel.findById(decoded.data._id).lean();
+
+        if (!user) {
+          return res.send(errorRes(401, "Channel Partner not found"));
+        }
+      }
+
+      if (!user) {
+        return res.send(errorRes(401, "No valid Session found"));
+      }
+
+      req.user = user;
       return next();
     } catch (error) {
       if (error.name === "TokenExpiredError") {
@@ -32,21 +57,21 @@ export const authenticateToken = async (req, res, next) => {
             refreshToken,
             config.SECRET_REFRESH_KEY
           );
-          let user;
+          let user = null;
           if (decoded.data.role === "channel-partner") {
-            user = await cpModel.findById(decoded.data._id);
+            user = await cpModel.findById(decoded.data._id).lean();
 
             if (!user) {
               return res.send(errorRes(401, "Channel Partner not found"));
             }
           } else if (decoded.data.role === "employee") {
-            user = await employeeModel.findById(decoded.data._id);
+            user = await employeeModel.findById(decoded.data._id).lean();
 
             if (!user) {
               return res.send(errorRes(401, "Channel Partner not found"));
             }
           } else if (decoded.data.role === "customer") {
-            user = await clientModel.findById(decoded.data._id);
+            user = await clientModel.findById(decoded.data._id).lean();
 
             if (!user) {
               return res.send(errorRes(401, "Channel Partner not found"));
