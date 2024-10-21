@@ -115,7 +115,7 @@ export const leadSchema = new mongoose.Schema(
     callHistory: [callHistorySchema],
     viewedBy: [
       {
-        employeeId: {
+        employee: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "employees",
           required: true,

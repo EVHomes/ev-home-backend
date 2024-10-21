@@ -22,20 +22,12 @@ leadRouter.get(
 );
 leadRouter.get("/search-lead", authenticateToken, searchLeads);
 
-leadRouter.get(
-  "/lead/:id",
-  // authenticateToken,
-  getLeadById
-);
-leadRouter.get(
-  "/similar-leads/:id",
-  // authenticateToken,
-  getSimilarLeadsById
-);
+leadRouter.get("/lead/:id", authenticateToken, getLeadById);
+leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
 leadRouter.post(
   "/lead-assign-tl/:id",
-  // authenticateToken,
+  authenticateToken,
   assignLeadToTeamLeader
 );
 leadRouter.post(
@@ -46,7 +38,11 @@ leadRouter.post(
 );
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
-leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
+leadRouter.get(
+  "/leads-exists/:phoneNumber",
+  authenticateToken,
+  checkLeadsExists
+);
 // leadRouter.get("/lead-valid",getAllLeadsWithValidity);
 
 export default leadRouter;

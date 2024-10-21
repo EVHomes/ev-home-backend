@@ -7,10 +7,11 @@ import { createJwtToken, verifyJwtToken } from "../utils/helper.js";
 
 export const authenticateToken = async (req, res, next) => {
   try {
-    const accessToken = req.headers.authorization?.split(" ")[1];
+    const accessToken = req.headers["authorization"]?.split(" ")[1];
     // const refreshToken = req.headers.refreshtoken?.split(" ")[1];
-    const refreshToken = req.headers["x-refresh-token"];
-
+    const refreshToken = req.headers["x-refresh-token"]?.split(" ")[1];
+    // console.log(`acces: ${accessToken} `);
+    // console.log(`refresh: ${refreshToken} `);
     if (!accessToken) {
       return res.status(401).json({ message: "No token provided" });
     }
