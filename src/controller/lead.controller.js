@@ -539,7 +539,7 @@ export const addLead = async (req, res, next) => {
           `Lead created successfully, but the same client lead exists with another channel partner.`,
           {
             existingLead: existingLeadForOtherCP,
-            newLead,
+            data: newLead,
           }
         )
       );
@@ -573,7 +573,7 @@ export const addLead = async (req, res, next) => {
 
     return res.send(
       successRes(200, `Lead added successfully: ${firstName} ${lastName}`, {
-        newLead,
+        data: newLead,
       })
     );
   } catch (error) {
