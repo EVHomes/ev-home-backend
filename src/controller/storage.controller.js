@@ -45,6 +45,7 @@ export const uploadFile = async (req, res) => {
 };
 
 export const uploadMultiple = async (req, res) => {
+  const uplaodedFiles = [];
   if (!req.files || req.files.length === 0) {
     return res.send(errorRes(400, "No files uploaded."));
   }
@@ -75,13 +76,15 @@ export const uploadMultiple = async (req, res) => {
     });
 
     await respDb.save();
-
-    return { filename: file.filename, token, downloadUrl };
+    uplaodedFiles.push({ filename: uniqueFileName, token, downloadUrl });
+    return { filename: uniqueFileName, token, downloadUrl };
   });
+
   await Promise.all(fileDetails);
 
+  // console.log(uplaodedFiles);
   return res.send(
-    successRes(200, "Files uploaded successfully!", { data: fileDetails })
+    successRes(200, "Files uploaded successfully!", { data: uplaodedFiles })
   );
 };
 export const getFileLink = (req, res) => {
