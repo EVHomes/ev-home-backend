@@ -13,11 +13,15 @@ import { readFile } from "fs/promises";
 import oneSignalRouter from "./oneSignal/oneSignalRouter.js";
 import blockTokenRouter from "./bockedToken/blockTokenRouter.js";
 import { sendEmail } from "../utils/brevo.js";
+import reqRouter from "./requirement/reqRouter.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const htmlContent = await readFile("./src/templates/api_welcome_page.html", "utf8");
+  const htmlContent = await readFile(
+    "./src/templates/api_welcome_page.html",
+    "utf8"
+  );
   return res.type("html").send(htmlContent);
 });
 router.post("/email", async (req, res, next) => {
@@ -44,4 +48,5 @@ router.use(storageRouter);
 router.use(siteVisitRouter);
 router.use(oneSignalRouter);
 router.use(blockTokenRouter);
+router.use(reqRouter);
 export default router;
