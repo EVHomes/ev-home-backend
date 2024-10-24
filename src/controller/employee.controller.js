@@ -4,6 +4,8 @@ import cpModel from "../model/channelPartner.model.js";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { forgotPasswordTemplete } from "../templates/html_template.js";
+import { sendEmail } from "../utils/brevo.js";
 import { errorMessage } from "../utils/constant.js";
 import {
   comparePassword,
@@ -23,11 +25,7 @@ export const getEmployees = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -59,11 +57,7 @@ export const getClosingManagers = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -93,11 +87,7 @@ export const getTeamLeaders = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -123,11 +113,7 @@ export const getEmployeeById = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
     //if not found
     if (!respEmployee) {
@@ -236,16 +222,8 @@ export const registerEmployee = async (req, res, next) => {
       role: savedEmployee.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     savedEmployee.refreshToken = refreshToken;
     await savedEmployee.save();
 
@@ -258,9 +236,7 @@ export const registerEmployee = async (req, res, next) => {
     );
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(
-        errorRes(400, `${error.keyValue.employeeId} already exists.`)
-      );
+      return res.send(errorRes(400, `${error.keyValue.employeeId} already exists.`));
     }
 
     return next(error);
@@ -285,11 +261,7 @@ export const loginEmployee = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     // .lean();
@@ -311,16 +283,8 @@ export const loginEmployee = async (req, res, next) => {
       role: employeeDb.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     await employeeDb.updateOne(
       {
         refreshToken: refreshToken,
@@ -380,15 +344,6 @@ export const forgotPasswordEmployee = async (req, res, next) => {
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!email) return res.send(errorRes(403, "email is required"));
-
-    const oldOtp = await otpModel.findOne({ email: email }).lean();
-
-    if (oldOtp) {
-      return res.send(
-        successRes(200, `Your OTP has been re-sent to ${email}`, oldOtp)
-      );
-    }
-
     const employeeDb = await employeeModel
       .findOne({
         email: email,
@@ -396,9 +351,22 @@ export const forgotPasswordEmployee = async (req, res, next) => {
       .lean();
 
     if (!employeeDb) {
-      return res.send(
-        errorRes(400, `No Employee found with given email: ${email}`)
+      return res.send(errorRes(400, `No Employee found with given email: ${email}`));
+    }
+
+    const oldOtp = await otpModel.findOne({ email: email }).lean();
+
+    if (oldOtp) {
+      await sendEmail(
+        email,
+        "Reset Password",
+        forgotPasswordTemplete(
+          `${employeeDb.firstName} ${employeeDb.lastName}`,
+          oldOtp.otp,
+          "https://evhomes.tech/"
+        )
       );
+      return res.send(successRes(200, `Your OTP has been re-sent to ${email}`, oldOtp));
     }
 
     const newOtp = generateOTP(4);
@@ -412,9 +380,17 @@ export const forgotPasswordEmployee = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
 
-    return res.send(
-      successRes(200, `Your OTP has been sent to ${email}`, savedOtp._doc)
+    await sendEmail(
+      email,
+      "Reset Password",
+      forgotPasswordTemplete(
+        `${employeeDb.firstName} ${employeeDb.lastName}`,
+        savedOtp.otp,
+        "https://evhomes.tech/"
+      )
     );
+
+    return res.send(successRes(200, `Your OTP has been sent to ${email}`, savedOtp._doc));
   } catch (error) {
     return next(error);
   }

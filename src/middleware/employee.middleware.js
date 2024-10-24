@@ -66,7 +66,7 @@ export const validateRegisterEmployeeFields = (body) => {
     return { isValid: false, message: "Password should be at least 6 character long" };
   }
 
-  if (body.confirmPassword && body.confirmPassword) {
+  if (body.confirmPassword && body.confirmPassword.length < 6) {
     return { isValid: false, message: "Password should be at least 6 character long" };
   }
 
