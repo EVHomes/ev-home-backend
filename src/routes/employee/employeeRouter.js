@@ -6,6 +6,7 @@ import {
   getClosingManagers,
   getEmployeeById,
   getEmployees,
+  getTeamLeaders,
   loginEmployee,
   registerEmployee,
   resetPasswordEmployee,
@@ -28,6 +29,12 @@ employeeRouter.get(
   "/employee-closing-manager",
   // authenticateToken,
   getClosingManagers
+);
+
+employeeRouter.get(
+  "/employee-team-leader",
+  // authenticateToken,
+  getTeamLeaders
 );
 
 employeeRouter.post(

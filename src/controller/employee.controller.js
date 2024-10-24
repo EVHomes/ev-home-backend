@@ -23,7 +23,11 @@ export const getEmployees = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     return res.send(
@@ -55,7 +59,45 @@ export const getClosingManagers = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getTeamLeaders = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        $or: [
+          {
+            designation: "670e5493de5adb5e87eb8d8c",
+          },
+        ],
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     return res.send(
@@ -81,7 +123,11 @@ export const getEmployeeById = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
     //if not found
     if (!respEmployee) {
@@ -190,8 +236,16 @@ export const registerEmployee = async (req, res, next) => {
       role: savedEmployee.role,
     };
 
-    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
-    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
+    const accessToken = createJwtToken(
+      dataToken,
+      config.SECRET_ACCESS_KEY,
+      "15m"
+    );
+    const refreshToken = createJwtToken(
+      dataToken,
+      config.SECRET_REFRESH_KEY,
+      "7d"
+    );
     savedEmployee.refreshToken = refreshToken;
     await savedEmployee.save();
 
@@ -204,7 +258,9 @@ export const registerEmployee = async (req, res, next) => {
     );
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(errorRes(400, `${error.keyValue.employeeId} already exists.`));
+      return res.send(
+        errorRes(400, `${error.keyValue.employeeId} already exists.`)
+      );
     }
 
     return next(error);
@@ -229,7 +285,11 @@ export const loginEmployee = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     // .lean();
@@ -251,8 +311,16 @@ export const loginEmployee = async (req, res, next) => {
       role: employeeDb.role,
     };
 
-    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
-    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
+    const accessToken = createJwtToken(
+      dataToken,
+      config.SECRET_ACCESS_KEY,
+      "15m"
+    );
+    const refreshToken = createJwtToken(
+      dataToken,
+      config.SECRET_REFRESH_KEY,
+      "7d"
+    );
     await employeeDb.updateOne(
       {
         refreshToken: refreshToken,
@@ -316,7 +384,9 @@ export const forgotPasswordEmployee = async (req, res, next) => {
     const oldOtp = await otpModel.findOne({ email: email }).lean();
 
     if (oldOtp) {
-      return res.send(successRes(200, `Your OTP has been re-sent to ${email}`, oldOtp));
+      return res.send(
+        successRes(200, `Your OTP has been re-sent to ${email}`, oldOtp)
+      );
     }
 
     const employeeDb = await employeeModel
@@ -326,7 +396,9 @@ export const forgotPasswordEmployee = async (req, res, next) => {
       .lean();
 
     if (!employeeDb) {
-      return res.send(errorRes(400, `No Employee found with given email: ${email}`));
+      return res.send(
+        errorRes(400, `No Employee found with given email: ${email}`)
+      );
     }
 
     const newOtp = generateOTP(4);
@@ -340,7 +412,9 @@ export const forgotPasswordEmployee = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
 
-    return res.send(successRes(200, `Your OTP has been sent to ${email}`, savedOtp._doc));
+    return res.send(
+      successRes(200, `Your OTP has been sent to ${email}`, savedOtp._doc)
+    );
   } catch (error) {
     return next(error);
   }
