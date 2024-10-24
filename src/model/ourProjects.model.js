@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 
 export const ourProjectsSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
-  description: { type: String, required: true },
+  description: { type: String, default: "" },
   showCaseImage: { type: String, required: true },
   carouselImages: [{ type: String, required: true }],
-  contactNumber: { type: Number, required: true },
+  contactNumber: { type: Number, default: null },
   countryCode: { type: String, default: "+91" },
-  locationLink: { type: String, required: true },
+  locationLink: { type: String, default: null },
   locationName: { type: String, required: true },
   brochure: { type: String, default: null },
   amenities: [
