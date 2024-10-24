@@ -37,11 +37,7 @@ employeeRouter.get(
   getTeamLeaders
 );
 
-employeeRouter.post(
-  "/employee-register",
-  validateEmployeeFields,
-  registerEmployee
-);
+employeeRouter.post("/employee-register", validateEmployeeFields, registerEmployee);
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(
@@ -66,5 +62,10 @@ employeeRouter.post(
 employeeRouter.delete("/employee/:id", authenticateToken, deleteEmployeeById);
 
 employeeRouter.get("/search-employee", searchEmployee);
+
+// Route to serve the password reset page
+employeeRouter.get("/reset-password", (req, res) => {
+  res.render("reset-password", { pageTitle: "Reset Your Password" });
+});
 
 export default employeeRouter;

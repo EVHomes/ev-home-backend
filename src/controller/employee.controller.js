@@ -357,15 +357,15 @@ export const forgotPasswordEmployee = async (req, res, next) => {
     const oldOtp = await otpModel.findOne({ email: email }).lean();
 
     if (oldOtp) {
-      await sendEmail(
-        email,
-        "Reset Password",
-        forgotPasswordTemplete(
-          `${employeeDb.firstName} ${employeeDb.lastName}`,
-          oldOtp.otp,
-          "https://evhomes.tech/"
-        )
-      );
+      // await sendEmail(
+      //   email,
+      //   "Reset Password"
+      // forgotPasswordTemplete(
+      //   `${employeeDb.firstName} ${employeeDb.lastName}`,
+      //   oldOtp.otp,
+      //   "https://evhomes.tech/"
+      // )
+      // );
       return res.send(successRes(200, `Your OTP has been re-sent to ${email}`, oldOtp));
     }
 
@@ -380,15 +380,15 @@ export const forgotPasswordEmployee = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
 
-    await sendEmail(
-      email,
-      "Reset Password",
-      forgotPasswordTemplete(
-        `${employeeDb.firstName} ${employeeDb.lastName}`,
-        savedOtp.otp,
-        "https://evhomes.tech/"
-      )
-    );
+    // await sendEmail(
+    //   email,
+    //   "Reset Password",
+    //   forgotPasswordTemplete(
+    //     `${employeeDb.firstName} ${employeeDb.lastName}`,
+    //     savedOtp.otp,
+    //     "https://evhomes.tech/"
+    //   )
+    // );
 
     return res.send(successRes(200, `Your OTP has been sent to ${email}`, savedOtp._doc));
   } catch (error) {
@@ -405,11 +405,9 @@ export const resetPasswordEmployee = async (req, res, next) => {
     if (!email) return res.send(errorRes(403, "email is required"));
     if (!password) return res.send(errorRes(403, "password is required"));
 
-    const otpDbResp = await otpModel
-      .findOne({
-        email: email,
-      })
-      .lean();
+    const otpDbResp = await otpModel.findOne({
+      email: email,
+    });
 
     if (!otpDbResp) {
       return res.send(errorRes(404, "Invalid Otp"));
@@ -417,24 +415,43 @@ export const resetPasswordEmployee = async (req, res, next) => {
     if (otpDbResp.otp != otp) {
       return res.send(errorRes(401, "Otp didn't matched"));
     }
-    const employeeDb = await employeeModel.findById(otpDbResp.docId).lean();
+
+    const employeeDb = await employeeModel
+      .findById(otpDbResp.docId)
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+      });
+
     if (!employeeDb) {
       return res.send(errorRes(404, "No Employee found with given email"));
     }
     const hashPassword = await encryptPassword(password);
-    const updatedPassChannelPartner = await employeeModel.updateOne(
-      {
-        _id: employeeDb._id,
-      },
+    await employeeDb.updateOne(
       {
         password: hashPassword,
-      }
+      },
+      { new: true }
     );
-    await otpModel.deleteOne({ _id: otpDbResp._id });
+    // const updatedPassChannelPartner = await employeeModel.updateOne(
+    //   {
+    //     _id: employeeDb._id,
+    //   },
+    //   {
+    //     password: hashPassword,
+    //   }
+    // );
+    await otpDbResp.deleteOne();
+    // await otpModel.deleteOne({ _id: otpDbResp._id });
 
     return res.send(
       successRes(200, `Reset password sucessfully for: ${otpDbResp.email}`, {
-        data: updatedPassChannelPartner.acknowledged,
+        data: employeeDb,
       })
     );
   } catch (error) {

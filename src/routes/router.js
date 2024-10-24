@@ -14,14 +14,12 @@ import oneSignalRouter from "./oneSignal/oneSignalRouter.js";
 import blockTokenRouter from "./bockedToken/blockTokenRouter.js";
 import { sendEmail } from "../utils/brevo.js";
 import reqRouter from "./requirement/reqRouter.js";
+import { encryptPassword } from "../utils/helper.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const htmlContent = await readFile(
-    "./src/templates/api_welcome_page.html",
-    "utf8"
-  );
+  const htmlContent = await readFile("./src/templates/api_welcome_page.html", "utf8");
   return res.type("html").send(htmlContent);
 });
 router.post("/email", async (req, res, next) => {
@@ -36,6 +34,16 @@ router.post("/email", async (req, res, next) => {
     next(error);
   }
 });
+router.post("/hashPassword", async (req, res, next) => {
+  const { password } = req.body;
+  try {
+    const resp = await encryptPassword(password);
+    res.send(resp);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.use(cpRouter);
 router.use(employeeRouter);
 router.use(divRouter);
