@@ -107,6 +107,11 @@ export const editChannelPartnerById = async (req, res, next) => {
     if (!respCP) {
       return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
     }
+    if (body.password) {
+      const saltRounds = 10;  // You can adjust the number of salt rounds based on your security requirements
+      body.password = await encryptPassword(body.password, saltRounds);
+    }
+
     await respCP.updateOne(
       {
         ...body,
@@ -272,17 +277,50 @@ export const loginChannelPartner = async (req, res, next) => {
 
     return res.send(
       successRes(200, "Login Successful", {
-        data: {
           data: userWithoutPassword,
           accessToken,
           refreshToken,
-        },
+      
       })
     );
   } catch (error) {
     return next(error);
   }
 };
+
+export const newPassword = async (req, res, next) => {
+  const { id } = req.params;
+  const { password, newPassword } = req.body;
+
+  try {
+    if (!id) {
+      return res.send(errorRes(403, "ID is required"));
+    }
+    if (!password || !newPassword) {
+      return res.send(errorRes(403, "Old and new passwords are required"));
+    }
+
+    const respCP = await cpModel.findById(id).select("+password");
+
+    if (!respCP) {
+      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
+    }
+    const isMatch = await comparePassword(password, respCP.password);
+
+    if (!isMatch) {
+      return res.send(errorRes(400, "Old password is incorrect"));
+    }
+
+    const hashedNewPassword = await encryptPassword(newPassword, 10);
+    respCP.password = hashedNewPassword;
+    await respCP.save();
+
+    return res.send(successRes(200, "Password updated successfully"));
+  } catch (error) {
+    return next(error);
+  }
+};
+
 
 export const reAuthChannelPartner = async (req, res, next) => {
   const body = req.body;
