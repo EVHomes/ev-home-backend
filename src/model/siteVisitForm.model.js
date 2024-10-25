@@ -4,7 +4,10 @@ export const siteVisitSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
-    phoneNumber: { type: Number, required: true, unique: true },
+    namePrefix: { type: String, default: "Mr" },
+    gender: { type: String, default: "male" },
+    phoneNumber: { type: Number, required: true, default: 0 },
+    date: { type: Date, default: Date.now },
     countryCode: { type: String, default: "+91" },
     email: {
       type: String,
@@ -39,10 +42,20 @@ export const siteVisitSchema = new mongoose.Schema(
       default: null,
       // enum: ["Walk-in", "CP", "Reference"],
     },
+    feedback: {
+      type: String,
+      // required: true,
+      default: "",
+      // enum: ["Walk-in", "CP", "Reference"],
+    },
     closingManager: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "employees",
-      required: true,
+      default: null,
+    },
+    attendedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "employees",
       default: null,
     },
     closingTeam: [
