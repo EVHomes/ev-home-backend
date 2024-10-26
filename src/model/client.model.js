@@ -15,12 +15,11 @@ export const clientSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid email.`,
     },
   },
-
   gender: {
     type: String,
     required: true,
-    default: "Male",
-    enum: ["Male", "Female", "Other"],
+    default: "male",
+    enum: ["male", "female", "other"],
   },
   isVerifiedPhone: { type: Boolean, default: false },
   isVerifiedEmail: { type: Boolean, default: false },

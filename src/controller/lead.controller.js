@@ -129,6 +129,130 @@ export const getAllLeads = async (req, res, next) => {
   }
 };
 
+export const getLeadsTeamLeader = async (req, res, next) => {
+  const teamLeaderId = req.params.id;
+  try {
+    const respLeads = await leadModel
+      .find({ teamLeader: teamLeaderId })
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+
+    if (!respLeads) return res.send(errorRes(404, "No leads found"));
+
+    return res.send(
+      successRes(200, "Leads for team Leader", {
+        data: respLeads,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
@@ -777,7 +901,9 @@ export const deleteLead = async (req, res, next) => {
 export const assignLeadToTeamLeader = async (req, res, next) => {
   const id = req.params.id;
   const user = req.user;
-  const { remarks } = req.body;
+
+  const { remark } = req.body;
+
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
 
@@ -792,14 +918,8 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         designation: "670e5493de5adb5e87eb8d8c",
       })
       .sort({ createdAt: 1 });
-    const whichTurn = await TeamLeaderAssignTurn.findOne({});
 
-    // await respLead.updateOne(
-    //   {
-    //     teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
-    //   },
-    //   { new: true }
-    // );
+    const whichTurn = await TeamLeaderAssignTurn.findOne({});
 
     const updatedLead = await leadModel
       .findByIdAndUpdate(
@@ -812,7 +932,15 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
             approvalHistory: {
               employee: user?._id,
               approvedAt: Date.now(),
-              remarks: remarks ?? "Approved",
+              remark: remark ?? "Approved",
+            },
+            updateHistory: {
+              employee: user?._id,
+              changes: `Lead Assign to Team Leader ${
+                teamLeaders[whichTurn.currentOrder].firstName
+              } ${teamLeaders[whichTurn.currentOrder].lastName}`,
+              updatedAt: Date.now(),
+              remark: remark,
             },
           },
         },
@@ -917,8 +1045,127 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
     next(error);
   }
 };
+
+export const assignLeadToPreSaleExecutive = async (req, res, next) => {
+  const id = req.params.id;
+  const user = req.user;
+  const { remark, assignTo } = req.body;
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+
+    const respLead = await leadModel.findById(id);
+
+    if (!respLead) return res.send(errorRes(404, "No lead found"));
+
+    if (respLead.preSalesExecutive)
+      return res.send(errorRes(401, "Pre Sale Executive is Already Assigned"));
+
+    const preSalesExecutive = await employeeModel.findById(assignTo);
+
+    const updatedLead = await leadModel
+      .findByIdAndUpdate(
+        id,
+        {
+          preSalesExecutive: assignTo,
+          $addToSet: {
+            updateHistory: {
+              employee: user?._id,
+              changes: `Lead Assign to Presale Executive ${preSalesExecutive.firstName} ${preSalesExecutive.lastName}`,
+              updatedAt: Date.now(),
+              remark: remark,
+            },
+          },
+        },
+        { new: true, runValidators: true }
+      )
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+
+    const foundTLPlayerId = await oneSignalModel.findOne({
+      docId: assignTo,
+      role: preSalesExecutive.role,
+    });
+
+    if (foundTLPlayerId) {
+      // console.log(foundTLPlayerId);
+      await sendNotificationWithInfo({
+        playerIds: [foundTLPlayerId.playerId],
+        title: "New Lead Assigned!",
+        message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+      });
+    }
+
+    return res.send(
+      successRes(
+        200,
+        `Lead Assign to Presale Executive ${preSalesExecutive.firstName} ${preSalesExecutive.lastName}`,
+        {
+          data: updatedLead,
+        }
+      )
+    );
+  } catch (error) {
+    // console.log("got error" + error?.message);
+
+    next(error);
+  }
+};
+
 export const updateCallHistoryByPreSaleExcutive = async (req, res, next) => {
-  const { callerId, remarks, feedback, documentUrl, recordingUrl } = req.body;
+  const { callerId, remark, feedback, documentUrl, recordingUrl } = req.body;
   try {
     const updatedLead = await leadModel.findByIdAndUpdate(
       leadId,
@@ -926,7 +1173,7 @@ export const updateCallHistoryByPreSaleExcutive = async (req, res, next) => {
         $push: {
           callHistory: {
             caller: callerId,
-            remarks: remarks,
+            remark: remark,
             feedback: feedback,
             document: documentUrl,
             recording: recordingUrl,
@@ -941,7 +1188,7 @@ export const updateCallHistoryByPreSaleExcutive = async (req, res, next) => {
 export const updateCallHistory = async (
   leadId,
   callerId,
-  remarks,
+  remark,
   feedback,
   documentUrl,
   recordingUrl
@@ -953,7 +1200,7 @@ export const updateCallHistory = async (
         $push: {
           callHistory: {
             caller: callerId,
-            remarks: remarks,
+            remark: remark,
             feedback: feedback,
             document: documentUrl, // Store the document URL
             recording: recordingUrl, // Store the recording URL

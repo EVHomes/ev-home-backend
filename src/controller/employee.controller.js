@@ -112,6 +112,36 @@ export const getTeamLeaders = async (req, res, next) => {
   }
 };
 
+export const getPreSalesExecutive = async (req, res, next) => {
+  try {
+    const respPreSaleEx = await employeeModel
+      .find({
+        designation: "670e5464de5adb5e87eb8d83",
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get Pre Sales Executive", {
+        data: respPreSaleEx,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getEmployeeById = async (req, res, next) => {
   const id = req.params.id;
   try {

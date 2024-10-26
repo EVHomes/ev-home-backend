@@ -6,6 +6,7 @@ import {
   getClosingManagers,
   getEmployeeById,
   getEmployees,
+  getPreSalesExecutive,
   getTeamLeaders,
   loginEmployee,
   registerEmployee,
@@ -36,8 +37,17 @@ employeeRouter.get(
   // authenticateToken,
   getTeamLeaders
 );
+employeeRouter.get(
+  "/employee-pre-sale-executive",
+  // authenticateToken,
+  getPreSalesExecutive
+);
 
-employeeRouter.post("/employee-register", validateEmployeeFields, registerEmployee);
+employeeRouter.post(
+  "/employee-register",
+  validateEmployeeFields,
+  registerEmployee
+);
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(

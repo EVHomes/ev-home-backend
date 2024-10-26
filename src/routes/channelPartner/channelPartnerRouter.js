@@ -60,13 +60,13 @@ cpRouter.post(
   validateChannelPartnerFields,
   resetPasswordChannelPartner
 );
-cpRouter.post("/channel-partner-pw/:id",newPassword);
+
+cpRouter.post("/channel-partner-pw/:id", newPassword);
 
 cpRouter.delete(
   "/channel-partner/:id",
   authenticateToken,
   deleteChannelPartnerById
 );
-
 
 export default cpRouter;

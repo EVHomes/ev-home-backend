@@ -15,19 +15,18 @@ export const channelPartnerSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
+
     password: { type: String, required: true, minlength: 6 },
     firstName: { type: String, default: null },
     lastName: { type: String, default: null },
     gender: {
       type: String,
-      required: true,
       default: "male",
       enum: ["male", "female", "other"],
       message: "Gender must be either male, female, or other.",
     },
     dateOfBirth: {
       type: String,
-      required: true,
       default: "1999-01-01",
       validate: {
         validator: function (value) {
@@ -42,18 +41,18 @@ export const channelPartnerSchema = new mongoose.Schema(
     homeAddress: { type: String, default: null },
     firmAddress: { type: String, default: null },
     countryCode: { type: String, default: "+91" },
-    phoneNumber: { type: Number, required: true, default: null },
-    haveReraRegistration: { type: Boolean, required: true, default: false },
+    phoneNumber: { type: Number, default: null },
+    haveReraRegistration: { type: Boolean, default: false },
     reraNumber: { type: String, default: null },
     reraCertificate: { type: String, default: null },
-    isVerified: { type: Boolean, required: true, default: false },
-    sameAdress: { type: Boolean, required: true, default: false },
+    isVerified: { type: Boolean, default: false },
+    sameAdress: { type: Boolean, default: false },
     refreshToken: { type: String, default: null },
     isVerifiedPhone: { type: Boolean, default: false },
     isVerifiedEmail: { type: Boolean, default: false },
     role: {
       type: String,
-      required: true,
+
       default: "channel-partner",
       enum: ["employee", "channel-partner", "customer"],
     },

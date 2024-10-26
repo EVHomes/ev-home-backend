@@ -3,14 +3,14 @@ const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const callHistorySchema = new mongoose.Schema({
   caller: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "employees", // Reference to the employee making the call
+    ref: "employees",
     required: true,
   },
   callDate: {
     type: Date,
     default: Date.now,
   },
-  remarks: {
+  remark: {
     type: String,
     default: null,
   },
@@ -56,8 +56,8 @@ export const leadSchema = new mongoose.Schema(
         required: true,
       },
     ],
-    firstName: { type: String, required: true, default: null },
-    lastName: { type: String, required: true, default: null },
+    firstName: { type: String, default: null },
+    lastName: { type: String, default: null },
     address: { type: String, default: null },
     channelPartner: {
       type: mongoose.Schema.Types.ObjectId,
@@ -80,7 +80,7 @@ export const leadSchema = new mongoose.Schema(
       default: null,
     },
     countryCode: { type: String, default: "+91" },
-    phoneNumber: { type: Number, required: true, default: null },
+    phoneNumber: { type: Number, default: null },
     altPhoneNumber: { type: Number, default: null },
     remark: { type: String, default: null },
     startDate: {
@@ -102,10 +102,15 @@ export const leadSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    status: {
+    approvalStatus: {
       type: String,
       default: "Pending",
       enum: ["Pending", "Rejected", "Approved"],
+    },
+    status: {
+      type: String,
+      default: "Pending",
+      // enum: ["Pending", "Rejected", "Approved"],
     },
     interestedStatus: {
       type: String,
@@ -151,7 +156,8 @@ export const leadSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
-        changes: { type: String, required: true }, // Description of changes made
+        changes: { type: String, required: true },
+        remark: { type: String, default: null },
       },
     ],
   },
