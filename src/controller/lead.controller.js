@@ -10,6 +10,7 @@ export const getAllLeads = async (req, res, next) => {
   try {
     const respLeads = await leadModel
       .find()
+      .sort({ startDate: -1 })
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -118,7 +119,7 @@ export const getAllLeads = async (req, res, next) => {
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
-
+    // console.log("leads sent");
     return res.send(
       successRes(200, "all Leads", {
         data: respLeads,
@@ -256,6 +257,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
+    // let approvalStatus = req.query
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
 
@@ -279,6 +281,7 @@ export const searchLeads = async (req, res, next) => {
       .find(searchFilter)
       .skip(skip)
       .limit(limit)
+      .sort({ startDate: -1 })
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -333,6 +336,57 @@ export const searchLeads = async (req, res, next) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
 
     // Count the total items matching the filter
@@ -340,14 +394,14 @@ export const searchLeads = async (req, res, next) => {
 
     // Calculate the total number of pages
     const totalPages = Math.ceil(totalItems / limit);
-
+    // cons;
     return res.send(
       successRes(200, "get Channel Partners", {
         page,
         limit,
         totalPages,
         totalItems,
-        items: respCP,
+        data: respCP,
       })
     );
   } catch (error) {
@@ -829,8 +883,7 @@ export const updateLead = async (req, res, next) => {
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
     if (!status) return res.send(errorRes(403, "Status is required"));
     if (!interestedStatus)
       return res.send(errorRes(403, "Interested status is required"));
@@ -860,8 +913,7 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully: ${firstName} ${lastName}`, {
@@ -884,8 +936,7 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -910,8 +961,145 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
     const respLead = await leadModel.findById(id);
     if (!respLead) return res.send(errorRes(404, "No lead found"));
 
-    if (respLead.teamLeader)
+    if (respLead.teamLeader) {
+      if (respLead.approvalStatus != "Approved") {
+        const updatedLead = await leadModel
+          .findByIdAndUpdate(
+            id,
+            {
+              dataAnalyser: user?._id,
+              approvalStatus: "Approved",
+              $addToSet: {
+                approvalHistory: {
+                  employee: user?._id,
+                  approvedAt: Date.now(),
+                  remark: remark ?? "Approved",
+                },
+                updateHistory: {
+                  employee: user?._id,
+                  changes: `Lead Approved`,
+                  updatedAt: Date.now(),
+                  remark: remark,
+                },
+              },
+            },
+            { new: true, runValidators: true }
+          )
+          .populate({
+            path: "channelPartner",
+            select: "-password -refreshToken",
+          })
+          .populate({
+            path: "teamLeader",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+              {
+                path: "reportingTo",
+                populate: [
+                  { path: "designation" },
+                  { path: "department" },
+                  { path: "division" },
+                ],
+              },
+            ],
+          })
+          .populate({
+            path: "dataAnalyser",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+              {
+                path: "reportingTo",
+                populate: [
+                  { path: "designation" },
+                  { path: "department" },
+                  { path: "division" },
+                ],
+              },
+            ],
+          })
+          .populate({
+            path: "preSalesExecutive",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+              {
+                path: "reportingTo",
+                populate: [
+                  { path: "designation" },
+                  { path: "department" },
+                  { path: "division" },
+                ],
+              },
+            ],
+          })
+          .populate({
+            path: "viewedBy.employee",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+              {
+                path: "reportingTo",
+                populate: [
+                  { path: "designation" },
+                  { path: "department" },
+                  { path: "division" },
+                ],
+              },
+            ],
+          })
+          .populate({
+            path: "approvalHistory.employee",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+              {
+                path: "reportingTo",
+                populate: [
+                  { path: "designation" },
+                  { path: "department" },
+                  { path: "division" },
+                ],
+              },
+            ],
+          })
+          .populate({
+            path: "updateHistory.employee",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+              {
+                path: "reportingTo",
+                populate: [
+                  { path: "designation" },
+                  { path: "department" },
+                  { path: "division" },
+                ],
+              },
+            ],
+          });
+
+        return res.send(
+          successRes(200, `Lead is Approved`, {
+            data: updatedLead,
+          })
+        );
+      }
       return res.send(errorRes(401, "Team Leader is Already Assigned"));
+    }
 
     const teamLeaders = await employeeModel
       .find({
@@ -927,7 +1115,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         {
           teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
           dataAnalyser: user?._id,
-          status: "Approved",
+          approvalStatus: "Approved",
           $addToSet: {
             approvalHistory: {
               employee: user?._id,
@@ -1267,8 +1455,7 @@ export const updateLeadDetails = async (leadId, employeeId, changes) => {
 export const checkLeadsExists = async (req, res, next) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone Number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone Number is required"));
 
     const existingLead = await leadModel.findOne({
       $or: [
@@ -1284,9 +1471,7 @@ export const checkLeadsExists = async (req, res, next) => {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with phone number: ${
-            (phoneNumber, altPhoneNumber)
-          }`
+          `Lead already exists with phone number: ${(phoneNumber, altPhoneNumber)}`
         )
       ); // 409 Conflict
     }
