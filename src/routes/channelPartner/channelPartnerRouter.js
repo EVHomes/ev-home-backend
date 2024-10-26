@@ -6,6 +6,7 @@ import {
   getChannelPartnerById,
   getChannelPartners,
   loginChannelPartner,
+  newPassword,
   registerChannelPartner,
   resetPasswordChannelPartner,
   searchChannelPartners,
@@ -43,7 +44,7 @@ cpRouter.post(
 
 cpRouter.post(
   "/channel-partner-edit/:id",
-  authenticateToken,
+  // authenticateToken,
   validateChannelPartnerFields,
   editChannelPartnerById
 );
@@ -59,11 +60,13 @@ cpRouter.post(
   validateChannelPartnerFields,
   resetPasswordChannelPartner
 );
+cpRouter.post("/channel-partner-pw/:id",newPassword);
 
 cpRouter.delete(
   "/channel-partner/:id",
   authenticateToken,
   deleteChannelPartnerById
 );
+
 
 export default cpRouter;
