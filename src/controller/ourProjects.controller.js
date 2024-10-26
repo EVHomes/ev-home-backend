@@ -57,11 +57,11 @@ export const addProjects = async (req, res) => {
       return res.send(errorRes(403, "Amenities are required"));
     if (!configurations || configurations.length === 0)
       return res.send(errorRes(403, "configurations is required"));
-    if (!contactNumber)
-      return res.send(errorRes(403, "Contact number is required"));
-    if (!description) return res.send(errorRes(403, "Description is required"));
-    if (!locationLink)
-      return res.send(errorRes(403, "Location link is required"));
+    // if (!contactNumber)
+    //   return res.send(errorRes(403, "Contact number is required"));
+    // if (!description) return res.send(errorRes(403, "Description is required"));
+    // if (!locationLink)
+    //   return res.send(errorRes(403, "Location link is required"));
     if (!locationName)
       return res.send(errorRes(403, "Location name is required"));
     if (!name) return res.send(errorRes(403, "Project name is required"));

@@ -13,6 +13,8 @@ import { readFile } from "fs/promises";
 import oneSignalRouter from "./oneSignal/oneSignalRouter.js";
 import blockTokenRouter from "./bockedToken/blockTokenRouter.js";
 import { sendEmail } from "../utils/brevo.js";
+import reqRouter from "./requirement/reqRouter.js";
+import { encryptPassword } from "../utils/helper.js";
 
 const router = Router();
 
@@ -32,6 +34,16 @@ router.post("/email", async (req, res, next) => {
     next(error);
   }
 });
+router.post("/hashPassword", async (req, res, next) => {
+  const { password } = req.body;
+  try {
+    const resp = await encryptPassword(password);
+    res.send(resp);
+  } catch (error) {
+    next(error);
+  }
+});
+
 router.use(cpRouter);
 router.use(employeeRouter);
 router.use(divRouter);
@@ -44,4 +56,5 @@ router.use(storageRouter);
 router.use(siteVisitRouter);
 router.use(oneSignalRouter);
 router.use(blockTokenRouter);
+router.use(reqRouter);
 export default router;

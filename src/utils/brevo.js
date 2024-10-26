@@ -2,12 +2,14 @@ import axios from "axios";
 import config from "../config/config.js"; // Adjust the path to your config file
 
 // Function to send an email via Brevo API
+const senderName = "EV Homes";
+const senderEmail = "evhomes.operations@evgroup.co.in";
 export const sendEmail = async (recipientEmail, subject, htmlContent) => {
   const url = "https://api.brevo.com/v3/smtp/email";
 
   // Prepare the email data
   const emailData = {
-    sender: { name: "EV Homes", email: "ricki@evgroup.co.in" }, // Replace with a valid sender email
+    sender: { name: senderName, email: senderEmail }, // Replace with a valid sender email
     to: [{ email: recipientEmail }],
     subject: subject,
     htmlContent: htmlContent,

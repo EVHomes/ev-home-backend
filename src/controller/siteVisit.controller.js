@@ -3,24 +3,62 @@ import { errorRes, successRes } from "../model/response.js";
 
 export const getSiteVisits = async (req, res) => {
   try {
-    const respSite = await siteVisitModel.find().populate({
-      path: "closingManager",
-      select: "-password -refreshToken",
-      populate: [
-        { path: "designation" },
-        { path: "department" },
-        { path: "division" },
-        {
-          path: "reportingTo",
-          select: "-password -refreshToken",
-          populate: [
-            { path: "designation" },
-            { path: "department" },
-            { path: "division" },
-          ],
-        },
-      ],
-    });
+    const respSite = await siteVisitModel
+      .find()
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "attendedBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataEntryBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
 
     return res.send(
       successRes(200, "Get Site Visit", {
@@ -36,25 +74,63 @@ export const getSiteVisitsById = async (req, res) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respSite = await siteVisitModel.findOne({ _id: id }).populate({
-      path: "closingManager",
-      select: "-password -refreshToken",
-      populate: [
-        { path: "designation" },
-        { path: "department" },
-        { path: "division" },
-        {
-          path: "reportingTo",
-          select: "-password -refreshToken",
-          populate: [
-            { path: "designation" },
-            { path: "department" },
-            { path: "division" },
-          ],
-        },
-      ],
-    });
 
+    const respSite = await siteVisitModel
+      .findById(id)
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "attendedBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataEntryBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
     if (!respSite)
       return res.send(
         successRes(404, `Department not found with id:${id}`, {
@@ -97,9 +173,45 @@ export const searchSiteVisits = async (req, res, next) => {
       .find(searchFilter)
       .skip(skip)
       .limit(limit)
-      .select("")
+      .sort({ date: -1 })
       .populate({
         path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "attendedBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataEntryBy",
         select: "-password -refreshToken",
         populate: [
           { path: "designation" },
@@ -129,7 +241,7 @@ export const searchSiteVisits = async (req, res, next) => {
         limit,
         totalPages,
         totalItems,
-        items: respSite,
+        data: respSite,
       })
     );
   } catch (error) {
@@ -169,15 +281,7 @@ export const addSiteVisits = async (req, res) => {
       return res.send(errorRes(403, "Choice of Apartment is required"));
 
     const newSiteVisit = await siteVisitModel.create({
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      residence: address ?? residence,
-      projects,
-      choiceApt,
-      source,
-      closingManager: closingManager,
+      ...data,
     });
 
     await newSiteVisit.save();
@@ -188,6 +292,42 @@ export const addSiteVisits = async (req, res) => {
       .findById(newSiteVisit._id)
       .populate({
         path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "attendedBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataEntryBy",
         select: "-password -refreshToken",
         populate: [
           { path: "designation" },

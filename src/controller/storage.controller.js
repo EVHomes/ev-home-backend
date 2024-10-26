@@ -10,38 +10,45 @@ export const uploadFile = async (req, res) => {
   if (!req.file) {
     return res.status(400).send("No file uploaded.");
   }
+  try {
+    const uniqueFileName = req.file.filename;
+    const token = jwt.sign(
+      { filename: uniqueFileName },
+      config.SECRET_STORAGE_KEY
+    );
 
-  const uniqueFileName = req.file.filename;
-  const token = jwt.sign(
-    { filename: uniqueFileName },
-    config.SECRET_STORAGE_KEY
-  );
+    //   console.log(`Uploaded file: ${req.file}`);
+    //   console.log(req.file);
+    //   console.log(`Token: ${token}`);
+    let downloadUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/file/${uniqueFileName}?token=${token}`;
 
-  //   console.log(`Uploaded file: ${req.file}`);
-  //   console.log(req.file);
-  //   console.log(`Token: ${token}`);
-  let downloadUrl = `${req.protocol}://${req.get(
-    "host"
-  )}/file/${uniqueFileName}?token=${token}`;
+    if (downloadUrl.includes("api.")) {
+      downloadUrl = downloadUrl.replace("api.", "cdn.");
+    }
 
-  if (downloadUrl.includes("api.")) {
-    downloadUrl = downloadUrl.replace("api.", "cdn.");
+    const respDb = new storageModel({
+      ...req.file,
+      downloadUrl,
+      token: token,
+    });
+
+    await respDb.save();
+    // console.log(downloadUrl);
+    res.json({
+      message: "File uploaded successfully!",
+      token,
+      filename: uniqueFileName,
+      downloadUrl: downloadUrl,
+    });
+  } catch (error) {
+    // console.log(error);
+
+    res.json({
+      message: error,
+    });
   }
-
-  const respDb = new storageModel({
-    ...req.file,
-    downloadUrl,
-    token: token,
-  });
-
-  await respDb.save();
-
-  res.json({
-    message: "File uploaded successfully!",
-    token,
-    filename: uniqueFileName,
-    downloadUrl: downloadUrl,
-  });
 };
 
 export const uploadMultiple = async (req, res) => {
