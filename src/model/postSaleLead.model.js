@@ -8,6 +8,7 @@ const applicantSchema = new mongoose.Schema({
 
 export const postSaleLeadSchema = new mongoose.Schema({
   unitNo: { type: String, required: true, default: null },
+  project: { type: String, required: true, default: null },
   firstName: { type: String, required: true, default: null },
   lastName: { type: String, required: true, default: null },
   address: { type: String, required: true, default: null },

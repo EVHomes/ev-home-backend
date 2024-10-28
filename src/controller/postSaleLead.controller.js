@@ -16,12 +16,25 @@ export const getPostSaleLeads = async (req, res, next) => {
 };
 
 export const addPostSaleLead = async (req, res, next) => {
-  const {} = req.body;
+  const body = req.body;
+  const {
+    firstName,
+    lastName,
+    email,
+    unitNo,
+    project,
+    address,
+    carpetArea,
+    flatCost,
+  } = body;
   try {
-    const resp = await postSaleLeadModel.find();
+    // const resp = await postSaleLeadModel.find();
+    const resp = await postSaleLeadModel.create({
+      ...body,
+    });
 
     return res.send(
-      successRes(200, "get post sale leads", {
+      successRes(200, "add post sale leads", {
         data: resp,
       })
     );
