@@ -47,10 +47,16 @@ export const getClosingManagers = async (req, res, next) => {
       .find({
         $or: [
           {
-            designation: "670e5434de5adb5e87eb8d77",
+            designation: "670e544bde5adb5e87eb8d7d",
           },
           {
-            designation: "670e544bde5adb5e87eb8d7d",
+            designation: "670e543ede5adb5e87eb8d7a",
+          },
+          {
+            designation: "670e5421de5adb5e87eb8d68",
+          },
+          {
+            designation: "670e5483de5adb5e87eb8d89",
           },
         ],
       })
