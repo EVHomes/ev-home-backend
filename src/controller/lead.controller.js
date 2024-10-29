@@ -8,8 +8,13 @@ import { sendNotificationWithInfo } from "./oneSignal.controller.js";
 
 export const getAllLeads = async (req, res, next) => {
   try {
+    const today = new Date();
+    // const endDate = new Date("2024-10-31T23:59:59.999Z");
+
     const respLeads = await leadModel
-      .find()
+      .find({
+        // startDate: { $gte: today },
+      })
       .sort({ startDate: -1 })
       .populate({
         path: "channelPartner",
@@ -123,6 +128,7 @@ export const getAllLeads = async (req, res, next) => {
     return res.send(
       successRes(200, "all Leads", {
         data: respLeads,
+        // count: respLeads.len,
       })
     );
   } catch (error) {

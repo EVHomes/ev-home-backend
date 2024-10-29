@@ -11,6 +11,9 @@ export const postSaleLeadSchema = new mongoose.Schema({
   project: { type: String, required: true, default: null },
   firstName: { type: String, required: true, default: null },
   lastName: { type: String, required: true, default: null },
+  requirement: { type: String, default: null },
+  countryCode: { type: String, default: "+91" },
+  phoneNumber: { type: Number, required: true, default: null },
   address: { type: String, required: true, default: null },
   email: {
     type: String,
@@ -22,8 +25,8 @@ export const postSaleLeadSchema = new mongoose.Schema({
       message: (props) => `${props.value} is not a valid email.`,
     },
   },
-  carpetArea: { type: String, required: true, default: null },
-  flatCost: { type: Number, required: true, default: null },
+  carpetArea: { type: String, default: null },
+  flatCost: { type: Number, default: null },
   closingManager: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "employees",
@@ -36,7 +39,7 @@ export const postSaleLeadSchema = new mongoose.Schema({
       default: null,
     },
   ],
-  bookingStatus: { type: String, required: true, default: null },
+  bookingStatus: { type: String, default: null },
   applicants: [applicantSchema],
   preRegistrationCheckList: {
     tenPercentRecieved: {

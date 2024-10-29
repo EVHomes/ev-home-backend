@@ -6,6 +6,6 @@ import {
 
 const postSaleRouter = Router();
 postSaleRouter.get("/post-sale-leads", getPostSaleLeads);
-postSaleRouter.get("/post-sale-lead-add", addPostSaleLead);
+postSaleRouter.post("/post-sale-lead-add", addPostSaleLead);
 
 export default postSaleRouter;

@@ -26,8 +26,11 @@ export const addPostSaleLead = async (req, res, next) => {
     address,
     carpetArea,
     flatCost,
+    phoneNumber,
   } = body;
   try {
+    if (!body) return res.send(errorRes(401, "No Data Provided"));
+
     // const resp = await postSaleLeadModel.find();
     const resp = await postSaleLeadModel.create({
       ...body,
@@ -36,6 +39,48 @@ export const addPostSaleLead = async (req, res, next) => {
     return res.send(
       successRes(200, "add post sale leads", {
         data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updatePostSaleLeadById = async (req, res, next) => {
+  const body = req.body;
+  const id = req.params.id;
+  try {
+    if (!body) return res.send(errorRes(401, "No Data Provided"));
+
+    const foundLead = await postSaleLeadModel.findById(id);
+
+    if (!foundLead) return res.send(errorRes(404, "No lead found"));
+
+    await foundLead.updateOne({ ...body });
+
+    return res.send(
+      successRes(200, "updated post sale lead", {
+        data: foundLead,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deletePostSaleLeadBydId = async (req, res, next) => {
+  const body = req.body;
+  const id = req.params.id;
+  try {
+    if (!body) return res.send(errorRes(401, "No Data Provided"));
+
+    const foundLead = await postSaleLeadModel.findByIdAndDelete(id);
+
+    if (!foundLead) return res.send(errorRes(404, "No lead found"));
+
+    return res.send(
+      successRes(200, "deleted post sale lead", {
+        data: foundLead,
       })
     );
   } catch (error) {

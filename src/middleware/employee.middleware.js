@@ -14,6 +14,7 @@ const ALLOWED_EMPLOYEE_FIELDS = [
   "department",
   "designation",
   "division",
+  "status",
   "reportingTo",
   "countryCode",
   "phoneNumber",
@@ -63,15 +64,24 @@ export const validateRegisterEmployeeFields = (body) => {
   }
 
   if (body.password && body.password.length < 6) {
-    return { isValid: false, message: "Password should be at least 6 character long" };
+    return {
+      isValid: false,
+      message: "Password should be at least 6 character long",
+    };
   }
 
   if (body.confirmPassword && body.confirmPassword.length < 6) {
-    return { isValid: false, message: "Password should be at least 6 character long" };
+    return {
+      isValid: false,
+      message: "Password should be at least 6 character long",
+    };
   }
 
   if (body.password !== body.confirmPassword) {
-    return { isValid: false, message: "Password and confirm password didn't matched" };
+    return {
+      isValid: false,
+      message: "Password and confirm password didn't matched",
+    };
   }
 
   if (body.phoneNumber && body.phoneNumber.length < 10) {
