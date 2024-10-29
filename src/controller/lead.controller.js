@@ -254,6 +254,137 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   }
 };
 
+
+export const getLeadsPreSalesExecutive=async(req,res,next)=>{
+  const preSalesExecutiveId = req.params.id;
+  try {
+    const respLeads = await leadModel
+      .find({ preSalesExecutive: preSalesExecutiveId })
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+     
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+
+    if (!respLeads) return res.send(errorRes(404, "No leads found"));
+
+    return res.send(
+      successRes(200, "Leads for team Leader", {
+        data: respLeads,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+
+
+};
+
+
+
+
 export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
@@ -869,25 +1000,25 @@ export const updateLead = async (req, res, next) => {
     if (!body) return res.send(errorRes(403, "Data is required"));
 
     // Validate the required fields
-    const {
-      email,
-      firstName,
-      lastName,
-      phoneNumber,
-      altPhoneNumber,
-      remark,
-      status,
-      interestedStatus,
-    } = body;
+    // const {
+    //   email,
+    //   firstName,
+    //   lastName,
+    //   phoneNumber,
+    //   altPhoneNumber,
+    //   remark,
+    //   status,
+    //   interestedStatus,
+    // } = body;
 
-    if (!email) return res.send(errorRes(403, "Email is required"));
-    if (!firstName) return res.send(errorRes(403, "First name is required"));
-    if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
-    if (!status) return res.send(errorRes(403, "Status is required"));
-    if (!interestedStatus)
-      return res.send(errorRes(403, "Interested status is required"));
-    if (!remark) return res.send(errorRes(403, "Remark is required"));
+    // if (!email) return res.send(errorRes(403, "Email is required"));
+    // if (!firstName) return res.send(errorRes(403, "First name is required"));
+    // if (!lastName) return res.send(errorRes(403, "Last name is required"));
+    // if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
+    // if (!status) return res.send(errorRes(403, "Status is required"));
+    // if (!interestedStatus)
+    //   return res.send(errorRes(403, "Interested status is required"));
+    // if (!remark) return res.send(errorRes(403, "Remark is required"));
 
     // Update the lead by ID
     const updatedLead = await leadModel.findByIdAndUpdate(
@@ -916,7 +1047,7 @@ export const updateLead = async (req, res, next) => {
     if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
-      successRes(200, `Lead updated successfully: ${firstName} ${lastName}`, {
+      successRes(200, `Lead updated successfully: ${id} `, {
         updatedLead,
       })
     );
