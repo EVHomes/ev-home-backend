@@ -3,10 +3,39 @@ import { errorRes, successRes } from "../model/response.js";
 
 export const getPostSaleLeads = async (req, res, next) => {
   try {
-    const resp = await postSaleLeadModel.find();
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+
+    let skip = (page - 1) * limit;
+
+    const resp = await postSaleLeadModel.find().sort({ date: -1 });
+    // .skip(skip)
+    // .limit(limit)
+
+    // Count the total items matching the filter
+    const totalItems = await postSaleLeadModel.countDocuments({
+      // teamLeader: { $eq: teamLeaderId },
+    });
+    const registrationDone = await postSaleLeadModel.countDocuments({
+      status: "Registration Done",
+    });
+    const eoiRecieved = await postSaleLeadModel.countDocuments({
+      status: "EOI Recieved",
+    });
+    const cancelled = await postSaleLeadModel.countDocuments({
+      status: "Cancelled",
+    });
+    const totalPages = Math.ceil(totalItems / limit);
 
     return res.send(
       successRes(200, "get post sale leads", {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        registrationDone,
+        eoiRecieved,
+        cancelled,
         data: resp,
       })
     );

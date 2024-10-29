@@ -284,6 +284,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     // Calculate the total number of pages
     const totalPages = Math.ceil(totalItems / limit);
+
     return res.send(
       successRes(200, "Leads for team Leader", {
         page,
