@@ -78,6 +78,8 @@ export const employeeSchema = new mongoose.Schema(
     countryCode: { type: String, default: "+91" },
     phoneNumber: { type: Number, required: true, default: null },
     isVerified: { type: Boolean, required: true, default: false },
+    status: { type: String, default: "active" },
+    remark: { type: String, default: "" },
     refreshToken: { type: String, default: null },
     role: {
       type: String,

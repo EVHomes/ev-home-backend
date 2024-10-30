@@ -15,11 +15,15 @@ import blockTokenRouter from "./bockedToken/blockTokenRouter.js";
 import { sendEmail } from "../utils/brevo.js";
 import reqRouter from "./requirement/reqRouter.js";
 import { encryptPassword } from "../utils/helper.js";
+import postSaleRouter from "./postSaleLead/postSaleLeadRouter.js";
 
 const router = Router();
 
 router.get("/", async (req, res) => {
-  const htmlContent = await readFile("./src/templates/api_welcome_page.html", "utf8");
+  const htmlContent = await readFile(
+    "./src/templates/api_welcome_page.html",
+    "utf8"
+  );
   return res.type("html").send(htmlContent);
 });
 router.post("/email", async (req, res, next) => {
@@ -57,4 +61,6 @@ router.use(siteVisitRouter);
 router.use(oneSignalRouter);
 router.use(blockTokenRouter);
 router.use(reqRouter);
+router.use(postSaleRouter);
+
 export default router;

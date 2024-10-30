@@ -8,8 +8,13 @@ import { sendNotificationWithInfo } from "./oneSignal.controller.js";
 
 export const getAllLeads = async (req, res, next) => {
   try {
+    const today = new Date();
+    // const endDate = new Date("2024-10-31T23:59:59.999Z");
+
     const respLeads = await leadModel
-      .find()
+      .find({
+        // startDate: { $gte: today },
+      })
       .sort({ startDate: -1 })
       .populate({
         path: "channelPartner",
@@ -123,6 +128,7 @@ export const getAllLeads = async (req, res, next) => {
     return res.send(
       successRes(200, "all Leads", {
         data: respLeads,
+        // count: respLeads.len,
       })
     );
   } catch (error) {
@@ -133,8 +139,16 @@ export const getAllLeads = async (req, res, next) => {
 export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+
+    let skip = (page - 1) * limit;
+
     const respLeads = await leadModel
       .find({ teamLeader: teamLeaderId })
+      .skip(skip)
+      .limit(limit)
+      .sort({ startDate: -1 })
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
@@ -244,8 +258,43 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
 
+    // Count the total items matching the filter
+    const totalItems = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+    });
+    const pendingCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      status: "Pending",
+    });
+
+    const contactedCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      status: "Contacted",
+    });
+
+    const followUpCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      status: "FollowUp",
+    });
+
+    const assignedCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      preSalesExecutive: { $ne: null },
+    });
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+
     return res.send(
       successRes(200, "Leads for team Leader", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        pendingCount,
+        contactedCount,
+        followUpCount,
+        assignedCount,
         data: respLeads,
       })
     );
@@ -999,26 +1048,26 @@ export const updateLead = async (req, res, next) => {
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
 
-    // Validate the required fields
-    // const {
-    //   email,
-    //   firstName,
-    //   lastName,
-    //   phoneNumber,
-    //   altPhoneNumber,
-    //   remark,
-    //   status,
-    //   interestedStatus,
-    // } = body;
+    const {
+      email,
+      firstName,
+      lastName,
+      phoneNumber,
+      altPhoneNumber,
+      remark,
+      status,
+      interestedStatus,
+    } = body;
 
-    // if (!email) return res.send(errorRes(403, "Email is required"));
-    // if (!firstName) return res.send(errorRes(403, "First name is required"));
-    // if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    // if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
-    // if (!status) return res.send(errorRes(403, "Status is required"));
-    // if (!interestedStatus)
-    //   return res.send(errorRes(403, "Interested status is required"));
-    // if (!remark) return res.send(errorRes(403, "Remark is required"));
+    if (!email) return res.send(errorRes(403, "Email is required"));
+    if (!firstName) return res.send(errorRes(403, "First name is required"));
+    if (!lastName) return res.send(errorRes(403, "Last name is required"));
+    if (!phoneNumber)
+      return res.send(errorRes(403, "Phone number is required"));
+    if (!status) return res.send(errorRes(403, "Status is required"));
+    if (!interestedStatus)
+      return res.send(errorRes(403, "Interested status is required"));
+    if (!remark) return res.send(errorRes(403, "Remark is required"));
 
     // Update the lead by ID
     const updatedLead = await leadModel.findByIdAndUpdate(
@@ -1044,7 +1093,8 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully: ${id} `, {
@@ -1067,7 +1117,8 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -1586,7 +1637,8 @@ export const updateLeadDetails = async (leadId, employeeId, changes) => {
 export const checkLeadsExists = async (req, res, next) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
-    if (!phoneNumber) return res.send(errorRes(403, "Phone Number is required"));
+    if (!phoneNumber)
+      return res.send(errorRes(403, "Phone Number is required"));
 
     const existingLead = await leadModel.findOne({
       $or: [
@@ -1602,7 +1654,9 @@ export const checkLeadsExists = async (req, res, next) => {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with phone number: ${(phoneNumber, altPhoneNumber)}`
+          `Lead already exists with phone number: ${
+            (phoneNumber, altPhoneNumber)
+          }`
         )
       ); // 409 Conflict
     }
