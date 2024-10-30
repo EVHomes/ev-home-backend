@@ -20,11 +20,18 @@ const callHistorySchema = new mongoose.Schema({
   },
   document: {
     type: String,
-    default: null,
   },
   recording: {
     type: String,
-    default: null,
+  },
+  stage: {
+    type: String,
+  },
+  status: {
+    type: String,
+  },
+  siteVisit: {
+    type:String,
   },
 });
 

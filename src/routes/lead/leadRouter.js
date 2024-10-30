@@ -12,6 +12,7 @@ import {
   searchLeads,
   updateLead,
   getLeadsPreSalesExecutive,
+  updateCallHistoryPreSales,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -50,6 +51,9 @@ leadRouter.get(
 );
 
 
+leadRouter.post(
+  "/lead-update-caller/:id",authenticateToken,updateCallHistoryPreSales
+);
 leadRouter.get(
   "/search-lead",
   //  authenticateToken,
