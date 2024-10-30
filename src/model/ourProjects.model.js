@@ -10,6 +10,18 @@ export const ourProjectsSchema = new mongoose.Schema({
   locationLink: { type: String, default: null },
   locationName: { type: String, required: true },
   brochure: { type: String, default: null },
+  govAccount: {
+    accountNo: { type: String, default: null },
+    ifsc: { type: String, default: null },
+    micr: { type: String, default: null },
+    bankName: { type: String, default: null },
+  },
+  businessAccount: {
+    accountNo: { type: String, default: null },
+    ifsc: { type: String, default: null },
+    micr: { type: String, default: null },
+    bankName: { type: String, default: null },
+  },
   amenities: [
     {
       image: { type: String, required: true },

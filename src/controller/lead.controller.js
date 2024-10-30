@@ -303,8 +303,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   }
 };
 
-
-export const getLeadsPreSalesExecutive=async(req,res,next)=>{
+export const getLeadsPreSalesExecutive = async (req, res, next) => {
   const preSalesExecutiveId = req.params.id;
   try {
     const respLeads = await leadModel
@@ -364,7 +363,7 @@ export const getLeadsPreSalesExecutive=async(req,res,next)=>{
           },
         ],
       })
-     
+
       .populate({
         path: "viewedBy.employee",
         select: "-password -refreshToken",
@@ -427,12 +426,7 @@ export const getLeadsPreSalesExecutive=async(req,res,next)=>{
   } catch (error) {
     next(error);
   }
-
-
 };
-
-
-
 
 export const searchLeads = async (req, res, next) => {
   try {
