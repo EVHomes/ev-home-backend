@@ -18,6 +18,9 @@ import { encryptPassword } from "../utils/helper.js";
 import postSaleRouter from "./postSaleLead/postSaleLeadRouter.js";
 
 const router = Router();
+router.get("/ping", async (req, res) => {
+  res.json({ code: 200, message: "ok" });
+});
 
 router.get("/", async (req, res) => {
   const htmlContent = await readFile(
