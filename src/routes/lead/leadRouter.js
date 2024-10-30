@@ -11,6 +11,7 @@ import {
   getSimilarLeadsById,
   searchLeads,
   updateLead,
+  getLeadsPreSalesExecutive,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -44,6 +45,12 @@ leadRouter.get(
 );
 
 leadRouter.get(
+  "/leads-pre-sales-executive/:id",
+  getLeadsPreSalesExecutive
+);
+
+
+leadRouter.get(
   "/search-lead",
   //  authenticateToken,
   searchLeads
@@ -75,7 +82,7 @@ leadRouter.post(
   validateLeadsFields,
   addLead
 );
-leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
+leadRouter.post("/lead-update/:id", updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
 leadRouter.get(
   "/leads-exists/:phoneNumber",

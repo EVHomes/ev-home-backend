@@ -303,6 +303,137 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   }
 };
 
+
+export const getLeadsPreSalesExecutive=async(req,res,next)=>{
+  const preSalesExecutiveId = req.params.id;
+  try {
+    const respLeads = await leadModel
+      .find({ preSalesExecutive: preSalesExecutiveId })
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+     
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+
+    if (!respLeads) return res.send(errorRes(404, "No leads found"));
+
+    return res.send(
+      successRes(200, "Leads for team Leader", {
+        data: respLeads,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+
+
+};
+
+
+
+
 export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
@@ -917,7 +1048,6 @@ export const updateLead = async (req, res, next) => {
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
 
-    // Validate the required fields
     const {
       email,
       firstName,
@@ -967,7 +1097,7 @@ export const updateLead = async (req, res, next) => {
       return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
-      successRes(200, `Lead updated successfully: ${firstName} ${lastName}`, {
+      successRes(200, `Lead updated successfully: ${id} `, {
         updatedLead,
       })
     );
