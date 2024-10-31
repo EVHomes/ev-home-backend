@@ -17,13 +17,13 @@ export const getPostSaleLeads = async (req, res, next) => {
       // teamLeader: { $eq: teamLeaderId },
     });
     const registrationDone = await postSaleLeadModel.countDocuments({
-      status: "Registration Done",
+      bookingStatus: "Registration Done",
     });
     const eoiRecieved = await postSaleLeadModel.countDocuments({
-      status: "EOI Recieved",
+      bookingStatus: "EOI Recieved",
     });
     const cancelled = await postSaleLeadModel.countDocuments({
-      status: "Cancelled",
+      bookingStatus: "Cancelled",
     });
     const totalPages = Math.ceil(totalItems / limit);
 

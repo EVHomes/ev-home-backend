@@ -4,6 +4,40 @@ const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const applicantSchema = new mongoose.Schema({
   firstName: { type: String, default: null },
   lastName: { type: String, default: null },
+  address: { type: String, default: null },
+  countryCode: { type: String, default: "+91" },
+  phoneNumber: { type: Number, default: null },
+  email: {
+    type: String,
+    default: null,
+    validate: {
+      validator: function (value) {
+        return emailFormat.test(value);
+      },
+      message: (props) => `${props.value} is not a valid email.`,
+    },
+  },
+  kyc: {
+    verified: { type: Boolean, default: false },
+    addhar: {
+      verified: { type: Boolean, default: false },
+      document: { type: String, default: null },
+      remark: { type: String, default: "" },
+      type: { type: String, default: "aadhar" },
+    },
+    pan: {
+      verified: { type: Boolean, default: false },
+      document: { type: String, default: null },
+      remark: { type: String, default: "" },
+      type: { type: String, default: "pan" },
+    },
+    other: {
+      verified: { type: Boolean, default: false },
+      document: { type: String, default: null },
+      remark: { type: String, default: "" },
+      type: { type: String, default: "" },
+    },
+  },
 });
 
 export const postSaleLeadSchema = new mongoose.Schema(
@@ -40,8 +74,13 @@ export const postSaleLeadSchema = new mongoose.Schema(
         default: null,
       },
     ],
-    bookingStatus: { type: String, default: null },
-    applicants: [applicantSchema],
+    bookingStatus: {
+      type: { type: String, default: null },
+
+      account: { type: String, default: null },
+      amount: { type: String, default: null },
+    },
+
     preRegistrationCheckList: {
       tenPercentRecieved: {
         recieved: { type: String, default: "no" },

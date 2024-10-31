@@ -303,6 +303,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     next(error);
   }
 };
+
 export const getLeadsPreSalesExecutive = async (req, res, next) => {
   const preSalesExecutiveId = req.params.id;
   try {
