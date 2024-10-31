@@ -13,6 +13,7 @@ import {
   updateLead,
   getLeadsPreSalesExecutive,
   updateCallHistoryPreSales,
+  getLeadCounts,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -45,14 +46,12 @@ leadRouter.get(
   getLeadsTeamLeader
 );
 
-leadRouter.get(
-  "/leads-pre-sales-executive/:id",
-  getLeadsPreSalesExecutive
-);
-
+leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
 leadRouter.post(
-  "/lead-update-caller/:id",authenticateToken,updateCallHistoryPreSales
+  "/lead-update-caller/:id",
+  authenticateToken,
+  updateCallHistoryPreSales
 );
 leadRouter.get(
   "/search-lead",
@@ -94,7 +93,7 @@ leadRouter.get(
   checkLeadsExists
 );
 
-// leadRouter.get("/lead-valid",getAllLeadsWithValidity);
+leadRouter.get("/lead-count", getLeadCounts);
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
   const errors = [];

@@ -6,6 +6,7 @@ import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import TeamLeaderAssignTurn from "../model/teamLeaderAssignTurn.model.js";
 import { sendNotificationWithInfo } from "./oneSignal.controller.js";
+import { startOfWeek, addDays, format } from "date-fns";
 
 export const getAllLeads = async (req, res, next) => {
   try {
@@ -1038,107 +1039,6 @@ export const addLead = async (req, res, next) => {
   }
 };
 
-// export const addLead = async (req, res, next) => {
-//   const body = req.filteredBody;
-//   const {
-//     email,
-//     firstName,
-//     lastName,
-//     phoneNumber,
-//     altPhoneNumber,
-//     remark,
-//     startDate,
-//     channelPartner,
-//     teamLeader,
-//     preSalesExecutive,
-//     validTill,
-//     status,
-//     requirement,
-//     project,
-//     interestedStatus,
-//   } = body;
-
-//   try {
-//     if (!body) return res.send(errorRes(403, "Data is required"));
-//     const validFields = validateRequiredLeadsFields(body);
-
-//     if (!validFields.isValid) {
-//       return res.send(errorRes(400, validFields.message));
-//     }
-//     const currentDate = new Date();
-
-//     // Get current date and 60 days ago
-//     const pastDate = new Date();
-//     pastDate.setDate(currentDate.getDate() - 60);
-
-//     // const currentDate = new Date();
-//     // const sixtyDaysAgo = new Date();
-//     // sixtyDaysAgo.setDate(currentDate.getDate() - 60);
-
-//     // Check if the lead exists with the conditions
-//     const existingLead = await leadModel.findOne({
-//       $or: [{ phoneNumber: phoneNumber }, { altPhoneNumber: phoneNumber }],
-//       startDate: {
-//         $gte: pastDate,
-//         $lte: currentDate,
-//       },
-//     });
-
-//     // if lead exist
-//     if (existingLead) {
-//       const newLeadExist = await leadModel.create({
-//         ...body,
-//       });
-
-//       return res.send(
-//         errorRes(
-//           409,
-//           `Lead already exists with the following details: Phone Number: ${existingLead.phoneNumber}`
-//         )
-//       );
-//     }
-
-//     const newLead = await leadModel.create({
-//       ...body,
-//     });
-
-//     // Save the new lead
-//     await newLead.save();
-
-//     const dataAnalyser = await employeeModel
-//       .find({
-//         designation: "670e5473de5adb5e87eb8d86",
-//       })
-//       .sort({ createdAt: 1 });
-
-//     const getIds = dataAnalyser.map((dt) => dt._id.toString());
-//     const foundTLPlayerId = await oneSignalModel.find({
-//       docId: { $in: getIds },
-//       role: "employee",
-//     });
-
-//     if (foundTLPlayerId.length > 0) {
-//       // console.log(foundTLPlayerId);
-//       const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
-
-//       await sendNotificationWithInfo({
-//         playerIds: getPlayerIds,
-//         title: "You've Got a New Lead!",
-//         message: `A new lead is now available for you to review. Please check the details and take the required steps to approve or update it`,
-//       });
-//     }
-
-//     return res.send(
-//       successRes(200, `Lead added successfully: ${firstName} ${lastName}`, {
-//         newLead,
-//       })
-//     );
-//   } catch (error) {
-//     return next(error);
-//     // return res.send(errorRes(500, `Server error: ${error?.message}`));
-//   }
-// };
-
 export const updateLead = async (req, res, next) => {
   const body = req.body;
   const id = req.params.id;
@@ -1920,59 +1820,133 @@ export const checkLeadsExists = async (req, res, next) => {
   }
 };
 
-// export const getAllLeadsWithValidity = async (req, res, next) => {
-//   try {
-//     // Get the current date and calculate the date 60 days ago
-//     const currentDate = new Date();
-//     const sixtyDaysAgo = new Date();
-//     sixtyDaysAgo.setDate(currentDate.getDate() - 60);
+export async function getLeadCounts(req, res, next) {
+  try {
+    const { interval, year, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
 
-//     // Fetch all leads with phone numbers and validity dates (startDate, validTillDate)
-//     const respLeads = await leadModel.find({
-//       phoneNumber, altPhoneNumber, startDate, validTill, status}
-//     );
+    // Validate year parameter only if it's provided
+    let selectedYear = currentYear;
+    if (year) {
+      selectedYear = parseInt(year, 10);
+      if (isNaN(selectedYear)) {
+        return res.status(400).json({ message: "Invalid year parameter" });
+      }
+    }
 
-//     if (!respLeads || respLeads.length === 0) {
-//       return res.send(errorRes(404, "No leads found"));
-//     }
+    // Calculate the start of the current week (Monday)
+    const currentDate = new Date();
+    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const endOfCurrentWeek = addDays(startOfCurrentWeek, 7); // Limit to current week (Mon-Sun)
 
-//     // Filter leads that are within the last 60 days
-//     const recentLeads = respLeads.filter((lead) => {
-//       return (
-//         (lead.startDate &&
-//           new Date(lead.startDate) >= sixtyDaysAgo &&
-//           lead.status == "Approved") ||
-//         (lead.validTillDate &&
-//           new Date(lead.validTillDate) >= sixtyDaysAgo &&
-//           lead.status == "Approved")
-//       );
-//     });
+    let matchStage = {};
 
-//     if (recentLeads.length === 0) {
-//       return res.send(errorRes(404, "No leads found within the last 60 days"));
-//     }
-//     // const filterLeads=recentLeads.filter(lead.phoneNumber,lead.startDate ,lead.validTill, lead.status);
+    if (interval === "weekly") {
+      matchStage = {
+        startDate: {
+          $gte: startOfCurrentWeek,
+          $lt: endOfCurrentWeek,
+        },
+      };
+    } else if (interval === "monthly") {
+      if (startDate && endDate) {
+        matchStage = {
+          startDate: {
+            $gte: new Date(startDate),
+            $lt: new Date(endDate),
+          },
+        };
+      } else {
+        matchStage = {
+          startDate: {
+            $gte: new Date(`${selectedYear}-01-01`),
+            $lt: new Date(`${selectedYear + 1}-01-01`),
+          },
+        };
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid interval parameter" });
+    }
 
-//     const savedLeads = [];
-//     for (const lead of filterLeads) {
-//       // You can modify this part based on whether you're creating new leads or updating them
-//       const newLead = new leadModel({
-//         phoneNumber: lead.phoneNumber,
-//         altPhoneNumber: lead.altPhoneNumber,
-//         startDate: lead.startDate,
-//         validTillDate: lead.validTillDate,
-//         status: lead.status,
-//       });
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          dayOfWeek: { $dayOfWeek: "$startDate" },
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$startDate" } },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          month: { $month: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    }
 
-//       const savedLead = await newLead.save();
-//       savedLeads.push(savedLead);
-//     }
-//     return res.send(
-//       successRes(200, "Leads within 60 days saved to database", {
-//         data: savedLeads,
-//       })
-//     );
-//   } catch (error) {
-//     next(error); // Pass the error to the error handler middleware
-//   }
-// };
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      { $sort: { "_id.date": 1, "_id.month": 1, "_id.dayOfWeek": 1 } },
+    ]);
+
+    // Prepare a full weekly structure with zero counts for missing days
+    const dayMap = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    let weekData = Array.from({ length: 7 }, (_, i) => {
+      const date = addDays(startOfCurrentWeek, i);
+      return {
+        date: format(date, "yyyy-MM-dd"),
+        day: dayMap[(i + 1) % 7], // Adjust for MongoDB's $dayOfWeek (1 = Sunday)
+        count: 0,
+      };
+    });
+
+    // Populate `weekData` with actual counts where available
+    leadCounts.forEach((item) => {
+      const foundDay = weekData.find((day) => day.date === item._id.date);
+      if (foundDay) foundDay.count = item.count;
+    });
+
+    if (interval === "weekly") {
+      return res.json(weekData); // Only send weekly data with all days accounted for
+    }
+
+    // Monthly data output
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+
+    const formattedMonthlyData = leadCounts.map((item) => ({
+      year: item._id.year,
+      month: monthNames[item._id.month - 1], // Use month number to get month name
+      count: item.count,
+    }));
+
+    return res.json(formattedMonthlyData);
+  } catch (error) {
+    console.error("Error getting lead counts:", error);
+    next(error);
+  }
+}

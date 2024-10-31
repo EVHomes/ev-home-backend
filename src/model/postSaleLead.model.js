@@ -74,13 +74,12 @@ export const postSaleLeadSchema = new mongoose.Schema(
         default: null,
       },
     ],
+    applicants: [applicantSchema],
     bookingStatus: {
       type: { type: String, default: null },
-
       account: { type: String, default: null },
       amount: { type: String, default: null },
     },
-
     preRegistrationCheckList: {
       tenPercentRecieved: {
         recieved: { type: String, default: "no" },

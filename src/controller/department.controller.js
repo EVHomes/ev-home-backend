@@ -55,7 +55,7 @@ export const addDepartment = async (req, res) => {
     await newDepartment.save();
     return res.send(
       successRes(200, `department added successfully: ${department}`, {
-        newDepartment,
+        data: newDepartment,
       })
     );
   } catch (error) {
