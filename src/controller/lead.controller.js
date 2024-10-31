@@ -1,3 +1,4 @@
+import { name } from "ejs";
 import { validateRequiredLeadsFields } from "../middleware/lead.middleware.js";
 import employeeModel from "../model/employee.model.js";
 import leadModel from "../model/lead.model.js";
@@ -414,7 +415,16 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
             ],
           },
         ],
-      });
+      })
+      .populate({
+        path: "callHistory.caller",
+        select:"-password",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ]
+      })
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
 
@@ -1549,35 +1559,124 @@ export const updateCallHistoryByPreSaleExcutive = async (req, res, next) => {
   } catch (error) {}
 };
 
-export const updateCallHistory = async (
-  leadId,
-  callerId,
-  remark,
-  feedback,
-  documentUrl,
-  recordingUrl
-) => {
+export const updateCallHistoryPreSales = async (req, res) => {
+  const body = req.body;
+  const id = req.params.id;
+  const user = req.user;
+
+  const {
+    leadStage,
+    leadStatus,
+    feedback,
+    siteVisit,
+    documentUrl,
+    recordingUrl,
+  } = body;
+
   try {
-    const updatedLead = await leadModel.findByIdAndUpdate(
-      leadId,
-      {
-        $push: {
-          callHistory: {
-            caller: callerId,
-            remark: remark,
-            feedback: feedback,
-            document: documentUrl, // Store the document URL
-            recording: recordingUrl, // Store the recording URL
+    if (!id) return res.send(errorRes(403, "id is required"));
+    if (!leadStage) return res.send(errorRes(403, "Lead Stage is required"));
+    if (!leadStatus) return res.send(errorRes(403, "Lead Status is required"));
+    if (!feedback) return res.send(errorRes(403, "Feedback is required"));
+    if (!siteVisit) return res.send(errorRes(403, "Site Visit is required"));
+
+    // Update the lead with call history details
+    const updatedLead = await leadModel
+      .findByIdAndUpdate(
+        id,
+        {
+          status:leadStage,
+          $push: {
+            callHistory: {
+              caller: user._id,
+              stage: leadStage, // Include leadStage
+              status: leadStatus, // Include leadStatus
+              feedback: feedback,
+              siteVisit: siteVisit, // Include siteVisit
+              document: documentUrl, // Store the document URL
+              recording: recordingUrl, // Store the recording URL
+            },
           },
         },
-      },
-      { new: true }
-    );
+        { new: true }
+      )
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
 
-    return updatedLead;
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select:"-password",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ]
+      });
+    if (!updatedLead) {
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    }
+
+    return res.send(
+      successRes(200, `Caller updated successfully: ${id}`, {
+        updatedLead,
+      })
+    );
   } catch (error) {
     console.error("Error updating call history:", error);
-    throw new Error("Could not update call history");
+    return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
 
