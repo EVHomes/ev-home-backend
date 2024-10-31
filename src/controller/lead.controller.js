@@ -122,6 +122,15 @@ export const getAllLeads = async (req, res, next) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -255,6 +264,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -364,7 +382,6 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
           },
         ],
       })
-
       .populate({
         path: "viewedBy.employee",
         select: "-password -refreshToken",
@@ -418,13 +435,13 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
       })
       .populate({
         path: "callHistory.caller",
-        select:"-password",
+        select: "-password -refreshToken",
         populate: [
           { path: "designation" },
           { path: "department" },
           { path: "division" },
-        ]
-      })
+        ],
+      });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
 
@@ -571,6 +588,15 @@ export const searchLeads = async (req, res, next) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     // Count the total items matching the filter
@@ -652,6 +678,66 @@ export const getLeadById = async (req, res, next) => {
               { path: "division" },
             ],
           },
+        ],
+      })
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
         ],
       });
 
@@ -791,6 +877,15 @@ export const getSimilarLeadsById = async (req, res, next) => {
               { path: "division" },
             ],
           },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
         ],
       });
 
@@ -1374,6 +1469,66 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -1585,7 +1740,7 @@ export const updateCallHistoryPreSales = async (req, res) => {
       .findByIdAndUpdate(
         id,
         {
-          status:leadStage,
+          status: leadStage,
           $push: {
             callHistory: {
               caller: user._id,
@@ -1658,12 +1813,12 @@ export const updateCallHistoryPreSales = async (req, res) => {
       })
       .populate({
         path: "callHistory.caller",
-        select:"-password",
+        select: "-password",
         populate: [
           { path: "designation" },
           { path: "department" },
           { path: "division" },
-        ]
+        ],
       });
     if (!updatedLead) {
       return res.send(errorRes(404, `Lead not found with ID: ${id}`));
