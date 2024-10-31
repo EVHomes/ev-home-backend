@@ -22,7 +22,7 @@ export const uploadFile = async (req, res) => {
     //   console.log(`Token: ${token}`);
     let downloadUrl = `${req.protocol}://${req.get(
       "host"
-    )}/file/${uniqueFileName}?token=${token}`;
+    )}/${uniqueFileName}?token=${token}`;
 
     if (downloadUrl.includes("api.")) {
       downloadUrl = downloadUrl.replace("api.", "cdn.");
@@ -70,7 +70,7 @@ export const uploadMultiple = async (req, res) => {
     );
     let downloadUrl = `${req.protocol}://${req.get(
       "host"
-    )}/file/${uniqueFileName}?token=${token}`;
+    )}/${uniqueFileName}?token=${token}`;
 
     if (downloadUrl.includes("api.")) {
       downloadUrl = downloadUrl.replace("api.", "cdn.");
