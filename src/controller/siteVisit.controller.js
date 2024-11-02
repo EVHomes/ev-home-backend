@@ -156,17 +156,44 @@ export const searchSiteVisits = async (req, res, next) => {
     let skip = (page - 1) * limit;
 
     const isNumberQuery = !isNaN(query);
+
     let searchFilter = {
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
-        isNumberQuery ? { phoneNumber: Number(query) } : null,
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
         { email: { $regex: query, $options: "i" } },
         { source: { $regex: query, $options: "i" } },
         // { closingManager: { $regex: query, $options: "i" } },
         // { teamLeader: { $regex: query, $options: "i" } },
       ].filter(Boolean), // Remove any null values
     };
+    //     const queryParts = query.split(" ").filter(Boolean);
+
+    // let searchFilter = {
+    //   $or: [
+    //     ...queryParts.map(part => ({
+    //       $or: [
+    //         { firstName: { $regex: part, $options: "i" } },
+    //         { lastName: { $regex: part, $options: "i" } }
+    //       ]
+    //     })),
+    //     isNumberQuery ? { $expr: { $regexMatch: { input: { $toString: "$phoneNumber" }, regex: query } } } : null,
+    //     { email: { $regex: query, $options: "i" } },
+    //     { source: { $regex: query, $options: "i" } },
+    //     // { closingManager: { $regex: query, $options: "i" } },
+    //     // { teamLeader: { $regex: query, $options: "i" } },
+    //   ].filter(Boolean), // Remove any null values
+    // };
 
     // Perform the search with pagination
     const respSite = await siteVisitModel

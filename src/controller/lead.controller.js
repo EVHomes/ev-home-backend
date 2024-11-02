@@ -459,7 +459,8 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
 export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
-    // let approvalStatus = req.query
+    let approvalStatus = req.query.approvalStatus;
+    // let approvalStatus = req.query7\
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
 
@@ -470,17 +471,42 @@ export const searchLeads = async (req, res, next) => {
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
-        isNumberQuery ? { phoneNumber: Number(query) } : null,
-        isNumberQuery ? { altPhoneNumber: Number(query) } : null,
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$altPhoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        // isNumberQuery ? { altPhoneNumber: Number(query) } : null,
         { email: { $regex: query, $options: "i" } },
         { address: { $regex: query, $options: "i" } },
-        { status: { $regex: query, $options: "i" } },
+        { approvalStatus: { $regex: query, $options: "i" } },
+        approvalStatus != null || approvalStatus != undefined
+          ? { approvalStatus: approvalStatus }
+          : null,
         { interestedStatus: { $regex: query, $options: "i" } },
       ].filter(Boolean),
     };
 
     const respCP = await leadModel
-      .find(searchFilter)
+      .find({
+        ...searchFilter,
+        ...(approvalStatus && { approvalStatus: approvalStatus }),
+      })
       .skip(skip)
       .limit(limit)
       .sort({ startDate: -1 })
@@ -601,17 +627,39 @@ export const searchLeads = async (req, res, next) => {
       });
 
     // Count the total items matching the filter
-    const totalItems = await leadModel.countDocuments(searchFilter);
+    // const totalItems = await leadModel.countDocuments(searchFilter);
+    // Count the total items matching the filter
+    const totalItems = await leadModel.countDocuments();
+    // const totalItems = await leadModel.countDocuments(searchFilter);
+    const rejectedCount = await leadModel.countDocuments({
+      $and: [{ approvalStatus: "Rejected" }],
+    });
+
+    const pendingCount = await leadModel.countDocuments({
+      $and: [{ approvalStatus: "Pending" }],
+    });
+
+    const approvedCount = await leadModel.countDocuments({
+      $and: [{ approvalStatus: "Approved" }],
+    });
+
+    // const assignedCount = await leadModel.countDocuments({
+    //   $and: [{ preSalesExecutive: { $ne: null } }],
+    // });
 
     // Calculate the total number of pages
     const totalPages = Math.ceil(totalItems / limit);
     // cons;
     return res.send(
-      successRes(200, "get Channel Partners", {
+      successRes(200, "get leads", {
         page,
         limit,
         totalPages,
         totalItems,
+        pendingCount,
+        approvedCount,
+        // assignedCount,
+        rejectedCount,
         data: respCP,
       })
     );
@@ -1822,7 +1870,7 @@ export const checkLeadsExists = async (req, res, next) => {
 
 export async function getLeadCounts(req, res, next) {
   try {
-    const { interval, year, startDate, endDate } = req.query;
+    const { interval = "monthly", year, startDate, endDate } = req.query;
     const currentYear = new Date().getFullYear();
 
     // Validate year parameter only if it's provided
@@ -1944,7 +1992,11 @@ export async function getLeadCounts(req, res, next) {
       count: item.count,
     }));
 
-    return res.json(formattedMonthlyData);
+    return res.send(
+      successRes(200, "ok", {
+        data: formattedMonthlyData,
+      })
+    );
   } catch (error) {
     console.error("Error getting lead counts:", error);
     next(error);
