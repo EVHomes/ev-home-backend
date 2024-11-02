@@ -122,16 +122,19 @@ export const postSaleLeadSchema = new mongoose.Schema(
           verified: { type: Boolean, default: false },
           document: { type: String, default: null },
           remark: { type: String, default: "" },
+          type: { type: String, default: "aadhar" },
         },
         pan: {
           verified: { type: Boolean, default: false },
           document: { type: String, default: null },
           remark: { type: String, default: "" },
+          type: { type: String, default: "pan" },
         },
         other: {
           verified: { type: Boolean, default: false },
           document: { type: String, default: null },
           remark: { type: String, default: "" },
+          type: { type: String, default: "" },
         },
       },
       agreement: {
