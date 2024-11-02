@@ -307,10 +307,10 @@ export const addSiteVisits = async (req, res) => {
     if (!choiceApt)
       return res.send(errorRes(403, "Choice of Apartment is required"));
 
+    // console.log(body);
     const newSiteVisit = await siteVisitModel.create({
       ...body,
     });
-
     await newSiteVisit.save();
 
     //  if (!id) return res.send(errorRes(403, "id is required"));
