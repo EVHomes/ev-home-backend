@@ -48,8 +48,9 @@ export const addDesignation = async (req, res) => {
   try {
     // if (!body) return res.send(errorRes(403, "data is required"));
     if (!designation) return res.send(errorRes(403, "designation is required"));
-
+    const newDesgId = "desg-" + designation?.replace(/\s+/g, "-").toLowerCase();
     const newDesignation = await designationModel.create({
+      _id: newDesgId,
       designation: designation,
     });
 
@@ -80,9 +81,7 @@ export const updateDesignation = async (req, res) => {
       { new: true }
     );
     if (!updateDesignation)
-      return res.send(
-        errorRes(402, `designation cannot be updated: ${designation}`)
-      );
+      return res.send(errorRes(402, `designation cannot be updated: ${designation}`));
 
     return res.send(
       successRes(200, `designation upodated successfully: ${designation}`, {
@@ -105,9 +104,7 @@ export const deleteDesignation = async (req, res) => {
     const deletedDesignation = await designationModel.findByIdAndDelete(id);
 
     if (!deleteDesignation)
-      return res.send(
-        errorRes(402, `designation cannot be deleted: ${designation}`)
-      );
+      return res.send(errorRes(402, `designation cannot be deleted: ${designation}`));
 
     return res.send(
       successRes(200, `designation deleted successfully`, {

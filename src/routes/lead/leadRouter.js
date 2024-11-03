@@ -48,11 +48,7 @@ leadRouter.get(
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
-leadRouter.post(
-  "/lead-update-caller/:id",
-  authenticateToken,
-  updateCallHistoryPreSales
-);
+leadRouter.post("/lead-update-caller/:id", authenticateToken, updateCallHistoryPreSales);
 leadRouter.get(
   "/search-lead",
   //  authenticateToken,
@@ -67,11 +63,7 @@ leadRouter.get(
   getSimilarLeadsById
 );
 
-leadRouter.post(
-  "/lead-assign-tl/:id",
-  authenticateToken,
-  assignLeadToTeamLeader
-);
+leadRouter.post("/lead-assign-tl/:id", authenticateToken, assignLeadToTeamLeader);
 
 leadRouter.post(
   "/lead-assign-pre-sale-executive/:id",
@@ -87,11 +79,7 @@ leadRouter.post(
 );
 leadRouter.post("/lead-update/:id", updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
-leadRouter.get(
-  "/leads-exists/:phoneNumber",
-  authenticateToken,
-  checkLeadsExists
-);
+leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
 
 leadRouter.get("/lead-count", getLeadCounts);
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
@@ -132,9 +120,7 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           // Check for existing firm name based on the specified logic
           let foundCp =
             channelPartners.find((ele) =>
-              ele.firmName
-                ?.toLowerCase()
-                .includes(source?.toLowerCase().split(" ")[0])
+              ele.firmName?.toLowerCase().includes(source?.toLowerCase().split(" ")[0])
             )?._id || null;
           let teamLeader1 =
             employees.find((ele) =>
@@ -203,9 +189,7 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           data: dataToInsert,
         });
       } catch (error) {
-        res
-          .status(500)
-          .json({ message: "Bulk insert failed", error: error.message });
+        res.status(500).json({ message: "Bulk insert failed", error: error.message });
       }
     });
 });

@@ -12,6 +12,7 @@ import {
   registerEmployee,
   resetPasswordEmployee,
   searchEmployee,
+  updateDesgEmp,
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -22,6 +23,11 @@ employeeRouter.get(
   "/employee",
   // authenticateToken,
   getEmployees
+);
+employeeRouter.get(
+  "/up-desg",
+  // authenticateToken,
+  updateDesgEmp
 );
 
 employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
@@ -43,11 +49,7 @@ employeeRouter.get(
   getPreSalesExecutive
 );
 
-employeeRouter.post(
-  "/employee-register",
-  validateEmployeeFields,
-  registerEmployee
-);
+employeeRouter.post("/employee-register", validateEmployeeFields, registerEmployee);
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(

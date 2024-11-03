@@ -1,11 +1,19 @@
 import mongoose from "mongoose";
 
-export const designationSchema=new mongoose.Schema(
-    {
-        designation:{type:String, required:true, unique:true},
+export const designationSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      required: true,
     },
-    // {timestamps:true}
+    designation: { type: String, required: true, unique: true },
+  }
+  // {timestamps:true}
 );
 
-const designationModel =mongoose.model("designations",designationSchema,"designations");
+const designationModel = mongoose.model(
+  "designations",
+  designationSchema,
+  "designations"
+);
 export default designationModel;

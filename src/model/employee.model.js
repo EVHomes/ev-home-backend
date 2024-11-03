@@ -5,6 +5,10 @@ const passwordFormat = /^\d+$/;
 
 export const employeeSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: true,
+    },
     email: {
       type: String,
       required: true,
@@ -20,7 +24,6 @@ export const employeeSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-
     employeeId: {
       type: String,
       required: true,
@@ -52,26 +55,52 @@ export const employeeSchema = new mongoose.Schema(
           `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
       },
     },
+    joiningDate: {
+      type: String,
+      default: null,
+      // validate: {
+      //   validator: function (value) {
+      //     // Check if the date matches the YYYY-MM-DD format
+      //     return dateOfBirthFormat.test(value);
+      //   },
+      //   message: (props) =>
+      //     `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
+      // },
+    },
+    leavedDate: {
+      type: String,
+      default: null,
+      // validate: {
+      //   validator: function (value) {
+      //     // Check if the date matches the YYYY-MM-DD format
+      //     return dateOfBirthFormat.test(value);
+      //   },
+      //   message: (props) =>
+      //     `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
+      // },
+    },
     address: { type: String, default: null },
+    bloodGroup: { type: String, default: null },
+    maritalStatus: { type: String, default: null },
     isVerifiedPhone: { type: Boolean, default: false },
     isVerifiedEmail: { type: Boolean, default: false },
     department: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       ref: "departments",
     },
     designation: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       ref: "designations",
     },
     division: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       ref: "divisions",
     },
     reportingTo: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },

@@ -14,6 +14,35 @@ import {
   generateOTP,
 } from "../utils/helper.js";
 
+export const updateDesgEmp = async (req, res, next) => {
+  try {
+    // Find employees with the specific designation ID
+    const respCP = await employeeModel.find({ designation: "670e5421de5adb5e87eb8d68" });
+
+    if (respCP.length === 0) {
+      return res.send(
+        successRes(200, "No employees found with this designation", { data: [] })
+      );
+    }
+
+    // Update all matched documents by their designation
+    const updateResponse = await employeeModel.updateMany(
+      { _id: { $in: respCP.map((ele) => ele._id) } },
+      { designation: "desg-pre-sales-head" }
+    );
+
+    // Send the updated data as response
+    return res.send(
+      successRes(200, "Updated Designation", {
+        matchedCount: updateResponse.matchedCount,
+        modifiedCount: updateResponse.modifiedCount,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getEmployees = async (req, res, next) => {
   try {
     const respCP = await employeeModel
@@ -25,11 +54,7 @@ export const getEmployees = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -41,6 +66,7 @@ export const getEmployees = async (req, res, next) => {
     return next(error);
   }
 };
+
 export const getClosingManagers = async (req, res, next) => {
   try {
     const respCP = await employeeModel
@@ -67,11 +93,7 @@ export const getClosingManagers = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -101,11 +123,7 @@ export const getTeamLeaders = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -131,11 +149,7 @@ export const getPreSalesExecutive = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -161,11 +175,7 @@ export const getEmployeeById = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
     //if not found
     if (!respEmployee) {
@@ -274,16 +284,8 @@ export const registerEmployee = async (req, res, next) => {
       role: savedEmployee.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     savedEmployee.refreshToken = refreshToken;
     await savedEmployee.save();
 
@@ -296,9 +298,7 @@ export const registerEmployee = async (req, res, next) => {
     );
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(
-        errorRes(400, `${error.keyValue.employeeId} already exists.`)
-      );
+      return res.send(errorRes(400, `${error.keyValue.employeeId} already exists.`));
     }
 
     return next(error);
@@ -323,11 +323,7 @@ export const loginEmployee = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     // .lean();
@@ -349,16 +345,8 @@ export const loginEmployee = async (req, res, next) => {
       role: employeeDb.role,
     };
 
-    const accessToken = createJwtToken(
-      dataToken,
-      config.SECRET_ACCESS_KEY,
-      "15m"
-    );
-    const refreshToken = createJwtToken(
-      dataToken,
-      config.SECRET_REFRESH_KEY,
-      "7d"
-    );
+    const accessToken = createJwtToken(dataToken, config.SECRET_ACCESS_KEY, "15m");
+    const refreshToken = createJwtToken(dataToken, config.SECRET_REFRESH_KEY, "7d");
     await employeeDb.updateOne(
       {
         refreshToken: refreshToken,
@@ -425,9 +413,7 @@ export const forgotPasswordEmployee = async (req, res, next) => {
       .lean();
 
     if (!employeeDb) {
-      return res.send(
-        errorRes(400, `No Employee found with given email: ${email}`)
-      );
+      return res.send(errorRes(400, `No Employee found with given email: ${email}`));
     }
 
     const oldOtp = await otpModel.findOne({ email: email }).lean();
@@ -509,11 +495,7 @@ export const resetPasswordEmployee = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     if (!employeeDb) {
