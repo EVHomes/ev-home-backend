@@ -127,11 +127,7 @@ export const getAllLeads = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -269,11 +265,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -437,11 +429,7 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -619,11 +607,7 @@ export const searchLeads = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     // Count the total items matching the filter
@@ -783,11 +767,7 @@ export const getLeadById = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     if (!respLead) return errorRes(404, "No lead found");
@@ -931,11 +911,7 @@ export const getSimilarLeadsById = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -1109,8 +1085,7 @@ export const updateLead = async (req, res, next) => {
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
     if (!status) return res.send(errorRes(403, "Status is required"));
     if (!interestedStatus)
       return res.send(errorRes(403, "Interested status is required"));
@@ -1140,8 +1115,7 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully: ${id} `, {
@@ -1164,8 +1138,7 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -1472,11 +1445,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -1667,14 +1636,7 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const {
-    leadStage,
-    leadStatus,
-    feedback,
-    siteVisit,
-    documentUrl,
-    recordingUrl,
-  } = body;
+  const { leadStage, leadStatus, feedback, siteVisit, documentUrl, recordingUrl } = body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -1762,11 +1724,7 @@ export const updateCallHistoryPreSales = async (req, res) => {
       .populate({
         path: "callHistory.caller",
         select: "-password",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
     if (!updatedLead) {
       return res.send(errorRes(404, `Lead not found with ID: ${id}`));
@@ -1833,8 +1791,7 @@ export const updateLeadDetails = async (leadId, employeeId, changes) => {
 export const checkLeadsExists = async (req, res, next) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone Number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone Number is required"));
 
     const existingLead = await leadModel.findOne({
       $or: [
@@ -1850,9 +1807,7 @@ export const checkLeadsExists = async (req, res, next) => {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with phone number: ${
-            (phoneNumber, altPhoneNumber)
-          }`
+          `Lead already exists with phone number: ${(phoneNumber, altPhoneNumber)}`
         )
       ); // 409 Conflict
     }
@@ -1999,6 +1954,131 @@ export async function getLeadCounts(req, res, next) {
     );
   } catch (error) {
     console.error("Error getting lead counts:", error);
+    next(error);
+  }
+}
+
+export async function getLeadCountsByTeamLeaders(req, res, next) {
+  try {
+    const { interval = "monthly", year, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+
+    // Validate year parameter if provided
+    let selectedYear = currentYear;
+    if (year) {
+      selectedYear = parseInt(year, 10);
+      if (isNaN(selectedYear)) {
+        return res.status(400).json({ message: "Invalid year parameter" });
+      }
+    }
+
+    // Set up date filters based on the interval
+    let matchStage = {};
+
+    if (interval === "weekly") {
+      const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const endOfCurrentWeek = addDays(startOfCurrentWeek, 7);
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "monthly") {
+      matchStage.startDate = {
+        $gte: new Date(`${selectedYear}-01-01`),
+        $lt: new Date(`${selectedYear + 1}-01-01`),
+      };
+    } else if (interval === "quarterly") {
+      matchStage.startDate = {
+        $gte: new Date(`${selectedYear}-01-01`),
+        $lt: new Date(`${selectedYear + 1}-01-01`),
+      };
+    } else if (interval === "annually") {
+      matchStage.startDate = {
+        $gte: new Date(`${selectedYear}-01-01`),
+        $lt: new Date(`${selectedYear + 1}-01-01`),
+      };
+    } else {
+      return res.status(400).json({ message: "Invalid interval parameter" });
+    }
+
+    // Group by team leader to get unique list with lead counts based on interval
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          teamLeader: "$teamLeader",
+          week: { $week: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          teamLeader: "$teamLeader",
+          month: { $month: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "quarterly") {
+      groupStage = {
+        _id: {
+          teamLeader: "$teamLeader",
+          quarter: { $ceil: { $divide: [{ $month: "$startDate" }, 3] } },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "annually") {
+      groupStage = {
+        _id: {
+          teamLeader: "$teamLeader",
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "_id.teamLeader",
+          foreignField: "_id",
+          as: "teamLeaderDetails",
+        },
+      },
+      { $unwind: "$teamLeaderDetails" },
+      {
+        $project: {
+          teamLeader: "$teamLeaderDetails.firstName", // Only include firstName
+          count: 1,
+          interval,
+          year: "$_id.year",
+          ...(interval === "weekly" && { week: "$_id.week" }),
+          ...(interval === "monthly" && { month: "$_id.month" }),
+          ...(interval === "quarterly" && { quarter: "$_id.quarter" }),
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const responseData = leadCounts.map((item) => ({
+      teamLeader: item.teamLeader,
+      count: item.count,
+      interval: item.interval,
+      year: item.year,
+      week: item.week,
+      month: item.month,
+      quarter: item.quarter,
+    }));
+
+    return res.send(successRes(200, "ok", { data: responseData }));
+  } catch (error) {
+    console.error("Error getting unique team leader lead counts:", error);
     next(error);
   }
 }

@@ -14,6 +14,7 @@ import {
   getLeadsPreSalesExecutive,
   updateCallHistoryPreSales,
   getLeadCounts,
+  getLeadCountsByTeamLeaders,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -85,7 +86,7 @@ leadRouter.delete(
 );
 leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
 
-leadRouter.get("/lead-count", getLeadCounts);
+leadRouter.get("/lead-count", getLeadCountsByTeamLeaders);
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
   const errors = [];
