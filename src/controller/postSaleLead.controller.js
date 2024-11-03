@@ -60,7 +60,7 @@ export const addPostSaleLead = async (req, res, next) => {
   } = body;
   try {
     if (!body) return res.send(errorRes(401, "No Data Provided"));
-
+    // console.log(body);
     if (body.applicants == null && body.applicants.length < 0)
       return res.send(errorRes(401, "Aplicant cant be empty"));
 
