@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const callHistorySchema = new mongoose.Schema({
   caller: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "employees",
     required: true,
   },
@@ -31,7 +31,7 @@ const callHistorySchema = new mongoose.Schema({
     type: String,
   },
   siteVisit: {
-    type:String,
+    type: String,
   },
 });
 
@@ -50,7 +50,7 @@ export const leadSchema = new mongoose.Schema(
     project: [
       {
         type: String,
-        // type: mongoose.Schema.Types.ObjectId,
+        // type: String,
         // ref: "ourProjects",
         required: true,
       },
@@ -58,7 +58,7 @@ export const leadSchema = new mongoose.Schema(
     requirement: [
       {
         type: String,
-        // type: mongoose.Schema.Types.ObjectId,
+        // type: String,
         // ref: "ourProjects",
         required: true,
       },
@@ -72,17 +72,17 @@ export const leadSchema = new mongoose.Schema(
       default: null,
     },
     dataAnalyser: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },
     teamLeader: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },
     preSalesExecutive: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },
@@ -128,7 +128,7 @@ export const leadSchema = new mongoose.Schema(
     viewedBy: [
       {
         employee: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: String,
           ref: "employees",
           required: true,
         },
@@ -141,7 +141,7 @@ export const leadSchema = new mongoose.Schema(
     approvalHistory: [
       {
         employee: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: String,
           ref: "employees",
           required: true,
         },
@@ -155,7 +155,7 @@ export const leadSchema = new mongoose.Schema(
     updateHistory: [
       {
         employee: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: String,
           ref: "employees",
           required: true,
         },

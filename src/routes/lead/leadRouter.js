@@ -78,7 +78,11 @@ leadRouter.post(
   addLead
 );
 leadRouter.post("/lead-update/:id", updateLead);
-leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
+leadRouter.delete(
+  "/lead/:id",
+  //  authenticateToken,
+  deleteLead
+);
 leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
 
 leadRouter.get("/lead-count", getLeadCounts);

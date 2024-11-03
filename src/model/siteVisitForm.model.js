@@ -49,37 +49,37 @@ export const siteVisitSchema = new mongoose.Schema(
       // enum: ["Walk-in", "CP", "Reference"],
     },
     closingManager: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },
     attendedBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },
     closingTeam: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "employees",
         default: null,
       },
     ],
     teamLeader: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       // required: true,
       default: null,
     },
     teamLeaderTeam: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "employees",
         default: null,
       },
     ],
     dataEntryBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       // required: true,
       default: null,
@@ -88,9 +88,5 @@ export const siteVisitSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const siteVisitModel = mongoose.model(
-  "siteVisits",
-  siteVisitSchema,
-  "siteVisits"
-);
+const siteVisitModel = mongoose.model("siteVisits", siteVisitSchema, "siteVisits");
 export default siteVisitModel;
