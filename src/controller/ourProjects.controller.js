@@ -106,36 +106,27 @@ export const updateProjects = async (req, res) => {
     // Validate the necessary fields
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
-    if (!amenities || amenities.length === 0)
-      return res.send(errorRes(403, "Amenities are required"));
-    if (!bhkConfiguration || bhkConfiguration.length === 0)
-      return res.send(errorRes(403, "BhkList is required"));
-    if (!contactNumber)
-      return res.send(errorRes(403, "Contact number is required"));
-    if (!description) return res.send(errorRes(403, "Description is required"));
-    if (!locationLink)
-      return res.send(errorRes(403, "Location link is required"));
-    if (!locationName)
-      return res.send(errorRes(403, "Location name is required"));
-    if (!name) return res.send(errorRes(403, "Project name is required"));
-    if (!showCaseImage)
-      return res.send(errorRes(403, "Showcase image is required"));
+    // if (!amenities || amenities.length === 0)
+    //   return res.send(errorRes(403, "Amenities are required"));
+    // if (!bhkConfiguration || bhkConfiguration.length === 0)
+    //   return res.send(errorRes(403, "BhkList is required"));
+    // if (!contactNumber)
+    //   return res.send(errorRes(403, "Contact number is required"));
+    // if (!description) return res.send(errorRes(403, "Description is required"));
+    // if (!locationLink)
+    //   return res.send(errorRes(403, "Location link is required"));
+    // if (!locationName)
+    //   return res.send(errorRes(403, "Location name is required"));
+    // if (!name) return res.send(errorRes(403, "Project name is required"));
+    // if (!showCaseImage)
+    //   return res.send(errorRes(403, "Showcase image is required"));
 
     // Perform the update
+
+    // console.log(body);
     const updatedProject = await ourProjectModel.findByIdAndUpdate(
       id, // Find by project ID
-      {
-        amenities,
-        bhkConfiguration,
-        contactNumber,
-        countryCode,
-        description,
-        locationLink,
-        locationName,
-        name,
-        brochure,
-        showCaseImage,
-      },
+      { ...body },
       { new: true } // Return the updated document
     );
 

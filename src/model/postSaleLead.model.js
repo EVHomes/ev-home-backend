@@ -43,6 +43,8 @@ const applicantSchema = new mongoose.Schema({
 export const postSaleLeadSchema = new mongoose.Schema(
   {
     unitNo: { type: String, required: true, default: null },
+    floor: { type: String, default: null },
+    number: { type: String, default: null },
     project: { type: String, required: true, default: null },
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
@@ -63,13 +65,14 @@ export const postSaleLeadSchema = new mongoose.Schema(
     carpetArea: { type: String, default: null },
     flatCost: { type: Number, default: null },
     closingManager: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "employees",
       default: null,
     },
+    postSaleExecutive: { type: String, ref: "employees", default: null },
     closingManagerTeam: [
       {
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: "employees",
         default: null,
       },

@@ -9,7 +9,26 @@ export const getPostSaleLeads = async (req, res, next) => {
 
     let skip = (page - 1) * limit;
 
-    const resp = await postSaleLeadModel.find().sort({ date: -1 });
+    const resp = await postSaleLeadModel
+      .find()
+      .sort({ date: -1 })
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
     // .skip(skip)
     // .limit(limit)
 
@@ -68,6 +87,26 @@ export const addPostSaleLead = async (req, res, next) => {
     const resp = await postSaleLeadModel.create({
       ...body,
     });
+
+    // const newLead = postSaleLeadModel.findById(resp._id);
+
+    // .populate({
+    //   path: "closingManager",
+    //   select: "-password -refreshToken",
+    //   populate: [
+    //     { path: "designation" },
+    //     { path: "department" },
+    //     { path: "division" },
+    //     {
+    //       path: "reportingTo",
+    //       populate: [
+    //         { path: "designation" },
+    //         { path: "department" },
+    //         { path: "division" },
+    //       ],
+    //     },
+    //   ],
+    // });
 
     return res.send(
       successRes(200, "add post sale leads", {
