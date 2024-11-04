@@ -16,6 +16,10 @@ import {
   getLeadCounts,
   getLeadCountsByTeamLeaders,
   getAllLeadCountsFunnel,
+  getLeadCountsByChannelPartner,
+  getLeadCountsByTeamLeader,
+  getLeadCountsByPreSaleExecutve,
+  getAllLeadCountsFunnelForPreSaleTL,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -101,8 +105,28 @@ leadRouter.get(
 
 //for data analyser
 leadRouter.get("/lead-count", getLeadCounts);
-leadRouter.get("/lead-count-pre-sale-team-leader", getLeadCountsByTeamLeaders);
+
+leadRouter.get(
+  "/lead-count-pre-sale-team-leader-for-data-analyser",
+  getLeadCountsByTeamLeaders
+);
+leadRouter.get("/lead-count-channel-partners", getLeadCountsByChannelPartner);
 leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
+
+//pre sales team leader
+leadRouter.get(
+  "/lead-count-pre-sale-team-leader/:id",
+  getLeadCountsByTeamLeader
+);
+
+leadRouter.get(
+  "/lead-count-pre-sale-executive-for-pre-sale-tl",
+  getLeadCountsByPreSaleExecutve
+);
+leadRouter.get(
+  "/lead-count-funnel-pre-sales-tl",
+  getAllLeadCountsFunnelForPreSaleTL
+);
 
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];

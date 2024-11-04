@@ -157,13 +157,54 @@ export const getAllLeads = async (req, res, next) => {
 export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
+    let query = req.query.query || "";
+    let approvalStatus = req.query.approvalStatus;
+    const isNumberQuery = !isNaN(query);
+
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
 
     let skip = (page - 1) * limit;
+    let searchFilter = {
+      $or: [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$altPhoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        // isNumberQuery ? { altPhoneNumber: Number(query) } : null,
+        { email: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { approvalStatus: { $regex: query, $options: "i" } },
+        approvalStatus != null || approvalStatus != undefined
+          ? { approvalStatus: approvalStatus }
+          : null,
+        { interestedStatus: { $regex: query, $options: "i" } },
+      ].filter(Boolean),
+    };
 
     const respLeads = await leadModel
-      .find({ teamLeader: teamLeaderId })
+      .find({
+        ...searchFilter,
+        teamLeader: teamLeaderId,
+      })
       .skip(skip)
       .limit(limit)
       .sort({ startDate: -1 })
@@ -2060,7 +2101,7 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
         $gte: startOfHalf,
         $lt: endOfHalf,
       };
-    } else if (interval === "yearly") {
+    } else if (interval === "yearly" || interval === "annually") {
       matchStage.startDate = {
         $gte: startOfYear(new Date(selectedYear, 0, 1)),
         $lt: endOfYear(new Date(selectedYear, 11, 31)),
@@ -2118,7 +2159,7 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
         },
         count: { $sum: 1 },
       };
-    } else if (interval === "yearly") {
+    } else if (interval === "yearly" || interval === "annually") {
       groupStage = {
         _id: {
           teamLeader: "$teamLeader",
@@ -2245,7 +2286,23 @@ export async function getAllLeadCountsFunnel(req, res, next) {
         $gte: startOfCurrentWeek,
         $lt: endOfCurrentWeek,
       };
-    } else if (interval === "yearly") {
+    } else if (interval === "quarterly") {
+      const quarter = Math.floor((selectedMonth - 1) / 3);
+      const startOfQuarterDate = new Date(selectedYear, quarter * 3, 1);
+      const endOfQuarterDate = new Date(selectedYear, (quarter + 1) * 3, 1);
+      matchStage.startDate = {
+        $gte: startOfQuarterDate,
+        $lt: endOfQuarterDate,
+      };
+    } else if (interval === "semi-annually") {
+      const half = Math.floor((selectedMonth - 1) / 6);
+      const startOfHalfDate = new Date(selectedYear, half * 6, 1);
+      const endOfHalfDate = new Date(selectedYear, (half + 1) * 6, 1);
+      matchStage.startDate = {
+        $gte: startOfHalfDate,
+        $lt: endOfHalfDate,
+      };
+    } else if (interval === "yearly" || interval === "annually") {
       matchStage.startDate = {
         $gte: new Date(selectedYear, 0, 1),
         $lt: new Date(selectedYear + 1, 0, 1),
@@ -2282,7 +2339,17 @@ export async function getAllLeadCountsFunnel(req, res, next) {
     } else if (interval === "monthly") {
       groupStage._id.month = { $month: "$startDate" };
       groupStage._id.year = { $year: "$startDate" };
-    } else if (interval === "yearly") {
+    } else if (interval === "quarterly") {
+      groupStage._id.quarter = {
+        $ceil: { $divide: [{ $month: "$startDate" }, 3] },
+      };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "semi-annually") {
+      groupStage._id.half = {
+        $ceil: { $divide: [{ $month: "$startDate" }, 6] },
+      };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "yearly" || interval === "annually") {
       groupStage._id.year = { $year: "$startDate" };
     }
 
@@ -2318,6 +2385,8 @@ export async function getAllLeadCountsFunnel(req, res, next) {
             },
           },
           week: "$_id.week",
+          quarter: "$_id.quarter",
+          half: "$_id.half",
         },
       },
       { $sort: { count: -1 } },
@@ -2337,6 +2406,703 @@ export async function getAllLeadCountsFunnel(req, res, next) {
           ? currentMonth
           : undefined,
         week: found ? found.week : undefined,
+        quarter: found ? found.quarter : undefined,
+        half: found ? found.half : undefined,
+      };
+    });
+
+    return res.send(successRes(200, "ok", { data: responseData }));
+  } catch (error) {
+    console.error("Error getting all lead counts by status:", error);
+    next(error);
+  }
+}
+
+export async function getLeadCountsByChannelPartner(req, res, next) {
+  try {
+    const { interval = "monthly", year, month, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // JS months are 0-indexed
+
+    // Validate and set selected year
+    let selectedYear = year ? parseInt(year, 10) : currentYear;
+    if (isNaN(selectedYear)) {
+      return res.status(400).json({ message: "Invalid year parameter" });
+    }
+
+    // Validate and set selected month
+    let selectedMonth = month ? parseInt(month, 10) : currentMonth;
+    if (isNaN(selectedMonth) || selectedMonth < 1 || selectedMonth > 12) {
+      return res.status(400).json({ message: "Invalid month parameter" });
+    }
+
+    let matchStage = {};
+
+    if (interval === "monthly") {
+      const startOfMonthDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endOfMonthDate = new Date(selectedYear, selectedMonth, 1);
+      matchStage.startDate = {
+        $gte: startOfMonthDate,
+        $lt: endOfMonthDate,
+      };
+    } else if (interval === "weekly") {
+      const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const endOfCurrentWeek = addDays(startOfCurrentWeek, 6); // 6 days for a full week
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "quarterly") {
+      const quarter = Math.ceil(selectedMonth / 3);
+      const startOfQuarter = new Date(selectedYear, (quarter - 1) * 3, 1);
+      const endOfQuarter = new Date(selectedYear, quarter * 3, 1);
+      matchStage.startDate = {
+        $gte: startOfQuarter,
+        $lt: endOfQuarter,
+      };
+    } else if (interval === "semi-annually") {
+      const isFirstHalf = selectedMonth <= 6;
+      const startOfHalf = new Date(selectedYear, isFirstHalf ? 0 : 6, 1);
+      const endOfHalf = new Date(selectedYear, isFirstHalf ? 6 : 12, 1);
+      matchStage.startDate = {
+        $gte: startOfHalf,
+        $lt: endOfHalf,
+      };
+    } else if (interval === "yearly" || interval === "annually") {
+      matchStage.startDate = {
+        $gte: startOfYear(new Date(selectedYear, 0, 1)),
+        $lt: endOfYear(new Date(selectedYear, 11, 31)),
+      };
+    } else if (interval === "custom" && startDate && endDate) {
+      matchStage.startDate = {
+        $gte: new Date(startDate),
+        $lt: new Date(endDate),
+      };
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Invalid interval or date range parameter" });
+    }
+
+    // Group stage and further aggregation logic for each interval
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          channelPartner: "$channelPartner",
+          week: { $week: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          channelPartner: "$channelPartner",
+          month: { $month: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "quarterly") {
+      groupStage = {
+        _id: {
+          channelPartner: "$channelPartner",
+          quarter: {
+            $ceil: { $divide: [{ $month: "$startDate" }, 3] },
+          },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "semi-annually") {
+      groupStage = {
+        _id: {
+          channelPartner: "$channelPartner",
+          half: {
+            $cond: [{ $lte: [{ $month: "$startDate" }, 6] }, "H1", "H2"],
+          },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "yearly" || interval === "annually") {
+      groupStage = {
+        _id: {
+          channelPartner: "$channelPartner",
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "custom") {
+      groupStage = {
+        _id: {
+          channelPartner: "$channelPartner",
+        },
+        count: { $sum: 1 },
+      };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      {
+        $lookup: {
+          from: "channelPartners",
+          localField: "_id.channelPartner",
+          foreignField: "_id",
+          as: "channelPartnerDetails",
+        },
+      },
+      { $unwind: "$channelPartnerDetails" },
+      {
+        $project: {
+          channelPartner: "$channelPartnerDetails.firmName",
+          count: 1,
+          interval,
+          year: "$_id.year",
+          ...(interval === "monthly" && {
+            month: {
+              $let: {
+                vars: {
+                  months: [
+                    "",
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                  ],
+                },
+                in: { $arrayElemAt: ["$$months", "$_id.month"] },
+              },
+            },
+          }),
+          ...(interval === "quarterly" && { quarter: "$_id.quarter" }),
+          ...(interval === "semi-annually" && { half: "$_id.half" }),
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const responseData = leadCounts.map((item) => ({
+      channelPartner: item.channelPartner,
+      count: item.count,
+      interval: item.interval,
+      year: item.year,
+      month: item.month,
+      quarter: item.quarter,
+      half: item.half,
+    }));
+
+    return res.send(successRes(200, "ok", { data: responseData }));
+  } catch (error) {
+    console.error("Error getting unique team leader lead counts:", error);
+    next(error);
+  }
+}
+
+//for pre sale team leader
+export async function getLeadCountsByTeamLeader(req, res, next) {
+  try {
+    const teamLeaderId = req.params.id;
+    const { interval = "monthly", year, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+
+    // Validate teamLeaderId parameter
+    if (!teamLeaderId) {
+      return res.status(400).json({ message: "Team leader ID is required" });
+    }
+
+    // Validate year parameter only if it's provided
+    let selectedYear = currentYear;
+    if (year) {
+      selectedYear = parseInt(year, 10);
+      if (isNaN(selectedYear)) {
+        return res.status(400).json({ message: "Invalid year parameter" });
+      }
+    }
+
+    // Calculate the start of the current week (Monday)
+    const currentDate = new Date();
+    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const endOfCurrentWeek = addDays(startOfCurrentWeek, 7); // Limit to current week (Mon-Sun)
+
+    let matchStage = {
+      teamLeader: teamLeaderId, // Match by team leader ID
+    };
+
+    if (interval === "weekly") {
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "monthly") {
+      if (startDate && endDate) {
+        matchStage.startDate = {
+          $gte: new Date(startDate),
+          $lt: new Date(endDate),
+        };
+      } else {
+        matchStage.startDate = {
+          $gte: new Date(`${selectedYear}-01-01`),
+          $lt: new Date(`${selectedYear + 1}-01-01`),
+        };
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid interval parameter" });
+    }
+
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          dayOfWeek: { $dayOfWeek: "$startDate" },
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$startDate" } },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          month: { $month: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      { $sort: { "_id.date": 1, "_id.month": 1, "_id.dayOfWeek": 1 } },
+    ]);
+
+    // Prepare a full weekly structure with zero counts for missing days
+    const dayMap = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    let weekData = Array.from({ length: 7 }, (_, i) => {
+      const date = addDays(startOfCurrentWeek, i);
+      return {
+        date: format(date, "yyyy-MM-dd"),
+        day: dayMap[(i + 1) % 7], // Adjust for MongoDB's $dayOfWeek (1 = Sunday)
+        count: 0,
+      };
+    });
+
+    // Populate `weekData` with actual counts where available
+    leadCounts.forEach((item) => {
+      const foundDay = weekData.find((day) => day.date === item._id.date);
+      if (foundDay) foundDay.count = item.count;
+    });
+
+    if (interval === "weekly") {
+      return res.json(weekData); // Only send weekly data with all days accounted for
+    }
+
+    // Monthly data output
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const formattedMonthlyData = leadCounts.map((item) => ({
+      year: item._id.year,
+      month: monthNames[item._id.month - 1], // Use month number to get month name
+      count: item.count,
+    }));
+
+    return res.send(
+      successRes(200, "ok", {
+        data: formattedMonthlyData,
+      })
+    );
+  } catch (error) {
+    console.error("Error getting lead counts by team leader:", error);
+    next(error);
+  }
+}
+
+export async function getLeadCountsByPreSaleExecutve(req, res, next) {
+  try {
+    const { interval = "yearly", year, month, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // JS months are 0-indexed
+
+    // Validate and set selected year
+    let selectedYear = year ? parseInt(year, 10) : currentYear;
+    if (isNaN(selectedYear)) {
+      return res.status(400).json({ message: "Invalid year parameter" });
+    }
+
+    // Validate and set selected month
+    let selectedMonth = month ? parseInt(month, 10) : currentMonth;
+    if (isNaN(selectedMonth) || selectedMonth < 1 || selectedMonth > 12) {
+      return res.status(400).json({ message: "Invalid month parameter" });
+    }
+
+    let matchStage = {};
+
+    if (interval === "monthly") {
+      const startOfMonthDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endOfMonthDate = new Date(selectedYear, selectedMonth, 1);
+      matchStage.startDate = {
+        $gte: startOfMonthDate,
+        $lt: endOfMonthDate,
+      };
+    } else if (interval === "weekly") {
+      const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const endOfCurrentWeek = addDays(startOfCurrentWeek, 6); // 6 days for a full week
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "quarterly") {
+      const quarter = Math.ceil(selectedMonth / 3);
+      const startOfQuarter = new Date(selectedYear, (quarter - 1) * 3, 1);
+      const endOfQuarter = new Date(selectedYear, quarter * 3, 1);
+      matchStage.startDate = {
+        $gte: startOfQuarter,
+        $lt: endOfQuarter,
+      };
+    } else if (interval === "semi-annually") {
+      const isFirstHalf = selectedMonth <= 6;
+      const startOfHalf = new Date(selectedYear, isFirstHalf ? 0 : 6, 1);
+      const endOfHalf = new Date(selectedYear, isFirstHalf ? 6 : 12, 1);
+      matchStage.startDate = {
+        $gte: startOfHalf,
+        $lt: endOfHalf,
+      };
+    } else if (interval === "yearly" || interval === "annually") {
+      matchStage.startDate = {
+        $gte: startOfYear(new Date(selectedYear, 0, 1)),
+        $lt: endOfYear(new Date(selectedYear, 11, 31)),
+      };
+    } else if (interval === "custom" && startDate && endDate) {
+      matchStage.startDate = {
+        $gte: new Date(startDate),
+        $lt: new Date(endDate),
+      };
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Invalid interval or date range parameter" });
+    }
+
+    // Group stage and further aggregation logic for each interval
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          preSalesExecutive: "$preSalesExecutive",
+          week: { $week: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          preSalesExecutive: "$preSalesExecutive",
+          month: { $month: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "quarterly") {
+      groupStage = {
+        _id: {
+          preSalesExecutive: "$preSalesExecutive",
+          quarter: {
+            $ceil: { $divide: [{ $month: "$startDate" }, 3] },
+          },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "semi-annually") {
+      groupStage = {
+        _id: {
+          preSalesExecutive: "$preSalesExecutive",
+          half: {
+            $cond: [{ $lte: [{ $month: "$startDate" }, 6] }, "H1", "H2"],
+          },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "yearly" || interval === "annually") {
+      groupStage = {
+        _id: {
+          preSalesExecutive: "$preSalesExecutive",
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "custom") {
+      groupStage = {
+        _id: {
+          preSalesExecutive: "$preSalesExecutive",
+        },
+        count: { $sum: 1 },
+      };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      {
+        $lookup: {
+          from: "employees",
+          localField: "_id.preSalesExecutive",
+          foreignField: "_id",
+          as: "preSalesExecutiveDetails",
+        },
+      },
+      { $unwind: "$preSalesExecutiveDetails" },
+      {
+        $project: {
+          preSalesExecutive: {
+            $concat: [
+              "$preSalesExecutiveDetails.firstName",
+              " ",
+              "$preSalesExecutiveDetails.lastName",
+            ],
+          },
+          count: 1,
+          interval,
+          year: "$_id.year",
+          ...(interval === "monthly" && {
+            month: {
+              $let: {
+                vars: {
+                  months: [
+                    "",
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                  ],
+                },
+                in: { $arrayElemAt: ["$$months", "$_id.month"] },
+              },
+            },
+          }),
+          ...(interval === "quarterly" && { quarter: "$_id.quarter" }),
+          ...(interval === "semi-annually" && { half: "$_id.half" }),
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const responseData = leadCounts.map((item) => ({
+      preSalesExecutive: item.preSalesExecutive,
+      count: item.count,
+      interval: item.interval,
+      year: item.year,
+      month: item.month,
+      quarter: item.quarter,
+      half: item.half,
+    }));
+
+    return res.send(successRes(200, "ok", { data: responseData }));
+  } catch (error) {
+    console.error("Error getting unique team leader lead counts:", error);
+    next(error);
+  }
+}
+
+export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
+  try {
+    const { interval = "yearly", year, month, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    // Set and validate year and month
+    let selectedYear = year ? parseInt(year, 10) : currentYear;
+    let selectedMonth = month ? parseInt(month, 10) : currentMonth;
+
+    if (
+      isNaN(selectedYear) ||
+      isNaN(selectedMonth) ||
+      selectedMonth < 1 ||
+      selectedMonth > 12
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
+    }
+
+    // Define match stage
+    let matchStage = {};
+
+    if (interval === "monthly") {
+      const startOfMonthDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endOfMonthDate = new Date(selectedYear, selectedMonth, 1);
+      matchStage.startDate = {
+        $gte: startOfMonthDate,
+        $lt: endOfMonthDate,
+      };
+    } else if (interval === "weekly") {
+      const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const endOfCurrentWeek = addDays(startOfCurrentWeek, 6);
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "quarterly") {
+      const quarter = Math.floor((selectedMonth - 1) / 3);
+      const startOfQuarterDate = new Date(selectedYear, quarter * 3, 1);
+      const endOfQuarterDate = new Date(selectedYear, (quarter + 1) * 3, 1);
+      matchStage.startDate = {
+        $gte: startOfQuarterDate,
+        $lt: endOfQuarterDate,
+      };
+    } else if (interval === "semi-annually") {
+      const half = Math.floor((selectedMonth - 1) / 6);
+      const startOfHalfDate = new Date(selectedYear, half * 6, 1);
+      const endOfHalfDate = new Date(selectedYear, (half + 1) * 6, 1);
+      matchStage.startDate = {
+        $gte: startOfHalfDate,
+        $lt: endOfHalfDate,
+      };
+    } else if (interval === "yearly" || interval === "annually") {
+      matchStage.startDate = {
+        $gte: new Date(selectedYear, 0, 1),
+        $lt: new Date(selectedYear + 1, 0, 1),
+      };
+    } else if (interval === "custom" && startDate && endDate) {
+      matchStage.startDate = {
+        $gte: new Date(startDate),
+        $lt: new Date(endDate),
+      };
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Invalid interval or date range parameter" });
+    }
+
+    // Define all possible statuses for the funnel
+    const allStatuses = [
+      "Booked",
+      "Site Visit",
+      "Leads Contacted",
+      "Leads Received",
+    ];
+
+    // Group stage by lead status and interval
+    let groupStage = {
+      _id: { status: "$status" },
+      count: { $sum: 1 },
+    };
+
+    if (interval === "weekly") {
+      groupStage._id.week = { $week: "$startDate" };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "monthly") {
+      groupStage._id.month = { $month: "$startDate" };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "quarterly") {
+      groupStage._id.quarter = {
+        $ceil: { $divide: [{ $month: "$startDate" }, 3] },
+      };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "semi-annually") {
+      groupStage._id.half = {
+        $ceil: { $divide: [{ $month: "$startDate" }, 6] },
+      };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "yearly" || interval === "annually") {
+      groupStage._id.year = { $year: "$startDate" };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      {
+        $project: {
+          status: "$_id.status",
+          count: 1,
+          interval,
+          year: "$_id.year",
+          month: {
+            $let: {
+              vars: {
+                months: [
+                  "",
+                  "Jan",
+                  "Feb",
+                  "Mar",
+                  "Apr",
+                  "May",
+                  "Jun",
+                  "Jul",
+                  "Aug",
+                  "Sep",
+                  "Oct",
+                  "Nov",
+                  "Dec",
+                ],
+              },
+              in: { $arrayElemAt: ["$$months", "$_id.month"] },
+            },
+          },
+          week: "$_id.week",
+          quarter: "$_id.quarter",
+          half: "$_id.half",
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    // Map lead counts to allStatuses to ensure each status is represented
+    const responseData = allStatuses.map((status) => {
+      const found = leadCounts.find((item) => item.status === status);
+      return {
+        status,
+        count: found ? found.count : 0,
+        interval,
+        year: found ? found.year : selectedYear,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
+        week: found ? found.week : undefined,
+        quarter: found ? found.quarter : undefined,
+        half: found ? found.half : undefined,
       };
     });
 
