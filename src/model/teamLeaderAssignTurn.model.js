@@ -42,11 +42,13 @@ teamLeaderAssignTurnSchema.statics.addMissingTeamLeaders = async function () {
 
   // Get all employees (team leaders)
   const allTeamLeaders = await employeeModel.find({
-    designation: "670e5493de5adb5e87eb8d8c",
+    designation: "desg-pre-sales-team-leader",
   }); // Fetch all employees who are team leaders
 
   // Get current team leaders already in the list
-  const existingTeamLeaderIds = assignTurn.listOfTeamLeaders.map((tl) => tl.teamLeader);
+  const existingTeamLeaderIds = assignTurn.listOfTeamLeaders.map(
+    (tl) => tl.teamLeader
+  );
 
   // Filter out team leaders not already in listOfTeamLeaders
   const newTeamLeaders = allTeamLeaders.filter(
@@ -81,7 +83,9 @@ teamLeaderAssignTurnSchema.methods.getNextTeamLeader = async function () {
   const nextOrder = (this.currentOrder + 1) % totalLeaders;
 
   // Find the next leader based on the calculated order
-  const nextLeader = this.listOfTeamLeaders.find((leader) => leader.order === nextOrder);
+  const nextLeader = this.listOfTeamLeaders.find(
+    (leader) => leader.order === nextOrder
+  );
 
   if (!nextLeader) {
     throw new Error("Next leader not found");

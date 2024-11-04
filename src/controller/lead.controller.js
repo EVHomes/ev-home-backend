@@ -6,7 +6,14 @@ import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import TeamLeaderAssignTurn from "../model/teamLeaderAssignTurn.model.js";
 import { sendNotificationWithInfo } from "./oneSignal.controller.js";
-import { startOfWeek, addDays, format } from "date-fns";
+import {
+  startOfWeek,
+  addDays,
+  format,
+  startOfMonth,
+  startOfYear,
+  endOfYear,
+} from "date-fns";
 
 export const getAllLeads = async (req, res, next) => {
   try {
@@ -127,7 +134,11 @@ export const getAllLeads = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -265,7 +276,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -429,7 +444,11 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -607,7 +626,11 @@ export const searchLeads = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     // Count the total items matching the filter
@@ -767,7 +790,11 @@ export const getLeadById = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLead) return errorRes(404, "No lead found");
@@ -911,7 +938,11 @@ export const getSimilarLeadsById = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     return res.send(
@@ -994,7 +1025,7 @@ export const addLead = async (req, res, next) => {
       const newLead = await leadModel.create({ ...body });
       const dataAnalyser = await employeeModel
         .find({
-          designation: "670e5473de5adb5e87eb8d86",
+          designation: "desg-data-analyzer",
         })
         .sort({ createdAt: 1 });
 
@@ -1032,7 +1063,7 @@ export const addLead = async (req, res, next) => {
 
     const dataAnalyser = await employeeModel
       .find({
-        designation: "670e5473de5adb5e87eb8d86",
+        designation: "desg-data-analyzer",
       })
       .sort({ createdAt: 1 });
 
@@ -1085,7 +1116,8 @@ export const updateLead = async (req, res, next) => {
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber)
+      return res.send(errorRes(403, "Phone number is required"));
     if (!status) return res.send(errorRes(403, "Status is required"));
     if (!interestedStatus)
       return res.send(errorRes(403, "Interested status is required"));
@@ -1115,7 +1147,8 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully: ${id} `, {
@@ -1138,7 +1171,8 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -1305,7 +1339,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
 
     const teamLeaders = await employeeModel
       .find({
-        designation: "670e5493de5adb5e87eb8d8c",
+        designation: "desg-pre-sales-team-leader",
       })
       .sort({ createdAt: 1 });
 
@@ -1445,7 +1479,11 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -1636,7 +1674,14 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const { leadStage, leadStatus, feedback, siteVisit, documentUrl, recordingUrl } = body;
+  const {
+    leadStage,
+    leadStatus,
+    feedback,
+    siteVisit,
+    documentUrl,
+    recordingUrl,
+  } = body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -1724,7 +1769,11 @@ export const updateCallHistoryPreSales = async (req, res) => {
       .populate({
         path: "callHistory.caller",
         select: "-password",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
     if (!updatedLead) {
       return res.send(errorRes(404, `Lead not found with ID: ${id}`));
@@ -1791,7 +1840,8 @@ export const updateLeadDetails = async (leadId, employeeId, changes) => {
 export const checkLeadsExists = async (req, res, next) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
-    if (!phoneNumber) return res.send(errorRes(403, "Phone Number is required"));
+    if (!phoneNumber)
+      return res.send(errorRes(403, "Phone Number is required"));
 
     const existingLead = await leadModel.findOne({
       $or: [
@@ -1807,7 +1857,9 @@ export const checkLeadsExists = async (req, res, next) => {
       return res.send(
         errorRes(
           409,
-          `Lead already exists with phone number: ${(phoneNumber, altPhoneNumber)}`
+          `Lead already exists with phone number: ${
+            (phoneNumber, altPhoneNumber)
+          }`
         )
       ); // 409 Conflict
     }
@@ -1927,18 +1979,18 @@ export async function getLeadCounts(req, res, next) {
 
     // Monthly data output
     const monthNames = [
-      "January",
-      "February",
-      "March",
-      "April",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
       "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     const formattedMonthlyData = leadCounts.map((item) => ({
@@ -1960,48 +2012,71 @@ export async function getLeadCounts(req, res, next) {
 
 export async function getLeadCountsByTeamLeaders(req, res, next) {
   try {
-    const { interval = "monthly", year, startDate, endDate } = req.query;
+    const { interval = "monthly", year, month, startDate, endDate } = req.query;
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // JS months are 0-indexed
 
-    // Validate year parameter if provided
-    let selectedYear = currentYear;
-    if (year) {
-      selectedYear = parseInt(year, 10);
-      if (isNaN(selectedYear)) {
-        return res.status(400).json({ message: "Invalid year parameter" });
-      }
+    // Validate and set selected year
+    let selectedYear = year ? parseInt(year, 10) : currentYear;
+    if (isNaN(selectedYear)) {
+      return res.status(400).json({ message: "Invalid year parameter" });
     }
 
-    // Set up date filters based on the interval
+    // Validate and set selected month
+    let selectedMonth = month ? parseInt(month, 10) : currentMonth;
+    if (isNaN(selectedMonth) || selectedMonth < 1 || selectedMonth > 12) {
+      return res.status(400).json({ message: "Invalid month parameter" });
+    }
+
     let matchStage = {};
 
-    if (interval === "weekly") {
+    if (interval === "monthly") {
+      const startOfMonthDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endOfMonthDate = new Date(selectedYear, selectedMonth, 1);
+      matchStage.startDate = {
+        $gte: startOfMonthDate,
+        $lt: endOfMonthDate,
+      };
+    } else if (interval === "weekly") {
       const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
-      const endOfCurrentWeek = addDays(startOfCurrentWeek, 7);
+      const endOfCurrentWeek = addDays(startOfCurrentWeek, 6); // 6 days for a full week
       matchStage.startDate = {
         $gte: startOfCurrentWeek,
         $lt: endOfCurrentWeek,
       };
-    } else if (interval === "monthly") {
-      matchStage.startDate = {
-        $gte: new Date(`${selectedYear}-01-01`),
-        $lt: new Date(`${selectedYear + 1}-01-01`),
-      };
     } else if (interval === "quarterly") {
+      const quarter = Math.ceil(selectedMonth / 3);
+      const startOfQuarter = new Date(selectedYear, (quarter - 1) * 3, 1);
+      const endOfQuarter = new Date(selectedYear, quarter * 3, 1);
       matchStage.startDate = {
-        $gte: new Date(`${selectedYear}-01-01`),
-        $lt: new Date(`${selectedYear + 1}-01-01`),
+        $gte: startOfQuarter,
+        $lt: endOfQuarter,
       };
-    } else if (interval === "annually") {
+    } else if (interval === "semi-annually") {
+      const isFirstHalf = selectedMonth <= 6;
+      const startOfHalf = new Date(selectedYear, isFirstHalf ? 0 : 6, 1);
+      const endOfHalf = new Date(selectedYear, isFirstHalf ? 6 : 12, 1);
       matchStage.startDate = {
-        $gte: new Date(`${selectedYear}-01-01`),
-        $lt: new Date(`${selectedYear + 1}-01-01`),
+        $gte: startOfHalf,
+        $lt: endOfHalf,
+      };
+    } else if (interval === "yearly") {
+      matchStage.startDate = {
+        $gte: startOfYear(new Date(selectedYear, 0, 1)),
+        $lt: endOfYear(new Date(selectedYear, 11, 31)),
+      };
+    } else if (interval === "custom" && startDate && endDate) {
+      matchStage.startDate = {
+        $gte: new Date(startDate),
+        $lt: new Date(endDate),
       };
     } else {
-      return res.status(400).json({ message: "Invalid interval parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid interval or date range parameter" });
     }
 
-    // Group by team leader to get unique list with lead counts based on interval
+    // Group stage and further aggregation logic for each interval
     let groupStage = {};
     if (interval === "weekly") {
       groupStage = {
@@ -2025,16 +2100,36 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       groupStage = {
         _id: {
           teamLeader: "$teamLeader",
-          quarter: { $ceil: { $divide: [{ $month: "$startDate" }, 3] } },
+          quarter: {
+            $ceil: { $divide: [{ $month: "$startDate" }, 3] },
+          },
           year: { $year: "$startDate" },
         },
         count: { $sum: 1 },
       };
-    } else if (interval === "annually") {
+    } else if (interval === "semi-annually") {
+      groupStage = {
+        _id: {
+          teamLeader: "$teamLeader",
+          half: {
+            $cond: [{ $lte: [{ $month: "$startDate" }, 6] }, "H1", "H2"],
+          },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "yearly") {
       groupStage = {
         _id: {
           teamLeader: "$teamLeader",
           year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "custom") {
+      groupStage = {
+        _id: {
+          teamLeader: "$teamLeader",
         },
         count: { $sum: 1 },
       };
@@ -2054,13 +2149,42 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       { $unwind: "$teamLeaderDetails" },
       {
         $project: {
-          teamLeader: "$teamLeaderDetails.firstName", // Only include firstName
+          teamLeader: {
+            $concat: [
+              "$teamLeaderDetails.firstName",
+              " ",
+              "$teamLeaderDetails.lastName",
+            ],
+          },
           count: 1,
           interval,
           year: "$_id.year",
-          ...(interval === "weekly" && { week: "$_id.week" }),
-          ...(interval === "monthly" && { month: "$_id.month" }),
+          ...(interval === "monthly" && {
+            month: {
+              $let: {
+                vars: {
+                  months: [
+                    "",
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                  ],
+                },
+                in: { $arrayElemAt: ["$$months", "$_id.month"] },
+              },
+            },
+          }),
           ...(interval === "quarterly" && { quarter: "$_id.quarter" }),
+          ...(interval === "semi-annually" && { half: "$_id.half" }),
         },
       },
       { $sort: { count: -1 } },
@@ -2071,14 +2195,154 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       count: item.count,
       interval: item.interval,
       year: item.year,
-      week: item.week,
       month: item.month,
       quarter: item.quarter,
+      half: item.half,
     }));
 
     return res.send(successRes(200, "ok", { data: responseData }));
   } catch (error) {
     console.error("Error getting unique team leader lead counts:", error);
+    next(error);
+  }
+}
+
+export async function getAllLeadCountsFunnel(req, res, next) {
+  try {
+    const { interval = "yearly", year, month, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1;
+
+    // Set and validate year and month
+    let selectedYear = year ? parseInt(year, 10) : currentYear;
+    let selectedMonth = month ? parseInt(month, 10) : currentMonth;
+
+    if (
+      isNaN(selectedYear) ||
+      isNaN(selectedMonth) ||
+      selectedMonth < 1 ||
+      selectedMonth > 12
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
+    }
+
+    // Define match stage
+    let matchStage = {};
+
+    if (interval === "monthly") {
+      const startOfMonthDate = new Date(selectedYear, selectedMonth - 1, 1);
+      const endOfMonthDate = new Date(selectedYear, selectedMonth, 1);
+      matchStage.startDate = {
+        $gte: startOfMonthDate,
+        $lt: endOfMonthDate,
+      };
+    } else if (interval === "weekly") {
+      const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+      const endOfCurrentWeek = addDays(startOfCurrentWeek, 6);
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "yearly") {
+      matchStage.startDate = {
+        $gte: new Date(selectedYear, 0, 1),
+        $lt: new Date(selectedYear + 1, 0, 1),
+      };
+    } else if (interval === "custom" && startDate && endDate) {
+      matchStage.startDate = {
+        $gte: new Date(startDate),
+        $lt: new Date(endDate),
+      };
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Invalid interval or date range parameter" });
+    }
+
+    // Define all possible statuses for the funnel
+    const allStatuses = [
+      "Booked",
+      "Site Visit",
+      "Supposed to Site Visit",
+      "Approved",
+      "Rejected",
+    ];
+
+    // Group stage by lead status and interval
+    let groupStage = {
+      _id: { status: "$status" },
+      count: { $sum: 1 },
+    };
+
+    if (interval === "weekly") {
+      groupStage._id.week = { $week: "$startDate" };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "monthly") {
+      groupStage._id.month = { $month: "$startDate" };
+      groupStage._id.year = { $year: "$startDate" };
+    } else if (interval === "yearly") {
+      groupStage._id.year = { $year: "$startDate" };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      {
+        $project: {
+          status: "$_id.status",
+          count: 1,
+          interval,
+          year: "$_id.year",
+          month: {
+            $let: {
+              vars: {
+                months: [
+                  "",
+                  "Jan",
+                  "Feb",
+                  "Mar",
+                  "Apr",
+                  "May",
+                  "Jun",
+                  "Jul",
+                  "Aug",
+                  "Sep",
+                  "Oct",
+                  "Nov",
+                  "Dec",
+                ],
+              },
+              in: { $arrayElemAt: ["$$months", "$_id.month"] },
+            },
+          },
+          week: "$_id.week",
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    // Map lead counts to allStatuses to ensure each status is represented
+    const responseData = allStatuses.map((status) => {
+      const found = leadCounts.find((item) => item.status === status);
+      return {
+        status,
+        count: found ? found.count : 0,
+        interval,
+        year: found ? found.year : selectedYear,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
+        week: found ? found.week : undefined,
+      };
+    });
+
+    return res.send(successRes(200, "ok", { data: responseData }));
+  } catch (error) {
+    console.error("Error getting all lead counts by status:", error);
     next(error);
   }
 }

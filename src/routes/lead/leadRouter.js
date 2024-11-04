@@ -15,6 +15,7 @@ import {
   updateCallHistoryPreSales,
   getLeadCounts,
   getLeadCountsByTeamLeaders,
+  getAllLeadCountsFunnel,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -49,7 +50,11 @@ leadRouter.get(
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
-leadRouter.post("/lead-update-caller/:id", authenticateToken, updateCallHistoryPreSales);
+leadRouter.post(
+  "/lead-update-caller/:id",
+  authenticateToken,
+  updateCallHistoryPreSales
+);
 leadRouter.get(
   "/search-lead",
   //  authenticateToken,
@@ -64,7 +69,11 @@ leadRouter.get(
   getSimilarLeadsById
 );
 
-leadRouter.post("/lead-assign-tl/:id", authenticateToken, assignLeadToTeamLeader);
+leadRouter.post(
+  "/lead-assign-tl/:id",
+  authenticateToken,
+  assignLeadToTeamLeader
+);
 
 leadRouter.post(
   "/lead-assign-pre-sale-executive/:id",
@@ -84,9 +93,17 @@ leadRouter.delete(
   //  authenticateToken,
   deleteLead
 );
-leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
+leadRouter.get(
+  "/leads-exists/:phoneNumber",
+  authenticateToken,
+  checkLeadsExists
+);
 
-leadRouter.get("/lead-count", getLeadCountsByTeamLeaders);
+//for data analyser
+leadRouter.get("/lead-count", getLeadCounts);
+leadRouter.get("/lead-count-pre-sale-team-leader", getLeadCountsByTeamLeaders);
+leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
+
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
   const errors = [];
@@ -125,7 +142,9 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           // Check for existing firm name based on the specified logic
           let foundCp =
             channelPartners.find((ele) =>
-              ele.firmName?.toLowerCase().includes(source?.toLowerCase().split(" ")[0])
+              ele.firmName
+                ?.toLowerCase()
+                .includes(source?.toLowerCase().split(" ")[0])
             )?._id || null;
           let teamLeader1 =
             employees.find((ele) =>
@@ -194,7 +213,9 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           data: dataToInsert,
         });
       } catch (error) {
-        res.status(500).json({ message: "Bulk insert failed", error: error.message });
+        res
+          .status(500)
+          .json({ message: "Bulk insert failed", error: error.message });
       }
     });
 });
