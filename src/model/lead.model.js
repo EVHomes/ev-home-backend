@@ -39,13 +39,14 @@ export const leadSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      required: true,
-      validate: {
-        validator: function (value) {
-          return emailFormat.test(value);
-        },
-        message: (props) => `${props.value} is not a valid email.`,
-      },
+      // required: true,
+      default: null,
+      // validate: {
+      //   validator: function (value) {
+      //     return emailFormat.test(value);
+      //   },
+      //   message: (props) => `${props.value} is not a valid email.`,
+      // },
     },
     project: [
       {
