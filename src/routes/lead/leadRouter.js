@@ -34,6 +34,7 @@ import cpModel from "../../model/channelPartner.model.js";
 import { encryptPassword } from "../../utils/helper.js";
 import employeeModel from "../../model/employee.model.js";
 import leadModel from "../../model/lead.model.js";
+import ourProjectModel from "../../model/ourProjects.model.js";
 
 dayjs.extend(customParseFormat);
 
@@ -131,7 +132,7 @@ leadRouter.get(
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
   const errors = [];
-  const csvFilePath = path.join(__dirname, "clientTagging_3.csv");
+  const csvFilePath = path.join(__dirname, "leads_list.csv");
 
   if (!fs.existsSync(csvFilePath)) {
     return res.status(400).send("CSV file not found");
@@ -140,6 +141,7 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   // Load all channel partners once
   const channelPartners = await cpModel.find().lean();
   const employees = await employeeModel.find().lean();
+  const projectsDb = await ourProjectModel.find().lean();
 
   fs.createReadStream(csvFilePath)
     .pipe(csv())
@@ -150,18 +152,17 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
       for (const row of results) {
         try {
           const {
-            firstName,
-            lastName,
+            "First Name": firstName,
+            "Last Name": lastName,
             Source: source,
-            "Client Number": phoneNumber,
+            "Phone no": phoneNumber,
             "Project Name": projectsStr,
             "Team Leader": teamLeader,
-            timestamp2,
-            Date: dateMain,
-            Time: time,
+            date3,
+            // Time: time,
           } = row;
-          const date = timestamp2 ? parseDate(timestamp2) : parseDate(dateMain);
-          const projects = projectsStr ? projectsStr.split(",") : [];
+          // const date2 = parseDate(date);
+          const projectsLocal = projectsStr ? projectsStr.split(",") : [];
 
           // Check for existing firm name based on the specified logic
           let foundCp =
@@ -176,6 +177,18 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
                 ?.toLowerCase()
                 .includes(teamLeader?.toLowerCase().split(" ")[0])
             )?._id || null;
+
+          let ourProj = [];
+
+          projectsLocal.map((projL) => {
+            let projectR = projectsDb.find(
+              (ele) =>
+                ele?.name?.trim()?.toLowerCase() ===
+                projL?.trim()?.toLowerCase()
+            );
+            ourProj.push(projectR._id);
+          });
+
           // Create new CP if not found
           // if (!foundCp && source) {
           //   try {
@@ -206,16 +219,16 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
 
           dataToInsert.push({
             // date,
-            startDate: date,
+            startDate: parseDate(date3),
             // time,
             // timestamp: timestamp2,
             // dateMain,
-            email: "dummyclientemail@gmail.com",
+            email: null,
             firstName,
             lastName,
             phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
             teamLeader: teamLeader1,
-            projects,
+            projects: ourProj,
             channelPartner: foundCp,
             // source,
             // teamLeader1,
@@ -227,20 +240,27 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
       }
 
       // Bulk insert data
-      try {
-        await leadModel.insertMany(dataToInsert);
-        res.json({
-          message: "CSV processing completed",
-          updatedCount: results.length - errors.length,
-          errors,
-          dataLength: dataToInsert.length,
-          data: dataToInsert,
-        });
-      } catch (error) {
-        res
-          .status(500)
-          .json({ message: "Bulk insert failed", error: error.message });
-      }
+      // try {
+      //   await leadModel.insertMany(
+      //     dataToInsert.filter((ld) => ld.firstName != "")
+      //   );
+      //   res.json({
+      //     message: "CSV processing completed",
+      //     updatedCount: results.length - errors.length,
+      //     errors,
+      //     dataLength: dataToInsert.length,
+      //     data: dataToInsert.filter((ld) => ld.firstName != ""),
+      //   });
+      // } catch (error) {
+      //   res
+      //     .status(500)
+      //     .json({ message: "Bulk insert failed", error: error.message });
+      // }
+      // const filterdName = dataToInsert.filter((ld) =>
+      //   ld?.startDate?.includes("1999")
+      // );
+      // const n9date = filterdName.filter((ts) => ts.startDate.includes("1999"));
+      // res.json(filterdName);
     });
 });
 
@@ -386,10 +406,10 @@ const parseDate = (dateInput) => {
       return date.toDate();
     }
   }
-  const date1999 = new Date("1999-01-01T00:00:00Z"); // UTC
 
-  return date1999; // Return null if no valid format is found
+  return new Date("1999-01-01T00:00:00Z"); // Return null if no valid format is found
 };
+
 const parseDateTime = (dateInput, timeInput = "") => {
   // Define date formats including two-digit years and missing delimiters
   const dateFormats = [

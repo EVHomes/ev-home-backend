@@ -157,9 +157,13 @@ export const getTeamLeaders = async (req, res, next) => {
 
 export const getPreSalesExecutive = async (req, res, next) => {
   try {
+    const reportingTo = req.query.id;
     const respPreSaleEx = await employeeModel
       .find({
-        designation: "670e5464de5adb5e87eb8d83",
+        $and: [
+          { designation: "desg-pre-sales-executive" },
+          { reportingTo: reportingTo },
+        ],
       })
       .select("-password -refreshToken")
       .populate("designation")
