@@ -13,6 +13,10 @@ export const getPostSaleLeads = async (req, res, next) => {
       .find()
       .sort({ date: -1 })
       .populate({
+        path: "project",
+        // select: "name",
+      })
+      .populate({
         path: "closingManager",
         select: "-password -refreshToken",
         populate: [
@@ -122,12 +126,15 @@ export const updatePostSaleLeadById = async (req, res, next) => {
   const body = req.body;
   const id = req.params.id;
   try {
+    console.log("entered");
     if (!body) return res.send(errorRes(401, "No Data Provided"));
 
     const foundLead = await postSaleLeadModel.findById(id);
+    console.log("entered 1");
 
     if (!foundLead) return res.send(errorRes(404, "No lead found"));
-
+    console.log("entered 2");
+    console.log(body);
     await foundLead.updateOne({ ...body });
 
     return res.send(

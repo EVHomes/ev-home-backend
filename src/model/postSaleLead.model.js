@@ -45,7 +45,12 @@ export const postSaleLeadSchema = new mongoose.Schema(
     unitNo: { type: String, required: true, default: null },
     floor: { type: String, default: null },
     number: { type: String, default: null },
-    project: { type: String, required: true, default: null },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      default: null,
+      ref: "ourProjects",
+    },
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
     requirement: { type: String, default: null },
