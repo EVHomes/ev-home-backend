@@ -7,16 +7,16 @@ const applicantSchema = new mongoose.Schema({
   address: { type: String, default: null },
   countryCode: { type: String, default: "+91" },
   phoneNumber: { type: Number, default: null },
-  email: {
-    type: String,
-    default: null,
-    validate: {
-      validator: function (value) {
-        return emailFormat.test(value);
-      },
-      message: (props) => `${props.value} is not a valid email.`,
-    },
-  },
+  // email: {
+  //   type: String,
+  //   default: null,
+  //   validate: {
+  //     validator: function (value) {
+  //       return emailFormat.test(value);
+  //     },
+  //     message: (props) => `${props.value} is not a valid email.`,
+  //   },
+  // },
   kyc: {
     verified: { type: Boolean, default: false },
     addhar: {
@@ -45,16 +45,18 @@ export const postSaleLeadSchema = new mongoose.Schema(
     unitNo: { type: String, required: true, default: null },
     floor: { type: String, default: null },
     number: { type: String, default: null },
-    project: { type: String, required: true, default: null },
+    project: { type:mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "ourProjects" },
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
     requirement: { type: String, default: null },
     countryCode: { type: String, default: "+91" },
-    phoneNumber: { type: Number, required: true, default: null },
-    address: { type: String, required: true, default: null },
+    phoneNumber: { type: Number, default: null },
+    address: { type: String, default: null },
     email: {
       type: String,
-      required: true,
+ 
       validate: {
         validator: function (value) {
           return emailFormat.test(value);

@@ -25,7 +25,11 @@ export const ourProjectsSchema = new mongoose.Schema({
       number: { type: Number, required: true },
       ParkingNo: { type: String, required: true },
       occupied: { type: Boolean, default: false },
-      occupiedBy: { type: String, default: null },
+      occupiedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "postSaleLead",
+        default: null,
+      },
     },
   ],
   contactNumber: { type: Number, default: null },
