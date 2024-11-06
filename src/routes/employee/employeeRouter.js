@@ -4,6 +4,7 @@ import {
   editEmployeeById,
   forgotPasswordEmployee,
   getClosingManagers,
+  getEmployeeByDesignation,
   getEmployeeById,
   getEmployees,
   getPreSalesExecutive,
@@ -24,11 +25,11 @@ employeeRouter.get(
   // authenticateToken,
   getEmployees
 );
-employeeRouter.get(
-  "/up-desg",
-  // authenticateToken,
-  updateDesgEmp
-);
+// employeeRouter.get(
+//   "/up-desg",
+//   // authenticateToken,
+//   updateDesgEmp
+// );
 
 employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
 
@@ -36,6 +37,11 @@ employeeRouter.get(
   "/employee-closing-manager",
   // authenticateToken,
   getClosingManagers
+);
+employeeRouter.get(
+  "/employee-by-designation/:id",
+  // authenticateToken,
+  getEmployeeByDesignation
 );
 
 employeeRouter.get(
@@ -49,7 +55,11 @@ employeeRouter.get(
   getPreSalesExecutive
 );
 
-employeeRouter.post("/employee-register", validateEmployeeFields, registerEmployee);
+employeeRouter.post(
+  "/employee-register",
+  validateEmployeeFields,
+  registerEmployee
+);
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(

@@ -35,7 +35,7 @@ export const ourProjectsSchema = new mongoose.Schema({
   contactNumber: { type: Number, default: null },
   countryCode: { type: String, default: "+91" },
   locationLink: { type: String, default: null },
-  locationName: { type: String, required: true },
+  locationName: { type: String, required: true, default: null },
   brochure: { type: String, default: null },
   govAccount: {
     accountNo: { type: String, default: null },

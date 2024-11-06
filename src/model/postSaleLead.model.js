@@ -7,16 +7,16 @@ const applicantSchema = new mongoose.Schema({
   address: { type: String, default: null },
   countryCode: { type: String, default: "+91" },
   phoneNumber: { type: Number, default: null },
-  // email: {
-  //   type: String,
-  //   default: null,
-  //   validate: {
-  //     validator: function (value) {
-  //       return emailFormat.test(value);
-  //     },
-  //     message: (props) => `${props.value} is not a valid email.`,
-  //   },
-  // },
+  email: {
+    type: String,
+    default: null,
+    // validate: {
+    //   validator: function (value) {
+    //     return emailFormat.test(value);
+    //   },
+    //   message: (props) => `${props.value} is not a valid email.`,
+    // },
+  },
   kyc: {
     verified: { type: Boolean, default: false },
     addhar: {
@@ -43,8 +43,8 @@ const applicantSchema = new mongoose.Schema({
 export const postSaleLeadSchema = new mongoose.Schema(
   {
     unitNo: { type: String, required: true, default: null },
-    floor: { type: String, default: null },
-    number: { type: String, default: null },
+    floor: { type: Number, default: null },
+    number: { type: Number, default: null },
     project: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -59,7 +59,7 @@ export const postSaleLeadSchema = new mongoose.Schema(
     address: { type: String, default: null },
     email: {
       type: String,
- 
+
       validate: {
         validator: function (value) {
           return emailFormat.test(value);
@@ -67,7 +67,7 @@ export const postSaleLeadSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
-    carpetArea: { type: String, default: null },
+    carpetArea: { type: Number, default: null },
     flatCost: { type: Number, default: null },
     closingManager: {
       type: String,

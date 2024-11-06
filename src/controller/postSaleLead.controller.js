@@ -4,13 +4,68 @@ import { startOfWeek, addDays, format } from "date-fns";
 
 export const getPostSaleLeads = async (req, res, next) => {
   try {
+    let query = req.query.query || "";
+    let project = req.query.project;
+
     let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 20;
+    let limit = parseInt(req.query.limit) || 10;
 
     let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+    // let searchFilter = {
+    //   $or: [
+    //     { firstName: new RegExp(query, "i") },
+    //     { lastName: new RegExp(query, "i") },
+    //     isNumberQuery
+    //       ? {
+    //           $expr: {
+    //             $regexMatch: {
+    //               input: { $toString: "$phoneNumber" },
+    //               regex: query,
+    //             },
+    //           },
+    //         }
+    //       : null,
+    //     { email: new RegExp(query, "i") },
+    //     { address: new RegExp(query, "i") },
+    //   ].filter(Boolean), // Filters out any `null` conditions
+    //   ...(project ? { project: project } : {}),
+    // };
+
+    let searchFilter = {
+      $or: [
+        { firstName: new RegExp(query, "i") },
+        { lastName: new RegExp(query, "i") },
+        { email: new RegExp(query, "i") },
+        { address: new RegExp(query, "i") },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        {
+          applicants: {
+            $elemMatch: {
+              $or: [
+                { firstName: new RegExp(query, "i") },
+                { lastName: new RegExp(query, "i") },
+                { email: new RegExp(query, "i") },
+                { address: new RegExp(query, "i") },
+              ].filter(Boolean),
+            },
+          },
+        },
+      ].filter(Boolean),
+      ...(project ? { project: project } : {}),
+    };
 
     const resp = await postSaleLeadModel
-      .find()
+      .find(searchFilter)
       .sort({ date: -1 })
       .populate({
         path: "project",
@@ -32,9 +87,26 @@ export const getPostSaleLeads = async (req, res, next) => {
             ],
           },
         ],
-      });
-    // .skip(skip)
-    // .limit(limit)
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .skip(skip)
+      .limit(limit);
 
     // Count the total items matching the filter
     const totalItems = await postSaleLeadModel.countDocuments({
