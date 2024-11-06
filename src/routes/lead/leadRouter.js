@@ -132,7 +132,7 @@ leadRouter.get(
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
   const errors = [];
-  const csvFilePath = path.join(__dirname, "leads_list.csv");
+  const csvFilePath = path.join(__dirname, "leads_list2.csv");
 
   if (!fs.existsSync(csvFilePath)) {
     return res.status(400).send("CSV file not found");
@@ -222,15 +222,15 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
             startDate: parseDate(date3),
             // time,
             // timestamp: timestamp2,
-            // dateMain,
+            dateMain: date3,
             email: null,
             firstName,
             lastName,
             phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
-            teamLeader: teamLeader1,
-            projects: ourProj,
-            channelPartner: foundCp,
-            // source,
+            teamLeader: teamLeader,
+            projects: projectsStr,
+            // channelPartner: foundCp,
+            source,
             // teamLeader1,
             // foundCp,
           });
@@ -238,18 +238,24 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           errors.push(`Error processing ${row.firstName}: ${error.message}`);
         }
       }
+      const n9date = dataToInsert.filter(
+        (ts) =>
+          // ts.phoneNumber != null
+          ts.phoneNumber != null && !ts?.startDate?.toString()?.includes("1999")
+      );
+      const today = new Date();
+
+      const futureLeads = dataToInsert.filter((lead) => lead.startDate > today);
 
       // Bulk insert data
       // try {
-      //   await leadModel.insertMany(
-      //     dataToInsert.filter((ld) => ld.firstName != "")
-      //   );
+      //   await leadModel.insertMany(n9date);
       //   res.json({
       //     message: "CSV processing completed",
       //     updatedCount: results.length - errors.length,
       //     errors,
-      //     dataLength: dataToInsert.length,
-      //     data: dataToInsert.filter((ld) => ld.firstName != ""),
+      //     dataLength: n9date.length,
+      //     data: n9date,
       //   });
       // } catch (error) {
       //   res
@@ -259,10 +265,15 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
       // const filterdName = dataToInsert.filter((ld) =>
       //   ld?.startDate?.includes("1999")
       // );
-      // const n9date = filterdName.filter((ts) => ts.startDate.includes("1999"));
-      // res.json(filterdName);
+      res.json(futureLeads);
     });
 });
+
+leadRouter.get(
+  "/similar-leads2",
+  // authenticateToken,
+  checkLeadsExists
+);
 
 const parsePhoneNumber = (phoneStr) => {
   if (!phoneStr || phoneStr == "") {
@@ -377,11 +388,11 @@ dayjs.extend(customParseFormat);
 
 const parseDate = (dateInput) => {
   const formats = [
-    "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
-    "M/D/YYYY", // 7/19/2024
-    "MM-DD-YYYY", // 07-06-2024
-    "M-D-YYYY HH:mm:ss", // 7-19-2024 12:27:35
-    "DD-MM-YYYY", // 23-09-2024
+    // "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
+    // "M/D/YYYY", // 7/19/2024
+    "DD-MM-YYYY", // 07-06-2024
+    // "M-D-YYYY HH:mm:ss", // 7-19-2024 12:27:35
+    // "DD-MM-YYYY", // 23-09-2024
   ];
 
   // Check if dateInput is a number (Excel serial)

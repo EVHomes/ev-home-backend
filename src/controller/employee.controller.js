@@ -121,6 +121,36 @@ export const getClosingManagers = async (req, res, next) => {
   }
 };
 
+export const getPostSaleExecutives = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        designation: "desg-post-sales-executive",
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getEmployeeByDesignation = async (req, res, next) => {
   try {
     if (!req.params.id) return res.send(errorRes(200, "id is required"));

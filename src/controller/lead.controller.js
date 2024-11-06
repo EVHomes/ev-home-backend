@@ -1875,33 +1875,37 @@ export const updateLeadDetails = async (leadId, employeeId, changes) => {
 export const checkLeadsExists = async (req, res, next) => {
   const { phoneNumber, altPhoneNumber } = req.params;
   try {
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone Number is required"));
+    // if (!phoneNumber)
+    //   return res.send(errorRes(403, "Phone Number is required"));
+    const today = new Date(); // Get today's date
 
-    const existingLead = await leadModel.findOne({
-      $or: [
-        {
-          phoneNumber: phoneNumber,
-        },
-        {
-          altPhoneNumber: phoneNumber,
-        },
-      ],
+    const existingLead = await leadModel.find({
+      // $or: [
+      //   {
+      //     phoneNumber: phoneNumber,
+      //   },
+      //   {
+      //     altPhoneNumber: phoneNumber,
+      //   },
+      // ],
+      startDate: { $gt: today },
     });
-    if (existingLead) {
-      return res.send(
-        errorRes(
-          409,
-          `Lead already exists with phone number: ${
-            (phoneNumber, altPhoneNumber)
-          }`
-        )
-      ); // 409 Conflict
-    }
+    // if (existingLead) {
+    //   return res.send(
+    //     errorRes(
+    //       409,
+    //       `Lead already exists with phone number: ${
+    //         (phoneNumber, altPhoneNumber)
+    //       }`
+    //     )
+    //   ); // 409 Conflict
+    // }
 
     // If no lead exists, you can return a success response or proceed with the next operation
     return res.send({
       code: 200,
+      data: existingLead,
+      length: existingLead.length,
       message: "No lead found with this phone number. You can proceed.",
     });
   } catch (error) {

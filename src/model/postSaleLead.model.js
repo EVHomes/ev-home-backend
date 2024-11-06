@@ -126,24 +126,10 @@ export const postSaleLeadSchema = new mongoose.Schema(
         remark: { type: String, default: "" },
       },
       kyc: {
-        addhar: {
-          verified: { type: Boolean, default: false },
-          document: { type: String, default: null },
-          remark: { type: String, default: "" },
-          type: { type: String, default: "aadhar" },
-        },
-        pan: {
-          verified: { type: Boolean, default: false },
-          document: { type: String, default: null },
-          remark: { type: String, default: "" },
-          type: { type: String, default: "pan" },
-        },
-        other: {
-          verified: { type: Boolean, default: false },
-          document: { type: String, default: null },
-          remark: { type: String, default: "" },
-          type: { type: String, default: "" },
-        },
+        recieved: { type: String, default: "no" },
+        value: { type: Number, default: null },
+        percent: { type: Number, default: null },
+        remark: { type: String, default: "" },
       },
       agreement: {
         prepared: { type: Boolean, default: false },

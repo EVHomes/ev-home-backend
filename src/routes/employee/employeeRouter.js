@@ -7,6 +7,7 @@ import {
   getEmployeeByDesignation,
   getEmployeeById,
   getEmployees,
+  getPostSaleExecutives,
   getPreSalesExecutive,
   getTeamLeaders,
   loginEmployee,
@@ -38,6 +39,13 @@ employeeRouter.get(
   // authenticateToken,
   getClosingManagers
 );
+
+employeeRouter.get(
+  "/employee-post-sales-executive",
+  // authenticateToken,
+  getPostSaleExecutives
+);
+
 employeeRouter.get(
   "/employee-by-designation/:id",
   // authenticateToken,
