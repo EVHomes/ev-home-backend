@@ -7,16 +7,16 @@ const applicantSchema = new mongoose.Schema({
   address: { type: String, default: null },
   countryCode: { type: String, default: "+91" },
   phoneNumber: { type: Number, default: null },
-  // email: {
-  //   type: String,
-  //   default: null,
-  //   validate: {
-  //     validator: function (value) {
-  //       return emailFormat.test(value);
-  //     },
-  //     message: (props) => `${props.value} is not a valid email.`,
-  //   },
-  // },
+  email: {
+    type: String,
+    default: null,
+    // validate: {
+    //   validator: function (value) {
+    //     return emailFormat.test(value);
+    //   },
+    //   message: (props) => `${props.value} is not a valid email.`,
+    // },
+  },
   kyc: {
     verified: { type: Boolean, default: false },
     addhar: {
