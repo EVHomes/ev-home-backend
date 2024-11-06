@@ -24,34 +24,27 @@ import {
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
-import { fileURLToPath } from "url";
-import fs from "fs";
-import csv from "csv-parser";
-import path from "path";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat.js";
-import cpModel from "../../model/channelPartner.model.js";
-import { encryptPassword } from "../../utils/helper.js";
-import employeeModel from "../../model/employee.model.js";
-import leadModel from "../../model/lead.model.js";
-import ourProjectModel from "../../model/ourProjects.model.js";
+// import { fileURLToPath } from "url";
+// import fs from "fs";
+// import csv from "csv-parser";
+// import path from "path";
+// import dayjs from "dayjs";
+// import customParseFormat from "dayjs/plugin/customParseFormat.js";
+// import cpModel from "../../model/channelPartner.model.js";
+// import { encryptPassword } from "../../utils/helper.js";
+// import employeeModel from "../../model/employee.model.js";
+// import leadModel from "../../model/lead.model.js";
+// import ourProjectModel from "../../model/ourProjects.model.js";
 
-dayjs.extend(customParseFormat);
+// dayjs.extend(customParseFormat);
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
-leadRouter.get(
-  "/leads",
-  // authenticateToken,
-  getAllLeads
-);
-leadRouter.get(
-  "/leads-team-leader/:id",
-  // authenticateToken,
-  getLeadsTeamLeader
-);
+
+leadRouter.get("/leads", authenticateToken, getAllLeads);
+leadRouter.get("/leads-team-leader/:id", authenticateToken, getLeadsTeamLeader);
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
@@ -60,19 +53,11 @@ leadRouter.post(
   authenticateToken,
   updateCallHistoryPreSales
 );
-leadRouter.get(
-  "/search-lead",
-  //  authenticateToken,
-  searchLeads
-);
+leadRouter.get("/search-lead", authenticateToken, searchLeads);
 
 leadRouter.get("/lead/:id", authenticateToken, getLeadById);
 
-leadRouter.get(
-  "/similar-leads/:id",
-  // authenticateToken,
-  getSimilarLeadsById
-);
+leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
 leadRouter.post(
   "/lead-assign-tl/:id",
@@ -86,18 +71,12 @@ leadRouter.post(
   assignLeadToPreSaleExecutive
 );
 
-leadRouter.post(
-  "/leads-add",
-  // authenticateToken,
-  validateLeadsFields,
-  addLead
-);
+leadRouter.post("/leads-add", authenticateToken, validateLeadsFields, addLead);
+
 leadRouter.post("/lead-update/:id", updateLead);
-leadRouter.delete(
-  "/lead/:id",
-  //  authenticateToken,
-  deleteLead
-);
+
+leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
+
 leadRouter.get(
   "/leads-exists/:phoneNumber",
   authenticateToken,
@@ -111,7 +90,9 @@ leadRouter.get(
   "/lead-count-pre-sale-team-leader-for-data-analyser",
   getLeadCountsByTeamLeaders
 );
+
 leadRouter.get("/lead-count-channel-partners", getLeadCountsByChannelPartner);
+
 leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
 
 //pre sales team leader
@@ -129,149 +110,152 @@ leadRouter.get(
   getAllLeadCountsFunnelForPreSaleTL
 );
 
-leadRouter.post("/update-lead2-from-csv", async (req, res) => {
-  const results = [];
-  const errors = [];
-  const csvFilePath = path.join(__dirname, "leads_list.csv");
+// leadRouter.post("/update-lead2-from-csv", async (req, res) => {
+//   const results = [];
+//   const errors = [];
+//   const csvFilePath = path.join(__dirname, "leads_list.csv");
 
-  if (!fs.existsSync(csvFilePath)) {
-    return res.status(400).send("CSV file not found");
-  }
+//   if (!fs.existsSync(csvFilePath)) {
+//     return res.status(400).send("CSV file not found");
+//   }
 
-  // Load all channel partners once
-  const channelPartners = await cpModel.find().lean();
-  const employees = await employeeModel.find().lean();
-  const projectsDb = await ourProjectModel.find().lean();
+//   // Load all channel partners once
+//   const channelPartners = await cpModel.find().lean();
+//   const employees = await employeeModel.find().lean();
+//   const projectsDb = await ourProjectModel.find().lean();
 
-  fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on("data", (data) => results.push(data))
-    .on("end", async () => {
-      const dataToInsert = [];
+//   fs.createReadStream(csvFilePath)
+//     .pipe(csv())
+//     .on("data", (data) => results.push(data))
+//     .on("end", async () => {
+//       const dataToInsert = [];
 
-      for (const row of results) {
-        try {
-          const {
-            "First Name": firstName,
-            "Last Name": lastName,
-            Source: source,
-            "Phone no": phoneNumber,
-            "Project Name": projectsStr,
-            "Team Leader": teamLeader,
-            date3,
-            // Time: time,
-          } = row;
-          // const date2 = parseDate(date);
-          const projectsLocal = projectsStr ? projectsStr.split(",") : [];
+//       for (const row of results) {
+//         try {
+//           const {
+//             "First Name": firstName,
+//             "Last Name": lastName,
+//             Source: source,
+//             "Phone no": phoneNumber,
+//             "Project Name": projectsStr,
+//             "Team Leader": teamLeader,
+//             date3,
+//             // Time: time,
+//           } = row;
+//           // const date2 = parseDate(date);
+//           const projectsLocal = projectsStr ? projectsStr.split(",") : [];
 
-          // Check for existing firm name based on the specified logic
-          let foundCp =
-            channelPartners.find((ele) =>
-              ele.firmName
-                ?.toLowerCase()
-                .includes(source?.toLowerCase().split(" ")[0])
-            )?._id || null;
-          let teamLeader1 =
-            employees.find((ele) =>
-              ele.firstName
-                ?.toLowerCase()
-                .includes(teamLeader?.toLowerCase().split(" ")[0])
-            )?._id || null;
+//           // Check for existing firm name based on the specified logic
+//           let foundCp =
+//             channelPartners.find((ele) =>
+//               ele.firmName
+//                 ?.toLowerCase()
+//                 .includes(source?.toLowerCase().split(" ")[0])
+//             )?._id || null;
+//           let teamLeader1 =
+//             employees.find((ele) =>
+//               ele.firstName
+//                 ?.toLowerCase()
+//                 .includes(teamLeader?.toLowerCase().split(" ")[0])
+//             )?._id || null;
 
-          let ourProj = [];
+//           let ourProj = [];
 
-          projectsLocal.map((projL) => {
-            let projectR = projectsDb.find(
-              (ele) =>
-                ele?.name?.trim()?.toLowerCase() ===
-                projL?.trim()?.toLowerCase()
-            );
-            ourProj.push(projectR._id);
-          });
+//           projectsLocal.map((projL) => {
+//             let projectR = projectsDb.find(
+//               (ele) =>
+//                 ele?.name?.trim()?.toLowerCase() ===
+//                 projL?.trim()?.toLowerCase()
+//             );
+//             ourProj.push(projectR._id);
+//           });
 
-          // Create new CP if not found
-          // if (!foundCp && source) {
-          //   try {
-          //     const email = `${source
-          //       .trim()
-          //       .replace(/\s+/g, "")}@gmail.com`.toLowerCase();
-          //     const pwd = await encryptPassword("EVCP@1234");
-          //     const newCp = await cpModel.create({
-          //       firstName: "",
-          //       lastName: "",
-          //       firmName: source,
-          //       email, // Ensure this is unique
-          //       gender: "other",
-          //       password: pwd,
-          //     });
-          //     foundCp = newCp._id; // Set foundCp to new CP's ID
-          //   } catch (error) {
-          //     if (error.code === 11000) {
-          //       errors.push(`Duplicate email for ${source}`);
-          //     } else {
-          //       errors.push(
-          //         `Error creating cpModel for ${source}: ${error.message}`
-          //       );
-          //     }
-          //   }
-          // }
-          // console.log("done ....");
+//           // Create new CP if not found
+//           // if (!foundCp && source) {
+//           //   try {
+//           //     const email = `${source
+//           //       .trim()
+//           //       .replace(/\s+/g, "")}@gmail.com`.toLowerCase();
+//           //     const pwd = await encryptPassword("EVCP@1234");
+//           //     const newCp = await cpModel.create({
+//           //       firstName: "",
+//           //       lastName: "",
+//           //       firmName: source,
+//           //       email, // Ensure this is unique
+//           //       gender: "other",
+//           //       password: pwd,
+//           //     });
+//           //     foundCp = newCp._id; // Set foundCp to new CP's ID
+//           //   } catch (error) {
+//           //     if (error.code === 11000) {
+//           //       errors.push(`Duplicate email for ${source}`);
+//           //     } else {
+//           //       errors.push(
+//           //         `Error creating cpModel for ${source}: ${error.message}`
+//           //       );
+//           //     }
+//           //   }
+//           // }
+//           // console.log("done ....");
 
-          dataToInsert.push({
-            // date,
-            startDate: parseDate(date3),
-            // time,
-            // timestamp: timestamp2,
-            // dateMain,
-            email: null,
-            firstName,
-            lastName,
-            phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
-            teamLeader: teamLeader1,
-            projects: ourProj,
-            channelPartner: foundCp,
-            // source,
-            // teamLeader1,
-            // foundCp,
-          });
-        } catch (error) {
-          errors.push(`Error processing ${row.firstName}: ${error.message}`);
-        }
-      }
+//           dataToInsert.push({
+//             // date,
+//             startDate: parseDate(date3),
+//             // time,
+//             // timestamp: timestamp2,
+//             // dateMain,
+//             email: null,
+//             firstName,
+//             lastName,
+//             phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
+//             teamLeader: teamLeader,
+//             projects: projectsLocal,
+//             channelPartner: source,
+//             wrongDate: date3,
+//             // source,
+//             // teamLeader1,
+//             // foundCp,
+//           });
+//         } catch (error) {
+//           errors.push(`Error processing ${row.firstName}: ${error.message}`);
+//         }
+//       }
 
-      // Bulk insert data
-      // try {
-      //   await leadModel.insertMany(
-      //     dataToInsert.filter((ld) => ld.firstName != "")
-      //   );
-      //   res.json({
-      //     message: "CSV processing completed",
-      //     updatedCount: results.length - errors.length,
-      //     errors,
-      //     dataLength: dataToInsert.length,
-      //     data: dataToInsert.filter((ld) => ld.firstName != ""),
-      //   });
-      // } catch (error) {
-      //   res
-      //     .status(500)
-      //     .json({ message: "Bulk insert failed", error: error.message });
-      // }
-      // const filterdName = dataToInsert.filter((ld) =>
-      //   ld?.startDate?.includes("1999")
-      // );
-      // const n9date = filterdName.filter((ts) => ts.startDate.includes("1999"));
-      // res.json(filterdName);
-    });
-});
+//       // Bulk insert data
+//       // try {
+//       //   await leadModel.insertMany(
+//       //     dataToInsert.filter((ld) => ld.firstName != "")
+//       //   );
+//       //   res.json({
+//       //     message: "CSV processing completed",
+//       //     updatedCount: results.length - errors.length,
+//       //     errors,
+//       //     dataLength: dataToInsert.length,
+//       //     data: dataToInsert.filter((ld) => ld.firstName != ""),
+//       //   });
+//       // } catch (error) {
+//       //   res
+//       //     .status(500)
+//       //     .json({ message: "Bulk insert failed", error: error.message });
+//       // }
+//       const filterdName = dataToInsert.filter(
+//         (ld) =>
+//           ld?.startDate?.toString()?.includes("1999") &&
+//           (ld?.phoneNumber != 0 || ld?.phoneNumber != "")
+//       );
+//       // const n9date = filterdName.filter((ts) => ts.startDate.includes("1999"));
+//       res.json(filterdName);
+//     });
+// });
 
-const parsePhoneNumber = (phoneStr) => {
-  if (!phoneStr || phoneStr == "") {
-    return 0;
-  }
-  // Remove all non-numeric characters using regex
-  const cleanedStr = phoneStr.replace(/[^\d]/g, ""); // Keep only digits
-  return cleanedStr; // Returns the cleaned phone number as a string
-};
+// const parsePhoneNumber = (phoneStr) => {
+//   if (!phoneStr || phoneStr == "") {
+//     return 0;
+//   }
+//   // Remove all non-numeric characters using regex
+//   const cleanedStr = phoneStr.replace(/[^\d]/g, ""); // Keep only digits
+//   return cleanedStr; // Returns the cleaned phone number as a string
+// };
 
 // leadRouter.post("/update-lead2-from-csv", async (req, res) => {
 //   const results = [];
@@ -373,103 +357,102 @@ const parsePhoneNumber = (phoneStr) => {
 // });
 
 export default leadRouter;
-dayjs.extend(customParseFormat);
 
-const parseDate = (dateInput) => {
-  const formats = [
-    "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
-    "M/D/YYYY", // 7/19/2024
-    "MM-DD-YYYY", // 07-06-2024
-    "M-D-YYYY HH:mm:ss", // 7-19-2024 12:27:35
-    "DD-MM-YYYY", // 23-09-2024
-  ];
+// const parseDate = (dateInput) => {
+//   const formats = [
+//     "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
+//     "M/D/YYYY", // 7/19/2024
+//     "MM-DD-YYYY", // 07-06-2024
+//     "M-D-YYYY HH:mm:ss", // 7-19-2024 12:27:35
+//     "DD-MM-YYYY", // 23-09-2024
+//   ];
 
-  // Check if dateInput is a number (Excel serial)
-  if (!isNaN(dateInput) && Number.isInteger(parseFloat(dateInput))) {
-    const serial = parseInt(dateInput, 10);
-    const baseDate = new Date(1899, 11, 30);
-    return new Date(baseDate.getTime() + serial * 24 * 60 * 60 * 1000);
-  }
+//   // Check if dateInput is a number (Excel serial)
+//   if (!isNaN(dateInput) && Number.isInteger(parseFloat(dateInput))) {
+//     const serial = parseInt(dateInput, 10);
+//     const baseDate = new Date(1899, 11, 30);
+//     return new Date(baseDate.getTime() + serial * 24 * 60 * 60 * 1000);
+//   }
 
-  // Attempt strict parsing for strings
-  for (const format of formats) {
-    const date = dayjs(dateInput, format, true); // Strict mode
-    if (date.isValid()) {
-      return date.toDate();
-    }
-  }
+//   // Attempt strict parsing for strings
+//   for (const format of formats) {
+//     const date = dayjs(dateInput, format, true); // Strict mode
+//     if (date.isValid()) {
+//       return date.toDate();
+//     }
+//   }
 
-  // Fallback to non-strict parsing if strict parsing fails
-  for (const format of formats) {
-    const date = dayjs(dateInput, format); // Non-strict mode
-    if (date.isValid()) {
-      return date.toDate();
-    }
-  }
+//   // Fallback to non-strict parsing if strict parsing fails
+//   for (const format of formats) {
+//     const date = dayjs(dateInput, format); // Non-strict mode
+//     if (date.isValid()) {
+//       return date.toDate();
+//     }
+//   }
 
-  return new Date("1999-01-01T00:00:00Z"); // Return null if no valid format is found
-};
+//   return new Date("1999-01-01T00:00:00Z"); // Return null if no valid format is found
+// };
 
-const parseDateTime = (dateInput, timeInput = "") => {
-  // Define date formats including two-digit years and missing delimiters
-  const dateFormats = [
-    "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
-    "M/D/YYYY", // 7/19/2024
-    "MM-DD-YYYY", // 07-06-2024
-    "M-D-YYYY HH:mm:ss", // 7-19-2024 12:27:35
-    "DD-MM-YYYY", // 23-09-2024
-    "MM/DD/YYYY", // 04/072024
-    "M/D/YY", // 9/20/24 (two-digit year)
-  ];
+// const parseDateTime = (dateInput, timeInput = "") => {
+//   // Define date formats including two-digit years and missing delimiters
+//   const dateFormats = [
+//     "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
+//     "M/D/YYYY", // 7/19/2024
+//     "MM-DD-YYYY", // 07-06-2024
+//     "M-D-YYYY HH:mm:ss", // 7-19-2024 12:27:35
+//     "DD-MM-YYYY", // 23-09-2024
+//     "MM/DD/YYYY", // 04/072024
+//     "M/D/YY", // 9/20/24 (two-digit year)
+//   ];
 
-  // Define time formats including 24-hour format with dots
-  const timeFormats = [
-    "h.mm.ss A", // 3.52.00 PM
-    "HH:mm:ss", // 15:52:00
-    "HH.mm.ss", // 16.10.00 (24-hour format with dots)
-  ];
+//   // Define time formats including 24-hour format with dots
+//   const timeFormats = [
+//     "h.mm.ss A", // 3.52.00 PM
+//     "HH:mm:ss", // 15:52:00
+//     "HH.mm.ss", // 16.10.00 (24-hour format with dots)
+//   ];
 
-  // Handle Excel serial numbers
-  if (!isNaN(dateInput) && Number.isInteger(parseFloat(dateInput))) {
-    const serial = parseInt(dateInput, 10);
-    const baseDate = new Date(1899, 11, 30);
-    return new Date(baseDate.getTime() + serial * 24 * 60 * 60 * 1000);
-  }
+//   // Handle Excel serial numbers
+//   if (!isNaN(dateInput) && Number.isInteger(parseFloat(dateInput))) {
+//     const serial = parseInt(dateInput, 10);
+//     const baseDate = new Date(1899, 11, 30);
+//     return new Date(baseDate.getTime() + serial * 24 * 60 * 60 * 1000);
+//   }
 
-  // Parse the date part
-  let parsedDate = null;
-  for (const format of dateFormats) {
-    const date = dayjs(dateInput, format, true);
-    if (date.isValid()) {
-      parsedDate = date;
-      break;
-    }
-  }
+//   // Parse the date part
+//   let parsedDate = null;
+//   for (const format of dateFormats) {
+//     const date = dayjs(dateInput, format, true);
+//     if (date.isValid()) {
+//       parsedDate = date;
+//       break;
+//     }
+//   }
 
-  // If no valid date, return null
-  if (!parsedDate) {
-    return null;
-  }
+//   // If no valid date, return null
+//   if (!parsedDate) {
+//     return null;
+//   }
 
-  // Parse the time part (if provided) and combine with date
-  if (timeInput) {
-    let parsedTime = null;
-    for (const format of timeFormats) {
-      const time = dayjs(timeInput, format, true);
-      if (time.isValid()) {
-        parsedTime = time;
-        break;
-      }
-    }
+//   // Parse the time part (if provided) and combine with date
+//   if (timeInput) {
+//     let parsedTime = null;
+//     for (const format of timeFormats) {
+//       const time = dayjs(timeInput, format, true);
+//       if (time.isValid()) {
+//         parsedTime = time;
+//         break;
+//       }
+//     }
 
-    if (parsedTime) {
-      const dateWithTime = dayjs(
-        parsedDate.format("YYYY-MM-DD") + " " + parsedTime.format("HH:mm:ss")
-      );
-      return dateWithTime.toDate();
-    }
-  }
+//     if (parsedTime) {
+//       const dateWithTime = dayjs(
+//         parsedDate.format("YYYY-MM-DD") + " " + parsedTime.format("HH:mm:ss")
+//       );
+//       return dateWithTime.toDate();
+//     }
+//   }
 
-  // Return only the date if time is empty or invalid
-  return parsedDate.toDate();
-};
+//   // Return only the date if time is empty or invalid
+//   return parsedDate.toDate();
+// };
