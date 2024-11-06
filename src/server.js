@@ -7,9 +7,28 @@ import router from "./routes/router.js";
 import { errorHandler, notFound } from "./middleware/errorHandler.js";
 import { hostnameCheck } from "./utils/helper.js";
 // import leadModel from "./model/lead.model.js";
-// import fs from "fs/promises";
-// import { fileURLToPath } from "url";
-// import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+import path from "path";
+import csv from "csv-parser";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+export const flatsJsonPath = path.resolve(
+  __dirname,
+  "./Avni_Price_sheet_2.csv"
+);
+
+const csvToJson = async (filePath) => {
+  return new Promise((resolve, reject) => {
+    const results = [];
+    fs.createReadStream(filePath)
+      .pipe(csv())
+      .on("data", (data) => results.push(data))
+      .on("end", () => resolve(results))
+      .on("error", (error) => reject(error));
+  });
+};
+
 // import employeeModel from "./model/employee.model.js";
 // import designationModel from "./model/designation.model.js";
 // import departmentModel from "./model/department.model.js";
@@ -17,9 +36,6 @@ import { hostnameCheck } from "./utils/helper.js";
 // import siteVisitModel from "./model/siteVisitForm.model.js";
 
 // // Manually define __dirname for ES6 modules
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-
 // export const empJsonPath = path.resolve(__dirname, "./ev_homes_main.employees2.json");
 // export const leadsJsonPath = path.resolve(__dirname, "./leads.json");
 // export const desgJsonPath = path.resolve(__dirname, "./ev_homes_main.designations.json");
@@ -37,6 +53,26 @@ app.set("view engine", "ejs");
 
 app.use(cors());
 app.use(router);
+
+app.get("/test22323", async (req, res) => {
+  try {
+    const jsonData = await csvToJson(flatsJsonPath);
+    const tesp = jsonData.map((ele) => {
+      ele.flatNo = ele["\ufeffflatNo"];
+      const floor = Math.floor(ele.flatNo / 100);
+      const number = ele.flatNo % 100;
+      ele.floor = floor;
+      ele.number = number;
+      return ele;
+    });
+    // console.log("CSV Data:", JSON.stringify(jsonData, null, 2));
+    res.json(tesp);
+  } catch (error) {
+    console.error("Error reading CSV:", error);
+    res.status(500).json({ error: "Failed to parse CSV file" });
+  }
+});
+
 //671d1153458ef20177d463e4
 // app.get("/lead-fix", async (req, res) => {
 //   try {

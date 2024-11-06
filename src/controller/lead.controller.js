@@ -508,10 +508,8 @@ export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let approvalStatus = req.query.approvalStatus;
-    // let approvalStatus = req.query7\
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
-
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
 
@@ -539,22 +537,18 @@ export const searchLeads = async (req, res, next) => {
               },
             }
           : null,
-        // isNumberQuery ? { altPhoneNumber: Number(query) } : null,
         { email: { $regex: query, $options: "i" } },
         { address: { $regex: query, $options: "i" } },
-        { approvalStatus: { $regex: query, $options: "i" } },
-        approvalStatus != null || approvalStatus != undefined
-          ? { approvalStatus: approvalStatus }
-          : null,
         { interestedStatus: { $regex: query, $options: "i" } },
       ].filter(Boolean),
+      ...(approvalStatus
+        ? { approvalStatus: { $regex: approvalStatus, $options: "i" } }
+        : {}),
     };
 
+    // Execute the search with the refined filter
     const respCP = await leadModel
-      .find({
-        ...searchFilter,
-        ...(approvalStatus && { approvalStatus: approvalStatus }),
-      })
+      .find(searchFilter)
       .skip(skip)
       .limit(limit)
       .sort({ startDate: -1 })

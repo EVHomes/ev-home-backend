@@ -44,7 +44,7 @@ export const validateLeadsFields = (req, res, next) => {
 
 export const validateRequiredLeadsFields = (body) => {
   const requiredFields = [
-    "email",
+    // "email",
     "firstName",
     "lastName",
     "phoneNumber",

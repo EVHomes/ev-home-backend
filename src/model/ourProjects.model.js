@@ -7,7 +7,7 @@ export const ourProjectsSchema = new mongoose.Schema({
   carouselImages: [{ type: String, required: true }],
   flatList: [
     {
-      name: { type: String, required: true },
+      type: { type: String, required: true },
       floor: { type: Number, required: true },
       number: { type: Number, required: true },
       flatNo: { type: String, required: true },
