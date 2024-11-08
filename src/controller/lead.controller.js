@@ -1108,7 +1108,7 @@ export const addLead = async (req, res, next) => {
 export const updateLead = async (req, res, next) => {
   const body = req.body;
   const id = req.params.id;
-
+  const user = req.user;
   try {
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
@@ -1152,6 +1152,14 @@ export const updateLead = async (req, res, next) => {
         //     new Date(body.startDate || Date.now()).getMonth() + 2
         //   )
         // ),
+        $addToSet: {
+          updateHistory: {
+            employee: user?._id,
+            changes: `${body.toString()}`,
+            updatedAt: Date.now(),
+            remark: remark,
+          },
+        },
       },
       { new: true } // Return the updated document
     );

@@ -42,24 +42,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
-leadRouter.get(
-  "/leads",
-  // authenticateToken,
-  getAllLeads
-);
-leadRouter.get(
-  "/leads-team-leader/:id",
-  // authenticateToken,
-  getLeadsTeamLeader
-);
+leadRouter.get("/leads", authenticateToken, getAllLeads);
+leadRouter.get("/leads-team-leader/:id", authenticateToken, getLeadsTeamLeader);
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
-leadRouter.post(
-  "/lead-update-caller/:id",
-  authenticateToken,
-  updateCallHistoryPreSales
-);
+leadRouter.post("/lead-update-caller/:id", authenticateToken, updateCallHistoryPreSales);
 leadRouter.get(
   "/search-lead",
   //  authenticateToken,
@@ -68,17 +56,9 @@ leadRouter.get(
 
 leadRouter.get("/lead/:id", authenticateToken, getLeadById);
 
-leadRouter.get(
-  "/similar-leads/:id",
-  // authenticateToken,
-  getSimilarLeadsById
-);
+leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
-leadRouter.post(
-  "/lead-assign-tl/:id",
-  authenticateToken,
-  assignLeadToTeamLeader
-);
+leadRouter.post("/lead-assign-tl/:id", authenticateToken, assignLeadToTeamLeader);
 
 leadRouter.post(
   "/lead-assign-pre-sale-executive/:id",
@@ -86,23 +66,10 @@ leadRouter.post(
   assignLeadToPreSaleExecutive
 );
 
-leadRouter.post(
-  "/leads-add",
-  // authenticateToken,
-  validateLeadsFields,
-  addLead
-);
-leadRouter.post("/lead-update/:id", updateLead);
-leadRouter.delete(
-  "/lead/:id",
-  //  authenticateToken,
-  deleteLead
-);
-leadRouter.get(
-  "/leads-exists/:phoneNumber",
-  authenticateToken,
-  checkLeadsExists
-);
+leadRouter.post("/leads-add", authenticateToken, validateLeadsFields, addLead);
+leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
+leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
+leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
 
 //for data analyser
 leadRouter.get("/lead-count", getLeadCounts);
@@ -115,19 +82,13 @@ leadRouter.get("/lead-count-channel-partners", getLeadCountsByChannelPartner);
 leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
 
 //pre sales team leader
-leadRouter.get(
-  "/lead-count-pre-sale-team-leader/:id",
-  getLeadCountsByTeamLeader
-);
+leadRouter.get("/lead-count-pre-sale-team-leader/:id", getLeadCountsByTeamLeader);
 
 leadRouter.get(
   "/lead-count-pre-sale-executive-for-pre-sale-tl",
   getLeadCountsByPreSaleExecutve
 );
-leadRouter.get(
-  "/lead-count-funnel-pre-sales-tl",
-  getAllLeadCountsFunnelForPreSaleTL
-);
+leadRouter.get("/lead-count-funnel-pre-sales-tl", getAllLeadCountsFunnelForPreSaleTL);
 
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
@@ -167,9 +128,7 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           // Check for existing firm name based on the specified logic
           let foundCp =
             channelPartners.find((ele) =>
-              ele.firmName
-                ?.toLowerCase()
-                .includes(source?.toLowerCase().split(" ")[0])
+              ele.firmName?.toLowerCase().includes(source?.toLowerCase().split(" ")[0])
             )?._id || null;
           let teamLeader1 =
             employees.find((ele) =>
@@ -182,9 +141,7 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
 
           projectsLocal.map((projL) => {
             let projectR = projectsDb.find(
-              (ele) =>
-                ele?.name?.trim()?.toLowerCase() ===
-                projL?.trim()?.toLowerCase()
+              (ele) => ele?.name?.trim()?.toLowerCase() === projL?.trim()?.toLowerCase()
             );
             ourProj.push(projectR._id);
           });

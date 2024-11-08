@@ -53,10 +53,7 @@ export const authenticateToken = async (req, res, next) => {
         }
 
         try {
-          const decoded = verifyJwtToken(
-            refreshToken,
-            config.SECRET_REFRESH_KEY
-          );
+          const decoded = verifyJwtToken(refreshToken, config.SECRET_REFRESH_KEY);
           let user = null;
           if (decoded.data.role === "channel-partner") {
             user = await cpModel.findById(decoded.data._id).lean();
