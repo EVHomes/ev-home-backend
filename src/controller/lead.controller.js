@@ -1155,7 +1155,7 @@ export const updateLead = async (req, res, next) => {
         $addToSet: {
           updateHistory: {
             employee: user?._id,
-            changes: `${...body.toString()}`,
+            changes: `${body.toString()}`,
             updatedAt: Date.now(),
             remark: remark,
           },
