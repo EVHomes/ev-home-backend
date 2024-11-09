@@ -34,40 +34,30 @@ employeeRouter.get(
 
 employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
 
-employeeRouter.get(
-  "/employee-closing-manager",
-  // authenticateToken,
-  getClosingManagers
-);
+employeeRouter.get("/employee-closing-manager", authenticateToken, getClosingManagers);
 
 employeeRouter.get(
   "/employee-post-sales-executive",
-  // authenticateToken,
+  authenticateToken,
   getPostSaleExecutives
 );
 
 employeeRouter.get(
   "/employee-by-designation/:id",
-  // authenticateToken,
+  authenticateToken,
   getEmployeeByDesignation
 );
 
-employeeRouter.get(
-  "/employee-team-leader",
-  // authenticateToken,
-  getTeamLeaders
-);
+employeeRouter.get("/employee-team-leader", authenticateToken, getTeamLeaders);
+employeeRouter.get("/employee-data-analzer", authenticateToken, getTeamLeaders);
+
 employeeRouter.get(
   "/employee-pre-sale-executive",
-  // authenticateToken,
+  authenticateToken,
   getPreSalesExecutive
 );
 
-employeeRouter.post(
-  "/employee-register",
-  validateEmployeeFields,
-  registerEmployee
-);
+employeeRouter.post("/employee-register", validateEmployeeFields, registerEmployee);
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(

@@ -198,6 +198,36 @@ export const getTeamLeaders = async (req, res, next) => {
   }
 };
 
+export const getDataAnalyzers = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        $or: [
+          {
+            designation: "desg-data-analyzer",
+            status: "active",
+          },
+        ],
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+      });
+
+    return res.send(
+      successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
 export const getPreSalesExecutive = async (req, res, next) => {
   try {
     const reportingTo = req.query.id;

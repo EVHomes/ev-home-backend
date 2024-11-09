@@ -1339,11 +1339,13 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
 
     const whichTurn = await TeamLeaderAssignTurn.findOne({});
 
+    // console.log(teamLeaders);
+
     const updatedLead = await leadModel
       .findByIdAndUpdate(
         id,
         {
-          teamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
+          teamLeader: teamLeaders[whichTurn?.currentOrder ?? 0]?._id,
           dataAnalyser: user?._id,
           approvalStatus: "Approved",
           $addToSet: {
@@ -1355,8 +1357,8 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
             updateHistory: {
               employee: user?._id,
               changes: `Lead Assign to Team Leader ${
-                teamLeaders[whichTurn.currentOrder].firstName
-              } ${teamLeaders[whichTurn.currentOrder].lastName}`,
+                teamLeaders[whichTurn?.currentOrder ?? 0].firstName
+              } ${teamLeaders[whichTurn?.currentOrder ?? 0].lastName}`,
               updatedAt: Date.now(),
               remark: remark,
             },
@@ -1477,8 +1479,8 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
-      docId: teamLeaders[whichTurn.currentOrder]._id.toString(),
-      role: teamLeaders[whichTurn.currentOrder].role,
+      docId: teamLeaders[whichTurn?.currentOrder ?? 0]?._id,
+      role: teamLeaders[whichTurn?.currentOrder ?? 0]?.role,
     });
 
     if (foundTLPlayerId) {
@@ -1489,7 +1491,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
         message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
       });
     }
-    let nextOrder = whichTurn.currentOrder + 1;
+    let nextOrder = whichTurn?.currentOrder ?? 0 + 1;
 
     // Reset to 0 if nextOrder exceeds the length of teamLeaders
     if (nextOrder >= teamLeaders.length) {
@@ -1497,16 +1499,16 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
     }
     // Update the currentOrder in the database
     await whichTurn.updateOne({
-      lastAssignTeamLeader: teamLeaders[whichTurn.currentOrder]._id.toString(),
-      nextAssignTeamLeader: teamLeaders[nextOrder]._id.toString(),
+      lastAssignTeamLeader: teamLeaders[whichTurn?.currentOrder ?? 0]?._id,
+      nextAssignTeamLeader: teamLeaders[nextOrder]?._id,
       currentOrder: nextOrder,
     });
 
     return res.send(
       successRes(
         200,
-        `lead assigned to ${teamLeaders[whichTurn.currentOrder].firstName} ${
-          teamLeaders[whichTurn.currentOrder].lastName
+        `lead assigned to ${teamLeaders[whichTurn?.currentOrder ?? 0].firstName} ${
+          teamLeaders[whichTurn?.currentOrder ?? 0].lastName
         }`,
         {
           data: updatedLead,
