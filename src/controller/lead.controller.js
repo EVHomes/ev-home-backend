@@ -1113,16 +1113,7 @@ export const updateLead = async (req, res, next) => {
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
 
-    const {
-      email,
-      firstName,
-      lastName,
-      phoneNumber,
-      altPhoneNumber,
-      remark,
-      status,
-      interestedStatus,
-    } = body;
+    const { remark } = body;
 
     // if (!email) return res.send(errorRes(403, "Email is required"));
     // if (!firstName) return res.send(errorRes(403, "First name is required"));
@@ -1138,30 +1129,16 @@ export const updateLead = async (req, res, next) => {
       id,
       {
         ...body,
-        // email,
-        // firstName,
-        // lastName,
-        // phoneNumber,
-        // altPhoneNumber,
-        // remark,
-        // status,
-        // interestedStatus,
-        // startDate: body.startDate || Date.now(), // Use current date if not provided
-        // validTill: new Date(
-        //   new Date(body.startDate || Date.now()).setMonth(
-        //     new Date(body.startDate || Date.now()).getMonth() + 2
-        //   )
-        // ),
         $addToSet: {
           updateHistory: {
             employee: user?._id,
-            changes: `${body.toString()}`,
+            changes: `${JSON.stringify(body)}`,
             updatedAt: Date.now(),
             remark: remark,
           },
         },
       },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     // Check if the lead was updated successfully
@@ -1356,6 +1333,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
     const teamLeaders = await employeeModel
       .find({
         designation: "desg-pre-sales-team-leader",
+        status: "active",
       })
       .sort({ createdAt: 1 });
 
