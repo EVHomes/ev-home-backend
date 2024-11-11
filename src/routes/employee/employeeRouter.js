@@ -50,7 +50,8 @@ employeeRouter.get(
   "/employee-by-designation/:id",
   // authenticateToken,
   getEmployeeByDesignation
-);
+);+
+0
 
 employeeRouter.get(
   "/employee-team-leader",

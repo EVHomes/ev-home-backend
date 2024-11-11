@@ -7,8 +7,8 @@ export const getPostSaleLeads = async (req, res, next) => {
     let query = req.query.query || "";
     let project = req.query.project;
 
-    let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    let page = parseInt(req.query.page) || 2;
+    let limit = parseInt(req.query.limit) || 20;
 
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
@@ -139,6 +139,223 @@ export const getPostSaleLeads = async (req, res, next) => {
     return next(error);
   }
 };
+
+// export const searchPostLeads = async (req, res, next) => {
+//   try {
+//     let query = req.query.query || "";
+//     let approvalStatus = req.query.approvalStatus;
+//     let page = parseInt(req.query.page) || 1;
+//     let limit = parseInt(req.query.limit) || 10;
+//     let skip = (page - 1) * limit;
+//     const isNumberQuery = !isNaN(query);
+
+//     let searchFilter = {
+//       $or: [
+//         { firstName: { $regex: query, $options: "i" } },
+//         { lastName: { $regex: query, $options: "i" } },
+//         isNumberQuery
+//           ? {
+//               $expr: {
+//                 $regexMatch: {
+//                   input: { $toString: "$phoneNumber" },
+//                   regex: query,
+//                 },
+//               },
+//             }
+//           : null,
+//         isNumberQuery
+//           ? {
+//               $expr: {
+//                 $regexMatch: {
+//                   input: { $toString: "$altPhoneNumber" },
+//                   regex: query,
+//                 },
+//               },
+//             }
+//           : null,
+//         { email: { $regex: query, $options: "i" } },
+//         { address: { $regex: query, $options: "i" } },
+//         { interestedStatus: { $regex: query, $options: "i" } },
+//       ].filter(Boolean),
+//       ...(approvalStatus
+//         ? { approvalStatus: { $regex: approvalStatus, $options: "i" } }
+//         : {}),
+//     };
+
+//     // Execute the search with the refined filter
+//     const respCP = await postSaleLeadModel
+//       .find(searchFilter)
+//       .skip(skip)
+//       .limit(limit)
+//       .sort({ startDate: -1 })
+//       .populate({
+//         path: "channelPartner",
+//         select: "-password -refreshToken",
+//       })
+//       .populate({
+//         path: "teamLeader",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//           {
+//             path: "reportingTo",
+//             populate: [
+//               { path: "designation" },
+//               { path: "department" },
+//               { path: "division" },
+//             ],
+//           },
+//         ],
+//       })
+//       .populate({
+//         path: "dataAnalyser",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//           {
+//             path: "reportingTo",
+//             populate: [
+//               { path: "designation" },
+//               { path: "department" },
+//               { path: "division" },
+//             ],
+//           },
+//         ],
+//       })
+//       .populate({
+//         path: "preSalesExecutive",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//           {
+//             path: "reportingTo",
+//             populate: [
+//               { path: "designation" },
+//               { path: "department" },
+//               { path: "division" },
+//             ],
+//           },
+//         ],
+//       })
+//       .populate({
+//         path: "viewedBy.employee",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//           {
+//             path: "reportingTo",
+//             populate: [
+//               { path: "designation" },
+//               { path: "department" },
+//               { path: "division" },
+//             ],
+//           },
+//         ],
+//       })
+//       .populate({
+//         path: "approvalHistory.employee",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//           {
+//             path: "reportingTo",
+//             populate: [
+//               { path: "designation" },
+//               { path: "department" },
+//               { path: "division" },
+//             ],
+//           },
+//         ],
+//       })
+//       .populate({
+//         path: "updateHistory.employee",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//           {
+//             path: "reportingTo",
+//             populate: [
+//               { path: "designation" },
+//               { path: "department" },
+//               { path: "division" },
+//             ],
+//           },
+//         ],
+//       })
+//       .populate({
+//         path: "callHistory.caller",
+//         select: "-password -refreshToken",
+//         populate: [
+//           { path: "designation" },
+//           { path: "department" },
+//           { path: "division" },
+//         ],
+//       });
+
+//     // Count the total items matching the filter
+//     // const totalItems = await leadModel.countDocuments(searchFilter);
+//     // Count the total items matching the filter
+//     const totalItems = await leadModel.countDocuments();
+//     // const totalItems = await leadModel.countDocuments(searchFilter);
+//     const rejectedCount = await leadModel.countDocuments({
+//       $and: [{ approvalStatus: "Rejected" }],
+//     });
+
+//     const pendingCount = await leadModel.countDocuments({
+//       $and: [{ approvalStatus: "Pending" }],
+//     });
+
+//     const approvedCount = await leadModel.countDocuments({
+//       $and: [{ approvalStatus: "Approved" }],
+//     });
+
+//     // const assignedCount = await leadModel.countDocuments({
+//     //   $and: [{ preSalesExecutive: { $ne: null } }],
+//     // });
+
+//     // Calculate the total number of pages
+//     const totalPages = Math.ceil(totalItems / limit);
+//     // cons;
+//     return res.send(
+//       successRes(200, "get leads", {
+//         page,
+//         limit,
+//         totalPages,
+//         totalItems,
+//         pendingCount,
+//         approvedCount,
+//         // assignedCount,
+//         rejectedCount,
+//         data: respCP,
+//       })
+//     );
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
+
+
+
+
+
+
+
+
+
+
+
 
 export const addPostSaleLead = async (req, res, next) => {
   const body = req.body;
