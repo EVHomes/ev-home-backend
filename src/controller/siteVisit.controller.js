@@ -62,6 +62,42 @@ export const getSiteVisits = async (req, res) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "closingTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "teamLeaderTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
 
     return res.send(
@@ -119,6 +155,42 @@ export const getSiteVisitsById = async (req, res) => {
       })
       .populate({
         path: "dataEntryBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "closingTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "teamLeaderTeam",
         select: "-password -refreshToken",
         populate: [
           { path: "designation" },
@@ -258,6 +330,42 @@ export const searchSiteVisits = async (req, res, next) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "closingTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "teamLeaderTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
 
     // Count the total items matching the filter
@@ -337,9 +445,8 @@ export const addSiteVisits = async (req, res) => {
           },
         ],
       })
-
       .populate({
-        path: "closingManager",
+        path: "attendedBy",
         select: "-password -refreshToken",
         populate: [
           { path: "designation" },
@@ -356,24 +463,6 @@ export const addSiteVisits = async (req, res) => {
           },
         ],
       })
-      // .populate({
-      //   path: "closingTeam",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       select: "-password -refreshToken",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "dataEntryBy",
         select: "-password -refreshToken",
@@ -391,20 +480,44 @@ export const addSiteVisits = async (req, res) => {
             ],
           },
         ],
+      })
+      .populate({
+        path: "closingTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "teamLeaderTeam",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
       });
-    // .populate({
-    //   path: "closingTeam",
-    //   select: "-refreshToken -password",
-    // })
-    // .populate({
-    //   path: "teamLeader",
-    //   select: "-refreshToken -password",
-    // })
-    // .populate({
-    //   path: "team",
-    //   select: "-refreshToken -password",
-    // });
-    console.log(body);
+    // console.log(body);
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,
@@ -424,8 +537,9 @@ export const generateSiteVisitOtp = async (req, res, next) => {
       otp: newOtp,
       docId: user?._id,
       email: "site visit",
-      type: "visit",
-      message: "Site Visit",
+      phoneNumber: phoneNumber,
+      type: "site visit",
+      message: "Site Visit Added",
     });
 
     const savedOtp = await newOtpModel.save();
@@ -437,7 +551,7 @@ export const generateSiteVisitOtp = async (req, res, next) => {
     const resp = await axios.post(url);
     return res.send(
       successRes(200, "otp Sent to Client", {
-        data: {},
+        data: savedOtp,
       })
     );
   } catch (error) {

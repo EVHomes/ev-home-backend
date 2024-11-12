@@ -1155,6 +1155,52 @@ export const updateLead = async (req, res, next) => {
   }
 };
 
+export const rejectLeadById = async (req, res, next) => {
+  const body = req.body;
+  const id = req.params.id;
+  const user = req.user;
+  try {
+    if (!id) return res.send(errorRes(403, "ID is required"));
+    if (!body) return res.send(errorRes(403, "Data is required"));
+
+    const { remark } = body;
+
+    // Update the lead by ID
+    const updatedLead = await leadModel.findByIdAndUpdate(
+      id,
+      {
+        ...body,
+        $addToSet: {
+          approvalHistory: {
+            employee: user?._id,
+            approvedAt: Date.now(),
+            remark: remark ?? "Rejected",
+          },
+
+          updateHistory: {
+            employee: user?._id,
+            changes: `${JSON.stringify(body)}`,
+            updatedAt: Date.now(),
+            remark: remark,
+          },
+        },
+      },
+      { new: true }
+    );
+
+    // Check if the lead was updated successfully
+    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+
+    return res.send(
+      successRes(200, `Lead updated successfully`, {
+        data: updatedLead,
+      })
+    );
+  } catch (error) {
+    return next(error);
+    // return res.send(errorRes(500, `Server error: ${error?.message}`));
+  }
+};
 export const deleteLead = async (req, res, next) => {
   const id = req.params.id;
 

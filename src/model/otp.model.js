@@ -8,6 +8,10 @@ export const otpSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phoneNumber: {
+      type: String,
+      default: null,
+    },
     type: { type: String, required: true },
     message: { type: String, default: "otp" },
     createdAt: { type: Date, default: Date.now, expires: 300 },
