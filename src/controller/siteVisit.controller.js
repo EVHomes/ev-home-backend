@@ -2,6 +2,8 @@ import siteVisitModel from "../model/siteVisitForm.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import axios from "axios";
 import employeeModel from "../model/employee.model.js";
+import otpModel from "../model/otp.model.js";
+import { generateOTP } from "../utils/helper.js";
 
 export const getSiteVisits = async (req, res) => {
   try {
@@ -417,15 +419,25 @@ export const generateSiteVisitOtp = async (req, res, next) => {
   const { project, firstName, lastName, phoneNumber, closingManager } = req.body;
   try {
     const user = await employeeModel.findById(closingManager);
+    const newOtp = generateOTP(6);
+    const newOtpModel = new otpModel({
+      otp: newOtp,
+      docId: user?._id,
+      email: "site visit",
+      type: "visit",
+      message: "Site Visit",
+    });
 
-    const resp = await axios.post(
-      `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&firstName=${firstName}&lastName=${lastName}&project=${project}&closingManager=${
-        user?.firstName ?? ""
-      } ${user?.lastName ?? "."}`
-    );
-    res.send(
+    const savedOtp = await newOtpModel.save();
+
+    let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=${encodeURIComponent(
+      `+91${phoneNumber}`
+    )}&name=${firstName} ${lastName}&project=${project}&closingManager=${`${user?.firstName} ${user?.lastName}`}&otp=${newOtp}`;
+    // console.log(url);
+    const resp = await axios.post(url);
+    return res.send(
       successRes(200, "otp Sent to Client", {
-        data: resp,
+        data: {},
       })
     );
   } catch (error) {
