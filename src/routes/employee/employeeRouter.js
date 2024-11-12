@@ -9,12 +9,15 @@ import {
   getEmployees,
   getPostSaleExecutives,
   getPreSalesExecutive,
+  getSalesManagers,
+  getSeniorClosingManagers,
   getTeamLeaders,
   loginEmployee,
   registerEmployee,
   resetPasswordEmployee,
   searchEmployee,
-  updateDesgEmp,
+ 
+
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -40,11 +43,15 @@ employeeRouter.get(
   getClosingManagers
 );
 
+employeeRouter.get("/employee-closing-manager-s",getSeniorClosingManagers);
+
 employeeRouter.get(
   "/employee-post-sales-executive",
   // authenticateToken,
   getPostSaleExecutives
 );
+
+employeeRouter.get("/employee-sales-manager",getSalesManagers);
 
 employeeRouter.get(
   "/employee-by-designation/:id",
@@ -77,6 +84,8 @@ employeeRouter.post(
   validateEmployeeFields,
   editEmployeeById
 );
+
+
 
 employeeRouter.post(
   "/employee-forgot-password",

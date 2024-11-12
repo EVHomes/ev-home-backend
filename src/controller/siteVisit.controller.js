@@ -304,6 +304,7 @@ export const addSiteVisits = async (req, res) => {
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
     if (!closingManager) res.send(errorRes(403, "Closing Manager is required"));
+    // if(!closingTeam) res.send(errorRes(403,"Closing Team is required"));
     if (!choiceApt)
       return res.send(errorRes(403, "Choice of Apartment is required"));
 
@@ -334,8 +335,9 @@ export const addSiteVisits = async (req, res) => {
           },
         ],
       })
+
       .populate({
-        path: "attendedBy",
+        path: "closingManager",
         select: "-password -refreshToken",
         populate: [
           { path: "designation" },
@@ -352,6 +354,24 @@ export const addSiteVisits = async (req, res) => {
           },
         ],
       })
+      // .populate({
+      //   path: "closingTeam",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       select: "-password -refreshToken",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "dataEntryBy",
         select: "-password -refreshToken",
@@ -382,7 +402,7 @@ export const addSiteVisits = async (req, res) => {
     //   path: "team",
     //   select: "-refreshToken -password",
     // });
-
+console.log(body);
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,

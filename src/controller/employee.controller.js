@@ -121,6 +121,94 @@ export const getClosingManagers = async (req, res, next) => {
   }
 };
 
+export const getSalesManagers = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        $or: [
+          {
+            designation: "desg-senior-sales-manager",
+          },
+      
+          {
+            designation: "desg-sales-executive",
+          },
+          {
+            designation: "desg-sales-manager",
+          },
+          // {
+          //   designation: "desg-floor-manager",
+          // },
+        ],
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
+
+
+
+export const getSeniorClosingManagers = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        $or: [
+          {
+            designation: "desg-site-head",
+          },
+          {
+            designation: "desg-senior-closing-manager",
+          },
+          
+        ],
+        status: { $ne: "inactive" },
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
 export const getPostSaleExecutives = async (req, res, next) => {
   try {
     const respCP = await employeeModel
