@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   addSiteVisits,
   deleteSiteVisits,
+  generateSiteVisitOtp,
   getSiteVisits,
   getSiteVisitsById,
   searchSiteVisits,
@@ -32,10 +33,11 @@ siteVisitRouter.post(
   addSiteVisits
 );
 siteVisitRouter.post(
-  "/siteVisit-update/:id",
-  authenticateToken,
-  updateSiteVisits
+  "/site-visit-generate-otp",
+  // authenticateToken,
+  generateSiteVisitOtp
 );
+siteVisitRouter.post("/siteVisit-update/:id", authenticateToken, updateSiteVisits);
 siteVisitRouter.delete("/siteVisit/:id", authenticateToken, deleteSiteVisits);
 siteVisitRouter.get("/siteVisits-search", searchSiteVisits);
 
@@ -90,9 +92,7 @@ siteVisitRouter.post("/update-staff-from-csv", async (req, res) => {
           const attendedBy =
             row["ATTENDED BY"] != "" ? row["ATTENDED BY"]?.split(" ")[0] : null;
           const followUpBy =
-            row["FOLLOW UP BY"] != ""
-              ? row["FOLLOW UP BY"]?.split(" ")[0]
-              : null;
+            row["FOLLOW UP BY"] != "" ? row["FOLLOW UP BY"]?.split(" ")[0] : null;
           const team = row.TEAM != "" ? row.TEAM : null;
           const attendedBy2 =
             employeeResp.find(
@@ -103,8 +103,7 @@ siteVisitRouter.post("/update-staff-from-csv", async (req, res) => {
             employeeResp.find(
               (ele) => ele.firstName.toLowerCase() === followUpBy?.toLowerCase()
             )?._id || null;
-          const date =
-            row.Date != "" ? convertStringToDate(row.Date) : new Date();
+          const date = row.Date != "" ? convertStringToDate(row.Date) : new Date();
 
           data.push({
             date,
@@ -149,9 +148,7 @@ siteVisitRouter.post("/update-staff-from-csv", async (req, res) => {
       await insertDataInBatches(data);
 
       const endTime = Date.now();
-      console.log(
-        `Bulk insert completed in ${(endTime - startTime) / 1000} seconds`
-      );
+      console.log(`Bulk insert completed in ${(endTime - startTime) / 1000} seconds`);
 
       // Send response
       res.json({

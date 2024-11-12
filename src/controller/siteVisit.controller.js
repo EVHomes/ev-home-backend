@@ -1,5 +1,7 @@
 import siteVisitModel from "../model/siteVisitForm.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import axios from "axios";
+import employeeModel from "../model/employee.model.js";
 
 export const getSiteVisits = async (req, res) => {
   try {
@@ -301,12 +303,10 @@ export const addSiteVisits = async (req, res) => {
     // if (!residence) return res.send(errorRes(403, "Residence is required"));
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!projects) return res.send(errorRes(403, "Project is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
     if (!closingManager) res.send(errorRes(403, "Closing Manager is required"));
     // if(!closingTeam) res.send(errorRes(403,"Closing Team is required"));
-    if (!choiceApt)
-      return res.send(errorRes(403, "Choice of Apartment is required"));
+    if (!choiceApt) return res.send(errorRes(403, "Choice of Apartment is required"));
 
     // console.log(body);
     const newSiteVisit = await siteVisitModel.create({
@@ -402,7 +402,7 @@ export const addSiteVisits = async (req, res) => {
     //   path: "team",
     //   select: "-refreshToken -password",
     // });
-console.log(body);
+    console.log(body);
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,
@@ -413,6 +413,25 @@ console.log(body);
   }
 };
 
+export const generateSiteVisitOtp = async (req, res, next) => {
+  const { project, firstName, lastName, phoneNumber, closingManager } = req.body;
+  try {
+    const user = await employeeModel.findById(closingManager);
+
+    const resp = await axios.post(
+      `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&firstName=${firstName}&lastName=${lastName}&project=${project}&closingManager=${
+        user?.firstName ?? ""
+      } ${user?.lastName ?? "."}`
+    );
+    res.send(
+      successRes(200, "otp Sent to Client", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
 export const updateSiteVisits = async (req, res) => {
   const body = req.body;
   const id = req.params.id;
@@ -442,15 +461,11 @@ export const updateSiteVisits = async (req, res) => {
     if (!residence) return res.send(errorRes(403, "Residence is required"));
     if (!email) return res.send(errorRes(403, "Email is required"));
     if (!projects) return res.send(errorRes(403, "Project is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
     if (!source) return res.send(errorRes(403, "Source is required"));
-    if (!closingManager)
-      return res.send(errorRes(403, "Closing Manager is required"));
-    if (!closingTeam)
-      return res.send(errorRes(403, "Closing Team is required"));
-    if (!choiceApt)
-      return res.send(errorRes(403, "Choice of Apartment is required"));
+    if (!closingManager) return res.send(errorRes(403, "Closing Manager is required"));
+    if (!closingTeam) return res.send(errorRes(403, "Closing Team is required"));
+    if (!choiceApt) return res.send(errorRes(403, "Choice of Apartment is required"));
     if (!teamLeader) return res.send(errorRes(403, "Team Leader is required"));
     if (!team) return res.send(errorRes(403, "Team is required"));
 
@@ -492,8 +507,7 @@ export const updateSiteVisits = async (req, res) => {
         ],
       });
 
-    if (!updatedSite)
-      return res.send(errorRes(404, `Site not found with ID: ${id}`));
+    if (!updatedSite) return res.send(errorRes(404, `Site not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Site updated successfully: ${firstName} ${lastName}`, {
@@ -513,8 +527,7 @@ export const deleteSiteVisits = async (req, res) => {
 
     const deletedSite = await siteVisitModel.findByIdAndDelete(id);
 
-    if (!deletedSite)
-      return res.send(errorRes(404, `Site not found with ID: ${id}`));
+    if (!deletedSite) return res.send(errorRes(404, `Site not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Site deleted successfully with ID: ${id}`, {
