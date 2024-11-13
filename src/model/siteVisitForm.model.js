@@ -4,6 +4,7 @@ export const siteVisitSchema = new mongoose.Schema(
   {
     firstName: { type: String, required: true, default: null },
     lastName: { type: String, required: true, default: null },
+    verified: { type: Boolean, default: false },
     namePrefix: { type: String, default: "Mr" },
     gender: { type: String, default: "male" },
     phoneNumber: { type: Number, required: true, default: 0 },

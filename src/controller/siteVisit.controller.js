@@ -529,29 +529,66 @@ export const addSiteVisits = async (req, res) => {
 };
 
 export const generateSiteVisitOtp = async (req, res, next) => {
-  const { project, firstName, lastName, phoneNumber, closingManager } = req.body;
+  const { project, firstName, lastName, phoneNumber, closingManager, email } = req.body;
   try {
     const user = await employeeModel.findById(closingManager);
+
+    const findOldOtp = await otpModel.findOne({
+      $or: [{ phoneNumber: phoneNumber }, { email: email }],
+    });
+    if (findOldOtp) {
+      let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
+      // console.log(encodeURIComponent(url));
+      const resp = await axios.post(url);
+      return res.send(
+        successRes(200, "otp Sent to Client", {
+          data: findOldOtp,
+        })
+      );
+    }
     const newOtp = generateOTP(6);
     const newOtpModel = new otpModel({
       otp: newOtp,
       docId: user?._id,
-      email: "site visit",
+      email: email ?? "noemailprovided2026625@gmail.com",
       phoneNumber: phoneNumber,
-      type: "site visit",
-      message: "Site Visit Added",
+      type: "site-visit-entry",
+      message: "Site Visit Verification Code",
     });
 
     const savedOtp = await newOtpModel.save();
 
-    let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=${encodeURIComponent(
-      `+91${phoneNumber}`
-    )}&name=${firstName} ${lastName}&project=${project}&closingManager=${`${user?.firstName} ${user?.lastName}`}&otp=${newOtp}`;
-    // console.log(url);
+    let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
+    // console.log(encodeURIComponent(url));
     const resp = await axios.post(url);
     return res.send(
       successRes(200, "otp Sent to Client", {
         data: savedOtp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const verifySiteVisitOtp = async (req, res, next) => {
+  const { phoneNumber, otp, email } = req.body;
+  try {
+    if (!otp) return res.send(errorRes(401, "Invalid Otp"));
+
+    const otpExist = await otpModel.findOne({
+      $or: [{ phoneNumber: phoneNumber }, { email: email }],
+    });
+
+    if (!otpExist) return res.send(errorRes(404, "Otp is Expired"));
+
+    if (otp != otpExist.otp) return res.send(errorRes(401, "Otp Didn't matched"));
+
+    await otpExist.deleteOne();
+
+    return res.send(
+      successRes(200, "otp Verified Successfully", {
+        data: true,
       })
     );
   } catch (error) {

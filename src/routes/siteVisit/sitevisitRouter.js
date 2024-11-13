@@ -7,6 +7,7 @@ import {
   getSiteVisitsById,
   searchSiteVisits,
   updateSiteVisits,
+  verifySiteVisitOtp,
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import path from "path";
@@ -37,6 +38,12 @@ siteVisitRouter.post(
   // authenticateToken,
   generateSiteVisitOtp
 );
+siteVisitRouter.post(
+  "/site-visit-otp-verify",
+  // authenticateToken,
+  verifySiteVisitOtp
+);
+
 siteVisitRouter.post("/siteVisit-update/:id", authenticateToken, updateSiteVisits);
 siteVisitRouter.delete("/siteVisit/:id", authenticateToken, deleteSiteVisits);
 siteVisitRouter.get("/siteVisits-search", searchSiteVisits);
