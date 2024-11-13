@@ -121,7 +121,7 @@ export const getSalesManagers = async (req, res, next) => {
           {
             designation: "desg-senior-sales-manager",
           },
-      
+
           {
             designation: "desg-sales-executive",
           },
@@ -140,11 +140,7 @@ export const getSalesManagers = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -156,10 +152,6 @@ export const getSalesManagers = async (req, res, next) => {
     return next(error);
   }
 };
-
-
-
-
 
 export const getSeniorClosingManagers = async (req, res, next) => {
   try {
@@ -172,7 +164,6 @@ export const getSeniorClosingManagers = async (req, res, next) => {
           {
             designation: "desg-senior-closing-manager",
           },
-          
         ],
         status: { $ne: "inactive" },
       })
@@ -183,11 +174,7 @@ export const getSeniorClosingManagers = async (req, res, next) => {
       .populate({
         path: "reportingTo",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     return res.send(
@@ -199,7 +186,6 @@ export const getSeniorClosingManagers = async (req, res, next) => {
     return next(error);
   }
 };
-
 
 export const getPostSaleExecutives = async (req, res, next) => {
   try {
@@ -319,10 +305,13 @@ export const getDataAnalyzers = async (req, res, next) => {
 export const getPreSalesExecutive = async (req, res, next) => {
   try {
     const reportingTo = req.query.id;
+
+    let searchFilter = {
+      designation: "desg-pre-sales-executive",
+      ...(reportingTo && { reportingTo: reportingTo }),
+    };
     const respPreSaleEx = await employeeModel
-      .find({
-        $and: [{ designation: "desg-pre-sales-executive" }, { reportingTo: reportingTo }],
-      })
+      .find(searchFilter)
       .select("-password -refreshToken")
       .populate("designation")
       .populate("department")
