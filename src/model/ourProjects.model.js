@@ -23,7 +23,7 @@ export const ourProjectsSchema = new mongoose.Schema({
       floor: { type: Number, required: true },
       floorName: { type: String, required: true },
       number: { type: Number, required: true },
-      ParkingNo: { type: String, required: true },
+      parkingNo: { type: String, required: true },
       occupied: { type: Boolean, default: false },
       occupiedBy: {
         type: mongoose.Schema.Types.ObjectId,
@@ -65,9 +65,5 @@ export const ourProjectsSchema = new mongoose.Schema({
     },
   ],
 });
-const ourProjectModel = mongoose.model(
-  "ourProjects",
-  ourProjectsSchema,
-  "ourProjects"
-);
+const ourProjectModel = mongoose.model("ourProjects", ourProjectsSchema, "ourProjects");
 export default ourProjectModel;
