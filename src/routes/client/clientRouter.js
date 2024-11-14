@@ -10,6 +10,8 @@ import {
   loginClient,
   searchClients,
   loginPhone,
+
+  newPasswordClient
 } from "../../controller/client.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateClientFields } from "../../middleware/client.middleware.js";
@@ -45,6 +47,7 @@ clientRouter.post(
   resetPasswordClient
 );
 
+clientRouter.post("/client-new-password/:id",newPasswordClient);
 clientRouter.post("/client-update/:id", authenticateToken, updateClient);
 clientRouter.delete("/client/:id", authenticateToken, deleteClient);
 

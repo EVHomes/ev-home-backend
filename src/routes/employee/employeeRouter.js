@@ -59,7 +59,7 @@ employeeRouter.get("/employee-data-analzer", authenticateToken, getTeamLeaders);
 
 employeeRouter.get(
   "/employee-pre-sale-executive",
-  authenticateToken,
+  // authenticateToken,
   getPreSalesExecutive
 );
 
