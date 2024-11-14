@@ -308,6 +308,53 @@ export const loginPhone = async (req, res, next) => {
   }
 };
 
+
+export const newPasswordClient = async (req, res, next) => {
+  const { id } = req.params;
+  const { password, newPassword } = req.body;
+
+  try {
+    if (!id) {
+      return res.send(errorRes(403, "ID is required"));
+    }
+    console.log(id);
+    console.log(password);
+    console.log(newPassword);
+    if (!password || !newPassword) {
+      return res.send(errorRes(403, "Old and new passwords are required"));
+    }
+
+    const respClient = await clientModel.findById(id);
+    
+    if (!respClient) {
+      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
+    }
+    console.log("pass 1");
+    console.log(respClient.password);
+
+    const isMatch = await comparePassword(password, respClient.password);
+    console.log("pass 2");
+    
+    if (!isMatch) {
+      return res.send(errorRes(400, "Old password is incorrect"));
+    }
+    console.log("pass 3");
+    
+    const hashedNewPassword = await encryptPassword(newPassword);
+    respClient.password = hashedNewPassword;
+    await respClient.save();
+    console.log("pass 4");
+
+    return res.send(successRes(200, "Password updated successfully",{data:respClient}));
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
+
+
+
 //AUTHENTICATION
 export const reAuthClient = async (req, res, next) => {
   const body = req.body;
