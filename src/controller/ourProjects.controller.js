@@ -17,6 +17,23 @@ export const getOurProjects = async (req, res) => {
   }
 };
 
+// export const getProjectLocationLinks = async (req, res) => {
+//   try {
+//     const locationLinks = await ourProjectModel.find({}, { locationLink: 1, _id: 0 }); // Only fetch 'locationLink' field
+
+//     return res.send(
+//       successRes(200, "Fetched location links successfully", {
+//         data: locationLinks,
+//       })
+//     );
+//   } catch (error) {
+//     return res.json({
+//       message: `Error: ${error.message}`,
+//     });
+//   }
+// };
+
+
 //GET BY ID
 export const getProjectsById = async (req, res) => {
   const id = req.params.id;
@@ -126,7 +143,7 @@ export const updateProjects = async (req, res) => {
     // console.log(body);
     const updatedProject = await ourProjectModel.findByIdAndUpdate(
       id, // Find by project ID
-      { flatList: flatList },
+      { ...body},
       { new: true } // Return the updated document
     );
 
