@@ -538,12 +538,20 @@ export const generateSiteVisitOtp = async (req, res, next) => {
     });
     if (findOldOtp) {
       if (project?.toLowerCase() === "10 marina bay".toLowerCase()) {
-        url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
+        url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
+          `+91${phoneNumber}`
+        )}&name=${firstName} ${lastName}&project=${project}&closingManager=${
+          user?.firstName
+        } ${user?.lastName}&otp=${findOldOtp.otp}`;
       } else {
-        url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
+        url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=${encodeURIComponent(
+          `+91${phoneNumber}`
+        )}&name=${firstName} ${lastName}&project=${project}&closingManager=${
+          user?.firstName
+        } ${user?.lastName}&otp=${findOldOtp.otp}`;
       }
       const resp = await axios.post(url);
-      console.log(resp);
+      // console.log(resp);
       return res.send(
         successRes(200, "otp Sent to Client", {
           data: findOldOtp,
@@ -563,15 +571,23 @@ export const generateSiteVisitOtp = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
     if (project?.toLowerCase() === "10 Marina Bay") {
-      url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
+      url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
+        `+91${phoneNumber}`
+      )}&name=${firstName} ${lastName}&project=${project}&closingManager=${
+        user?.firstName
+      } ${user?.lastName}&otp=${newOtp}`;
     } else {
-      url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
+      url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=${encodeURIComponent(
+        `+91${phoneNumber}`
+      )}&name=${firstName} ${lastName}&project=${project}&closingManager=${
+        user?.firstName
+      } ${user?.lastName}&otp=${newOtp}`;
     }
 
     // let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
     // console.log(encodeURIComponent(url));
     const resp = await axios.post(url);
-    console.log(resp);
+    // console.log(resp);
 
     return res.send(
       successRes(200, "otp Sent to Client", {
