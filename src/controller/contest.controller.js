@@ -1,4 +1,6 @@
-import contestModel from "../model/contest.model";
+import contestModel from "../model/contest.model.js";
+import { errorRes, successRes } from "../model/response.js";
+
 
 export const addContest = async (req, res) => {
   const body = req.body;
