@@ -533,22 +533,24 @@ export const generateSiteVisitOtp = async (req, res, next) => {
   let url;
   try {
     const user = await employeeModel.findById(closingManager);
-    if (project?.toLowerCase() === "10 Marina Bay") {
-      url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
-    } else {
-      url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
-    }
     const findOldOtp = await otpModel.findOne({
       $or: [{ phoneNumber: phoneNumber }, { email: email }],
     });
     if (findOldOtp) {
+      if (project?.toLowerCase() === "10 Marina Bay") {
+        url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
+      } else {
+        url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
+      }
       const resp = await axios.post(url);
+
       return res.send(
         successRes(200, "otp Sent to Client", {
           data: findOldOtp,
         })
       );
     }
+
     const newOtp = generateOTP(6);
     const newOtpModel = new otpModel({
       otp: newOtp,
@@ -560,6 +562,11 @@ export const generateSiteVisitOtp = async (req, res, next) => {
     });
 
     const savedOtp = await newOtpModel.save();
+    if (project?.toLowerCase() === "10 Marina Bay") {
+      url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
+    } else {
+      url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
+    }
 
     // let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
     // console.log(encodeURIComponent(url));
