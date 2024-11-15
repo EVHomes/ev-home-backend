@@ -1,4 +1,4 @@
-import { errorRes } from "../model/res.js";
+import { errorRes } from "../model/response.js";
 
 // Define the allowed fields for designation updates
 const ALLOWED_DEV_FIELDS = [

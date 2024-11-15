@@ -11,7 +11,7 @@ export const contestSchema = new mongoose.Schema(
         default: "1999-01-01",
         validate: {
           validator: function (value) {
-            // Check if the date matches the YYYY-MM-DD format
+           
             return dateOfRegister(value);
           },
           message: (props) =>
