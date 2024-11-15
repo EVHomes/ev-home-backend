@@ -542,8 +542,6 @@ export const generateSiteVisitOtp = async (req, res, next) => {
       $or: [{ phoneNumber: phoneNumber }, { email: email }],
     });
     if (findOldOtp) {
-      // let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
-      // console.log(encodeURIComponent(url));
       const resp = await axios.post(url);
       return res.send(
         successRes(200, "otp Sent to Client", {
@@ -563,7 +561,7 @@ export const generateSiteVisitOtp = async (req, res, next) => {
 
     const savedOtp = await newOtpModel.save();
 
-    let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
+    // let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${newOtp}`;
     // console.log(encodeURIComponent(url));
     const resp = await axios.post(url);
     return res.send(
