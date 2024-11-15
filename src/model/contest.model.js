@@ -1,28 +1,26 @@
 import mongoose from "mongoose";
+const dateOfRegisterFormat= /^\d{4}-\d{2}-\d{2}$/;
 
-export const contestSchema = new mongoose.Schema(
-  {
-    
-    firstName: { type: String, required: true, unique: true },
-    lastName:{type:String, required:true, unique:true},
-    dateOfRegister: {
-        type: String,
-        required: true,
-        default: "1999-01-01",
-        validate: {
-          validator: function (value) {
-           
-            return dateOfRegister(value);
-          },
-          message: (props) =>
-            `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
-        },
+export const contestSchema = new mongoose.Schema({
+  firstName: { type: String, required: true, },
+  lastName: { type: String, required: true, },
+  dateOfRegister: {
+    type: String,
+    required: true,
+    default: "1999-01-01",
+    validate: {
+      validator: function (value) {
+        // Check if the date matches the YYYY-MM-DD format
+        return dateOfRegisterFormat.test(value);
       },
-      phoneNumber: { type: Number, required: true, default: null },
+      message: (props) =>
+        `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
+    },
+  },
+  phoneNumber: { type: String, required: true, default: null },
+  contestToken:{type:String, default:null} // Changed to String
+});
 
-  }
-  // {timestamps:true}
-);
-
-const contestModel = mongoose.model("contests", contestSchema, "contests");
+// Create the model
+const contestModel = mongoose.model("Contest", contestSchema, "contests");
 export default contestModel;

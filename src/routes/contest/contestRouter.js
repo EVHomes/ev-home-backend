@@ -1,17 +1,24 @@
 import { Router } from "express";
 import {
-  addContest
+  addContest,
+ 
+  getContest
 } from "../../controller/contest.controller.js";
 import { validateContestFields } from "../../middleware/contest.middleware.js";
 
-validateContestFields
+
 
 const contestRouter = Router();
+contestRouter.get("/contest",getContest);
 contestRouter.post(
   "/add-contest",
-validateContestFields,
   // authenticateToken,
   addContest
 );
 
+// contest.post(
+//   "/contest-otp",
+//   // authenticateToken,
+//   generateContestOtp
+// );
 export default contestRouter;
