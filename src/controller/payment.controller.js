@@ -57,9 +57,15 @@ export const addPayment = async (req, res) => {
         cgst: cgst,
       });
       await newPayment.save();
+      const respP= await paymentModel.find()
+      .populate({
+          path: "projects",
+      
+        });
+  
       return res.send(
         successRes(200, `payment added successfully: ${customerName}`, {
-          data: newPayment,
+          data: respP,
         })
       );
     } catch (error) {
