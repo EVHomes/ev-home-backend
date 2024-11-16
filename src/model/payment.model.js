@@ -1,14 +1,12 @@
 import mongoose from "mongoose";
 const dateOfAmtReceive = /^\d{4}-\d{2}-\d{2}$/;
 export const paymentSchema = new mongoose.Schema({
-  projects: [
-    {
-      type: String,
-      required: true,
-      default: null,
-      // enum: ["EV 9 Square", "EV Heart City", "Marina Bay"],
-    },
-  ],
+  projects: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    default: null,
+    ref: "ourProjects",
+  },
   customerName: {
     type: String,
     required: true,

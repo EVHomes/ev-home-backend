@@ -3,7 +3,11 @@ import { errorRes, successRes } from "../model/response.js";
 
 export const getPayment = async (req, res) => {
   try {
-    const respPayment = await paymentModel.find();
+    const respPayment = await paymentModel.find()
+    .populate({
+        path: "projects",
+    
+      });
 
     return res.send(
       successRes(200, "Get Department", {
