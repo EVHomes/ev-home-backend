@@ -346,17 +346,6 @@ export const getPostSaleLeads = async (req, res, next) => {
 //   }
 // };
 
-
-
-
-
-
-
-
-
-
-
-
 export const addPostSaleLead = async (req, res, next) => {
   const body = req.body;
   const {
@@ -415,20 +404,99 @@ export const updatePostSaleLeadById = async (req, res, next) => {
   const body = req.body;
   const id = req.params.id;
   try {
-    console.log("entered");
+    // console.log("entered");
     if (!body) return res.send(errorRes(401, "No Data Provided"));
 
-    const foundLead = await postSaleLeadModel.findById(id);
-    console.log("entered 1");
+    const foundLead = await postSaleLeadModel
+      .findById(id)
+      .populate({
+        path: "project",
+        // select: "name",
+      })
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+    // console.log("entered 1");
 
     if (!foundLead) return res.send(errorRes(404, "No lead found"));
-    console.log("entered 2");
-    console.log(body);
-    await foundLead.updateOne({ ...body });
+    // console.log("entered 2");
+    // console.log(body);
+    await foundLead.updateOne({ ...body }, { new: true });
+    const updatedLead = await postSaleLeadModel
+      .findById(id)
+      .populate({
+        path: "project",
+        // select: "name",
+      })
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
 
     return res.send(
       successRes(200, "updated post sale lead", {
-        data: foundLead,
+        data: updatedLead,
       })
     );
   } catch (error) {
