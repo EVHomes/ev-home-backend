@@ -1,0 +1,66 @@
+import mongoose from "mongoose";
+const dateOfAmtReceive = /^\d{4}-\d{2}-\d{2}$/;
+export const paymentSchema = new mongoose.Schema({
+  projects: [
+    {
+      type: String,
+      required: true,
+      default: null,
+      // enum: ["EV 9 Square", "EV Heart City", "Marina Bay"],
+    },
+  ],
+  customerName: {
+    type: String,
+    required: true,
+  },
+  countryCode: { type: String, default: "+91" },
+  phoneNumber: {
+    type: Number,
+    required: true,
+  },
+
+  dateOfAmtReceive: {
+    type: String,
+    required: true,
+    default: "1999-01-01",
+    validate: {
+      validator: function (value) {
+        // Check if the date matches the YYYY-MM-DD format
+        return dateOfAmtReceive.test(value);
+      },
+      message: (props) =>
+        `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
+    },
+  },
+  receiptNo: {
+    type: String,
+    required: true,
+  },
+  account: {
+    type: String,
+    enum: ["ICICI-22390", "ICICI-22186"],
+  },
+  paymentMode: {
+    type: String,
+    enum: ["Online", "Cheque"],
+  },
+  flatNo: { type: String, required: true, default: null },
+  amtReceived: {
+    type: Number,
+    required: true,
+  },
+  bookingAmt: {
+    type: Number,
+    required: true,
+  },
+  stampDuty: {
+    type: Number,
+    required: true,
+  },
+  tds: { type: Number,
+  },
+  cgst: { type: Number, required: true },
+});
+
+const paymentModel = mongoose.model("payments", paymentSchema, "payments");
+export default paymentModel;
