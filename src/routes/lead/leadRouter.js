@@ -36,6 +36,7 @@ import { encryptPassword } from "../../utils/helper.js";
 import employeeModel from "../../model/employee.model.js";
 import leadModel from "../../model/lead.model.js";
 import ourProjectModel from "../../model/ourProjects.model.js";
+import jsonLeads from "./ev_homes_main.leads.json" assert { type: "json" };
 
 dayjs.extend(customParseFormat);
 
@@ -92,6 +93,75 @@ leadRouter.get(
   getLeadCountsByPreSaleExecutve
 );
 leadRouter.get("/lead-count-funnel-pre-sales-tl", getAllLeadCountsFunnelForPreSaleTL);
+leadRouter.post("/lead-test-update", async (req, res) => {
+  const results = [];
+  const dataTuPush = [];
+  const csvFilePath = path.join(__dirname, "narayan_lead.csv");
+
+  if (!fs.existsSync(csvFilePath)) {
+    return res.status(400).send("CSV file not found");
+  }
+  const channelPartners = await cpModel.find().lean();
+  const employees = await employeeModel.find().lean();
+
+  fs.createReadStream(csvFilePath)
+    .pipe(csv())
+    .on("data", (data) => {
+      results.push(data);
+    })
+    .on("end", async () => {
+      for (const row of results) {
+        const {
+          firstName,
+          lastName,
+          channelPartner,
+          phoneNumber,
+          project,
+          "Team Leader": teamLeader,
+          dataAnalyzer,
+          approvalStatus,
+          startDate,
+        } = row;
+        let foundCp =
+          channelPartners.find((ele) =>
+            ele.firmName
+              ?.toLowerCase()
+              .includes(channelPartner?.toLowerCase().split(" ")[0])
+          )?._id || null;
+
+        let teamLeader1 =
+          employees.find((ele) =>
+            ele.firstName?.toLowerCase().includes(teamLeader?.toLowerCase().split(" ")[0])
+          )?._id || null;
+
+        let dataAnalyzer1 =
+          employees.find((ele) =>
+            ele.firstName
+              ?.toLowerCase()
+              .includes(dataAnalyzer?.toLowerCase().split(" ")[0])
+          )?._id || null;
+
+        dataTuPush.push({
+          firstName: firstName?.trim(),
+          lastName: lastName?.trim(),
+          channelPartner: foundCp,
+          phoneNumber: phoneNumber?.trim(),
+          project: project?.trim()?.split(","),
+          teamLeader: teamLeader1,
+          dataAnalyzer: dataAnalyzer1,
+          approvalStatus: approvalStatus?.trim(),
+          startDate: formatDate1(startDate),
+          startDate2: startDate,
+        });
+      }
+      // await leadModel.insertMany(dataTuPush);
+      // Send the results only after processing is done
+      return res.send(dataTuPush);
+    })
+    .on("error", (err) => {
+      return res.status(500).send({ error: err.message });
+    });
+});
 
 leadRouter.post("/update-lead2-from-csv", async (req, res) => {
   const results = [];
@@ -187,8 +257,8 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
             firstName,
             lastName,
             phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
-            teamLeader: teamLeader,
-            projects: projectsStr,
+            teamLeader: teamLeader1,
+            project: projectsStr,
             // channelPartner: foundCp,
             source,
             // teamLeader1,
@@ -198,14 +268,22 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           errors.push(`Error processing ${row.firstName}: ${error.message}`);
         }
       }
+
       const n9date = dataToInsert.filter(
         (ts) =>
           // ts.phoneNumber != null
           ts.phoneNumber != null && !ts?.startDate?.toString()?.includes("1999")
       );
+      const mappedMerged = jsonLeads.map((ele, i) => {
+        const foundSameLead = n9date.find(
+          (fele) =>
+            fele.phoneNumber === ele.phoneNumber && fele.phoneNumber === ele.phoneNumber
+        );
+        return ele;
+      });
       const today = new Date();
 
-      const futureLeads = dataToInsert.filter((lead) => lead.startDate > today);
+      // const futureLeads = dataToInsert.filter((lead) => lead.startDate > today);
 
       // Bulk insert data
       // try {
@@ -225,8 +303,29 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
       // const filterdName = dataToInsert.filter((ld) =>
       //   ld?.startDate?.includes("1999")
       // );
-      res.json(futureLeads);
+      res.json(n9date);
     });
+});
+
+leadRouter.post("/fix-project-miss-leads", async (req, res) => {
+  try {
+    const resp = await leadModel.find({ project: { $size: 0 } });
+    const ids = resp.map((ele) => ele._id);
+
+    const update = await leadModel.updateMany(
+      { _id: { $in: ids } }, // Use $in to match IDs
+      { project: ["Ev 9 Square", "Marina Bay"] } // Set project array
+    );
+
+    return res.send({
+      message: "Projects updated successfully",
+      modifiedCount: update.modifiedCount,
+      matchedCount: update.matchedCount,
+      data: update,
+    });
+  } catch (error) {
+    return res.status(500).send({ error: error.message });
+  }
 });
 
 leadRouter.get(
@@ -346,6 +445,11 @@ const parsePhoneNumber = (phoneStr) => {
 export default leadRouter;
 dayjs.extend(customParseFormat);
 
+const formatDate1 = (dateString) => {
+  const [day, month, year] = dateString.split("-").map(Number); // Split and parse
+  const date2 = new Date(year, month - 1, day); // Month is zero-based in JavaScript
+  return date2;
+};
 const parseDate = (dateInput) => {
   const formats = [
     // "M/D/YYYY HH:mm:ss", // 7/19/2024 12:27:35
