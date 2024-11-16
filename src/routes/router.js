@@ -17,6 +17,8 @@ import reqRouter from "./requirement/reqRouter.js";
 import { encryptPassword } from "../utils/helper.js";
 import postSaleRouter from "./postSaleLead/postSaleLeadRouter.js";
 import contestRouter from "./contest/contestRouter.js";
+import paymentModel from "../model/payment.model.js";
+import paymentRouter from "./payment/paymentRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -67,5 +69,6 @@ router.use(blockTokenRouter);
 router.use(reqRouter);
 router.use(postSaleRouter);
 router.use(contestRouter);
+router.use(paymentRouter);
 
 export default router;
