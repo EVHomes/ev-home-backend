@@ -36,7 +36,7 @@ import { encryptPassword } from "../../utils/helper.js";
 import employeeModel from "../../model/employee.model.js";
 import leadModel from "../../model/lead.model.js";
 import ourProjectModel from "../../model/ourProjects.model.js";
-import jsonLeads from "./ev_homes_main.leads.json" assert { type: "json" };
+// import jsonLeads from "./ev_homes_main.leads.json" assert { type: "json" };
 
 dayjs.extend(customParseFormat);
 
@@ -274,13 +274,13 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           // ts.phoneNumber != null
           ts.phoneNumber != null && !ts?.startDate?.toString()?.includes("1999")
       );
-      const mappedMerged = jsonLeads.map((ele, i) => {
-        const foundSameLead = n9date.find(
-          (fele) =>
-            fele.phoneNumber === ele.phoneNumber && fele.phoneNumber === ele.phoneNumber
-        );
-        return ele;
-      });
+      // const mappedMerged = jsonLeads.map((ele, i) => {
+      //   const foundSameLead = n9date.find(
+      //     (fele) =>
+      //       fele.phoneNumber === ele.phoneNumber && fele.phoneNumber === ele.phoneNumber
+      //   );
+      //   return ele;
+      // });
       const today = new Date();
 
       // const futureLeads = dataToInsert.filter((lead) => lead.startDate > today);
