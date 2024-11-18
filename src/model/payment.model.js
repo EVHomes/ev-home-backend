@@ -36,11 +36,14 @@ export const paymentSchema = new mongoose.Schema({
   },
   account: {
     type: String,
-    enum: ["ICICI-22390", "ICICI-22186"],
+    // enum: ["ICICI-22390", "ICICI-22186"],
   },
   paymentMode: {
     type: String,
-    enum: ["Online", "Cheque"],
+    // enum: ["Online", "Cheque"],
+  },
+  transactionId:{
+    type:String,
   },
   flatNo: { type: String, required: true, default: null },
   amtReceived: {
