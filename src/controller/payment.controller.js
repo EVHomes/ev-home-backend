@@ -30,6 +30,7 @@ export const addPayment = async (req, res) => {
       receiptNo,
       account,
       paymentMode,
+      transactionId,
       flatNo,
       amtReceived,
       bookingAmt,
@@ -49,6 +50,7 @@ export const addPayment = async (req, res) => {
         receiptNo: receiptNo,
         account: account,
         paymentMode: paymentMode,
+        transactionId:transactionId,
         flatNo: flatNo,
         amtReceived: amtReceived,
         bookingAmt: bookingAmt,
@@ -57,7 +59,7 @@ export const addPayment = async (req, res) => {
         cgst: cgst,
       });
       await newPayment.save();
-      const respP= await paymentModel.find()
+      const respP= await paymentModel.findById(newPayment._id)
       .populate({
           path: "projects",
       
