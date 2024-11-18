@@ -10,6 +10,7 @@ export const clientSchema = new mongoose.Schema({
     unique: true,
     validate: {
       validator: function (value) {
+        
         return emailFormat.test(value);
       },
       message: (props) => `${props.value} is not a valid email.`,

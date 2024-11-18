@@ -327,33 +327,25 @@ export const newPasswordClient = async (req, res, next) => {
     const respClient = await clientModel.findById(id);
     
     if (!respClient) {
-      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
+      return res.send(errorRes(404, `Client not found with id: ${id}`));
     }
-    console.log("pass 1");
     console.log(respClient.password);
 
     const isMatch = await comparePassword(password, respClient.password);
-    console.log("pass 2");
-    
+
     if (!isMatch) {
       return res.send(errorRes(400, "Old password is incorrect"));
     }
-    console.log("pass 3");
-    
+
     const hashedNewPassword = await encryptPassword(newPassword);
     respClient.password = hashedNewPassword;
     await respClient.save();
-    console.log("pass 4");
 
     return res.send(successRes(200, "Password updated successfully",{data:respClient}));
   } catch (error) {
     return next(error);
   }
 };
-
-
-
-
 
 //AUTHENTICATION
 export const reAuthClient = async (req, res, next) => {

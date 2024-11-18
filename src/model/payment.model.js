@@ -53,6 +53,8 @@ export const paymentSchema = new mongoose.Schema({
   bookingAmt: {
     type: Number,
     required: true,
+
+    
   },
   stampDuty: {
     type: Number,
