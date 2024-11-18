@@ -33,7 +33,6 @@ export const getOurProjects = async (req, res) => {
 //   }
 // };
 
-
 //GET BY ID
 export const getProjectsById = async (req, res) => {
   const id = req.params.id;
@@ -84,7 +83,13 @@ export const addProjects = async (req, res) => {
     if (!name) return res.send(errorRes(403, "Project name is required"));
     if (!showCaseImage)
       return res.send(errorRes(403, "Showcase image is required"));
+    const year = new Date().getFullYear();
 
+    body._id = `project-${name
+      ?.replace(/\s+/g, "-")
+      .toLowerCase()}-${locationName
+      ?.replace(/\s+/g, "-")
+      .toLowerCase()}-${year}`;
     // Create a new project
     const newProject = await ourProjectModel.create({ ...body });
 
@@ -143,7 +148,7 @@ export const updateProjects = async (req, res) => {
     // console.log(body);
     const updatedProject = await ourProjectModel.findByIdAndUpdate(
       id, // Find by project ID
-      { ...body},
+      { ...body },
       { new: true } // Return the updated document
     );
 

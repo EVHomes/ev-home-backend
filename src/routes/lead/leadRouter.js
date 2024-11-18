@@ -50,7 +50,11 @@ leadRouter.get("/leads-team-leader/:id", authenticateToken, getLeadsTeamLeader);
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
-leadRouter.post("/lead-update-caller/:id", authenticateToken, updateCallHistoryPreSales);
+leadRouter.post(
+  "/lead-update-caller/:id",
+  authenticateToken,
+  updateCallHistoryPreSales
+);
 leadRouter.get(
   "/search-lead",
   //  authenticateToken,
@@ -61,7 +65,11 @@ leadRouter.get("/lead/:id", authenticateToken, getLeadById);
 
 leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
-leadRouter.post("/lead-assign-tl/:id", authenticateToken, assignLeadToTeamLeader);
+leadRouter.post(
+  "/lead-assign-tl/:id",
+  authenticateToken,
+  assignLeadToTeamLeader
+);
 leadRouter.post("/lead-reject/:id", authenticateToken, rejectLeadById);
 
 leadRouter.post(
@@ -73,7 +81,11 @@ leadRouter.post(
 leadRouter.post("/leads-add", authenticateToken, validateLeadsFields, addLead);
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
-leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
+leadRouter.get(
+  "/leads-exists/:phoneNumber",
+  authenticateToken,
+  checkLeadsExists
+);
 
 //for data analyser
 leadRouter.get("/lead-count", getLeadCounts);
@@ -86,13 +98,38 @@ leadRouter.get("/lead-count-channel-partners", getLeadCountsByChannelPartner);
 leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
 
 //pre sales team leader
-leadRouter.get("/lead-count-pre-sale-team-leader/:id", getLeadCountsByTeamLeader);
+leadRouter.get(
+  "/lead-count-pre-sale-team-leader/:id",
+  getLeadCountsByTeamLeader
+);
 
 leadRouter.get(
   "/lead-count-pre-sale-executive-for-pre-sale-tl",
   getLeadCountsByPreSaleExecutve
 );
-leadRouter.get("/lead-count-funnel-pre-sales-tl", getAllLeadCountsFunnelForPreSaleTL);
+leadRouter.get(
+  "/lead-count-funnel-pre-sales-tl",
+  getAllLeadCountsFunnelForPreSaleTL
+);
+
+leadRouter.post("/lead-delete-dec", async (req, res) => {
+  try {
+    // Define the start date as December 1, 2024
+    const startOfDecember = new Date("2024-12-01T00:00:00.000Z");
+
+    // Query leads with startDate from December 1, 2024, onwards
+    const leads = await leadModel.find({
+      startDate: {
+        $gte: startOfDecember, // Greater than or equal to December 1, 2024
+      },
+    });
+
+    res.status(200).json({ success: true, data: leads });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+});
 leadRouter.post("/lead-test-update", async (req, res) => {
   const results = [];
   const dataTuPush = [];
@@ -131,7 +168,9 @@ leadRouter.post("/lead-test-update", async (req, res) => {
 
         let teamLeader1 =
           employees.find((ele) =>
-            ele.firstName?.toLowerCase().includes(teamLeader?.toLowerCase().split(" ")[0])
+            ele.firstName
+              ?.toLowerCase()
+              .includes(teamLeader?.toLowerCase().split(" ")[0])
           )?._id || null;
 
         let dataAnalyzer1 =
@@ -201,7 +240,9 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
           // Check for existing firm name based on the specified logic
           let foundCp =
             channelPartners.find((ele) =>
-              ele.firmName?.toLowerCase().includes(source?.toLowerCase().split(" ")[0])
+              ele.firmName
+                ?.toLowerCase()
+                .includes(source?.toLowerCase().split(" ")[0])
             )?._id || null;
           let teamLeader1 =
             employees.find((ele) =>
@@ -214,7 +255,9 @@ leadRouter.post("/update-lead2-from-csv", async (req, res) => {
 
           projectsLocal.map((projL) => {
             let projectR = projectsDb.find(
-              (ele) => ele?.name?.trim()?.toLowerCase() === projL?.trim()?.toLowerCase()
+              (ele) =>
+                ele?.name?.trim()?.toLowerCase() ===
+                projL?.trim()?.toLowerCase()
             );
             ourProj.push(projectR._id);
           });

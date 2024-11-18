@@ -49,7 +49,10 @@ export const addDepartment = async (req, res) => {
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!department) return res.send(errorRes(403, "department is required"));
+    const newDeptId = "dept-" + department?.replace(/\s+/g, "-").toLowerCase();
+
     const newDepartment = await departmentModel.create({
+      _id: newDeptId,
       department: department,
     });
     await newDepartment.save();

@@ -44,7 +44,10 @@ export const addDivision = async (req, res) => {
     // if (!body) return res.send(errorRes(403, "data is required"));
     // if (!location) return res.send(errorRes(403, "location  is required"));
     if (!division) return res.send(errorRes(403, "division is required"));
+    const newDeptId = "div-" + division?.replace(/\s+/g, "-").toLowerCase();
+
     const newDivision = await divisionModel.create({
+      _id: newDeptId,
       division: division,
       location: location,
     });
