@@ -46,7 +46,7 @@ export const postSaleLeadSchema = new mongoose.Schema(
     floor: { type: Number, default: null },
     number: { type: Number, default: null },
     project: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       default: null,
       ref: "ourProjects",

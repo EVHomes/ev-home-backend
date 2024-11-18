@@ -35,7 +35,11 @@ employeeRouter.get(
 
 employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
 
-employeeRouter.get("/employee-closing-manager", authenticateToken, getClosingManagers);
+employeeRouter.get(
+  "/employee-closing-manager",
+  authenticateToken,
+  getClosingManagers
+);
 
 employeeRouter.get("/employee-closing-manager-s", getSeniorClosingManagers);
 
@@ -52,7 +56,6 @@ employeeRouter.get(
   authenticateToken,
   getEmployeeByDesignation
 );
-+0;
 
 employeeRouter.get("/employee-team-leader", authenticateToken, getTeamLeaders);
 employeeRouter.get("/employee-data-analzer", authenticateToken, getTeamLeaders);
@@ -63,7 +66,11 @@ employeeRouter.get(
   getPreSalesExecutive
 );
 
-employeeRouter.post("/employee-register", validateEmployeeFields, registerEmployee);
+employeeRouter.post(
+  "/employee-register",
+  validateEmployeeFields,
+  registerEmployee
+);
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 
 employeeRouter.post(

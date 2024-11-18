@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 export const ourProjectsSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
   name: { type: String, required: true, unique: true },
   description: { type: String, default: "" },
   showCaseImage: { type: String, required: true },
@@ -65,5 +66,9 @@ export const ourProjectsSchema = new mongoose.Schema({
     },
   ],
 });
-const ourProjectModel = mongoose.model("ourProjects", ourProjectsSchema, "ourProjects");
+const ourProjectModel = mongoose.model(
+  "ourProjects",
+  ourProjectsSchema,
+  "ourProjects"
+);
 export default ourProjectModel;

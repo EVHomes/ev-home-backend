@@ -134,7 +134,11 @@ export const getAllLeads = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -154,7 +158,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
     let query = req.query.query || "";
-    let approvalStatus = req.query.approvalStatus;
+    let status = req.query.status;
     const isNumberQuery = !isNaN(query);
 
     let page = parseInt(req.query.page) || 1;
@@ -188,9 +192,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         // isNumberQuery ? { altPhoneNumber: Number(query) } : null,
         { email: { $regex: query, $options: "i" } },
         { address: { $regex: query, $options: "i" } },
-        { approvalStatus: { $regex: query, $options: "i" } },
-        approvalStatus != null || approvalStatus != undefined
-          ? { approvalStatus: approvalStatus }
+        { status: { $regex: query, $options: "i" } },
+        status != null || status != undefined || status === "Pending-assign"
+          ? { preSalesExecutive: null }
+          : null,
+        status != null ||
+        status != undefined ||
+        status != "Total" ||
+        status != "Pending-assign"
+          ? { status: status }
           : null,
         { interestedStatus: { $regex: query, $options: "i" } },
       ].filter(Boolean),
@@ -313,7 +323,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -477,7 +491,11 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -649,7 +667,11 @@ export const searchLeads = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     // Count the total items matching the filter
@@ -809,7 +831,11 @@ export const getLeadById = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     if (!respLead) return errorRes(404, "No lead found");
@@ -953,7 +979,11 @@ export const getSimilarLeadsById = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     return res.send(
@@ -1142,7 +1172,8 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully`, {
@@ -1189,7 +1220,8 @@ export const rejectLeadById = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully`, {
@@ -1211,7 +1243,8 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -1521,7 +1554,11 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -1712,7 +1749,14 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const { leadStage, leadStatus, feedback, siteVisit, documentUrl, recordingUrl } = body;
+  const {
+    leadStage,
+    leadStatus,
+    feedback,
+    siteVisit,
+    documentUrl,
+    recordingUrl,
+  } = body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -1800,7 +1844,11 @@ export const updateCallHistoryPreSales = async (req, res) => {
       .populate({
         path: "callHistory.caller",
         select: "-password",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
     if (!updatedLead) {
       return res.send(errorRes(404, `Lead not found with ID: ${id}`));
@@ -2181,7 +2229,11 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       {
         $project: {
           teamLeader: {
-            $concat: ["$teamLeaderDetails.firstName", " ", "$teamLeaderDetails.lastName"],
+            $concat: [
+              "$teamLeaderDetails.firstName",
+              " ",
+              "$teamLeaderDetails.lastName",
+            ],
           },
           count: 1,
           interval,
@@ -2250,7 +2302,9 @@ export async function getAllLeadCountsFunnel(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res.status(400).json({ message: "Invalid year or month parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -2384,7 +2438,11 @@ export async function getAllLeadCountsFunnel(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -2940,7 +2998,9 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res.status(400).json({ message: "Invalid year or month parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -2993,7 +3053,12 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
     }
 
     // Define all possible statuses for the funnel
-    const allStatuses = ["Booked", "Site Visit", "Leads Contacted", "Leads Received"];
+    const allStatuses = [
+      "Booked",
+      "Site Visit",
+      "Leads Contacted",
+      "Leads Received",
+    ];
 
     // Group stage by lead status and interval
     let groupStage = {
@@ -3068,7 +3133,11 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
