@@ -10,7 +10,7 @@ export const getPayment = async (req, res) => {
       });
 
     return res.send(
-      successRes(200, "Get Department", {
+      successRes(200, "Get Payment", {
         data: respPayment,
       })
     );
