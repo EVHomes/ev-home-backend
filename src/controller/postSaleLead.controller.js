@@ -6,7 +6,6 @@ export const getPostSaleLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let project = req.query.project;
-
     let page = parseInt(req.query.page) || 2;
     let limit = parseInt(req.query.limit) || 20;
 
@@ -112,6 +111,7 @@ export const getPostSaleLeads = async (req, res, next) => {
     const totalItems = await postSaleLeadModel.countDocuments({
       // teamLeader: { $eq: teamLeaderId },
     });
+    
     const registrationDone = await postSaleLeadModel.countDocuments({
       bookingStatus: "Registration Done",
     });

@@ -19,6 +19,7 @@ import postSaleRouter from "./postSaleLead/postSaleLeadRouter.js";
 import contestRouter from "./contest/contestRouter.js";
 import paymentModel from "../model/payment.model.js";
 import paymentRouter from "./payment/paymentRouter.js";
+import demandRouter from "./demand/demandRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -70,5 +71,6 @@ router.use(reqRouter);
 router.use(postSaleRouter);
 router.use(contestRouter);
 router.use(paymentRouter);
+router.use(demandRouter);
 
 export default router;

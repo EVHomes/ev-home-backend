@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
+import { stringify } from "uuid";
 const dateOfAmtReceive = /^\d{4}-\d{2}-\d{2}$/;
 export const paymentSchema = new mongoose.Schema({
   projects: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     required: true,
     default: null,
     ref: "ourProjects",
@@ -54,7 +55,6 @@ export const paymentSchema = new mongoose.Schema({
     type: Number,
     required: true,
 
-    
   },
   stampDuty: {
     type: Number,
@@ -63,7 +63,8 @@ export const paymentSchema = new mongoose.Schema({
   tds: { type: Number,
   },
   cgst: { type: Number, required: true },
-});
+
+},  { timestamps: true });
 
 const paymentModel = mongoose.model("payments", paymentSchema, "payments");
 export default paymentModel;
