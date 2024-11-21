@@ -1,11 +1,9 @@
 import { Router } from "express";
 
-import {
-    getDemand
-  } from "../../controller/demand.controller.js";
+import { addDemand, getDemand } from "../../controller/demand.controller.js";
 
+const demandRouter = Router();
 
-const demandRouter= Router();
-
-demandRouter.get("/demand",getDemand );
+demandRouter.get("/demand", getDemand);
+demandRouter.post("/add-demand", addDemand);
 export default demandRouter;
