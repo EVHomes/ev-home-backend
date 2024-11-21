@@ -38,7 +38,7 @@ export const clientSchema = new mongoose.Schema({
     },
   ],
   closingManager: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "employees",
     required: true,
     default: null,

@@ -20,6 +20,7 @@ import contestRouter from "./contest/contestRouter.js";
 import paymentModel from "../model/payment.model.js";
 import paymentRouter from "./payment/paymentRouter.js";
 import demandRouter from "./demand/demandRouter.js";
+import meetingRouter from "./meetingSummary/meetingSummaryRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -72,5 +73,6 @@ router.use(postSaleRouter);
 router.use(contestRouter);
 router.use(paymentRouter);
 router.use(demandRouter);
+router.use(meetingRouter);
 
 export default router;
