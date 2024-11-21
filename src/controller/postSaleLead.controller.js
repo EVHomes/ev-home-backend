@@ -5,31 +5,12 @@ import { startOfWeek, addDays, format } from "date-fns";
 export const getPostSaleLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
-    let project = req.query.project;
-    let page = parseInt(req.query.page) || 2;
+    let project = req.query.project; // Get the project name from the query
+    let page = parseInt(req.query.page) || 1; // Start from page 1
     let limit = parseInt(req.query.limit) || 20;
 
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
-    // let searchFilter = {
-    //   $or: [
-    //     { firstName: new RegExp(query, "i") },
-    //     { lastName: new RegExp(query, "i") },
-    //     isNumberQuery
-    //       ? {
-    //           $expr: {
-    //             $regexMatch: {
-    //               input: { $toString: "$phoneNumber" },
-    //               regex: query,
-    //             },
-    //           },
-    //         }
-    //       : null,
-    //     { email: new RegExp(query, "i") },
-    //     { address: new RegExp(query, "i") },
-    //   ].filter(Boolean), // Filters out any `null` conditions
-    //   ...(project ? { project: project } : {}),
-    // };
 
     let searchFilter = {
       $or: [
@@ -60,7 +41,7 @@ export const getPostSaleLeads = async (req, res, next) => {
           },
         },
       ].filter(Boolean),
-      ...(project ? { project: project } : {}),
+      ...(project ? { project: project } : {}), // Filter by project if provided
     };
 
     const resp = await postSaleLeadModel
@@ -68,7 +49,6 @@ export const getPostSaleLeads = async (req, res, next) => {
       .sort({ date: -1 })
       .populate({
         path: "project",
-        // select: "name",
       })
       .populate({
         path: "closingManager",
@@ -108,10 +88,7 @@ export const getPostSaleLeads = async (req, res, next) => {
       .limit(limit);
 
     // Count the total items matching the filter
-    const totalItems = await postSaleLeadModel.countDocuments({
-      // teamLeader: { $eq: teamLeaderId },
-    });
-    
+    const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
     const registrationDone = await postSaleLeadModel.countDocuments({
       bookingStatus: "Registration Done",
     });
