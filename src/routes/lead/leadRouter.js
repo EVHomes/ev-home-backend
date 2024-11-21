@@ -36,6 +36,11 @@ import { encryptPassword } from "../../utils/helper.js";
 import employeeModel from "../../model/employee.model.js";
 import leadModel from "../../model/lead.model.js";
 import ourProjectModel from "../../model/ourProjects.model.js";
+import {
+  sendNotification,
+  sendNotificationWithImage,
+  sendNotificationWithInfo,
+} from "../../controller/oneSignal.controller.js";
 // import jsonLeads from "./ev_homes_main.leads.json" assert { type: "json" };
 
 dayjs.extend(customParseFormat);

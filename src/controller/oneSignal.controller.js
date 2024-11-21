@@ -26,7 +26,10 @@ export const sendNotification = async ({ playerIds = [], message }) => {
     const response = await axios.post(url, data, { headers });
     console.log("Notification sent successfully:", response.data);
   } catch (error) {
-    console.error("Error sending notification:", error.response?.data || error.message);
+    console.error(
+      "Error sending notification:",
+      error.response?.data || error.message
+    );
   }
 };
 
@@ -63,7 +66,10 @@ export const sendNotificationWithInfo = async ({
     const response = await axios.post(url, notificationData, { headers });
     console.log("Notification sent successfully:", response.data);
   } catch (error) {
-    console.error("Error sending notification:", error.response?.data || error.message);
+    console.error(
+      "Error sending notification:",
+      error.response?.data || error.message
+    );
   }
 };
 
@@ -105,6 +111,9 @@ export const sendNotificationWithImage = async ({
     const response = await axios.post(url, notificationData, { headers });
     console.log("Notification sent successfully:", response.data);
   } catch (error) {
-    console.error("Error sending notification:", error.response?.data || error.message);
+    console.error(
+      "Error sending notification:",
+      error.response?.data || error.message
+    );
   }
 };
