@@ -42,6 +42,7 @@ import {
   sendNotificationWithInfo,
 } from "../../controller/oneSignal.controller.js";
 // import jsonLeads from "./ev_homes_main.leads.json" assert { type: "json" };
+// import jsonEmps from "./ev_home_employe.json" assert { type: "json" };
 
 dayjs.extend(customParseFormat);
 
@@ -381,6 +382,44 @@ leadRouter.get(
   // authenticateToken,
   checkLeadsExists
 );
+leadRouter.get("/what", async (req, res) => {
+  try {
+    const upLeads = jsonLeads.map((lead) => {
+      const tl = jsonEmps.find((em) => em.oldId === lead.teamLeader)?._id;
+      lead.teamLeader = tl;
+      const dt = jsonEmps.find((em) => em.oldId === lead.dataAnalyser)?._id;
+      lead.dataAnalyser = dt;
+      const pse = jsonEmps.find(
+        (em) => em.oldId === lead.preSalesExecutive
+      )?._id;
+      lead.preSalesExecutive = pse;
+      lead.callHistory.map((el) => {
+        const emp = jsonEmps.find((em) => em.oldId === el.caller)?._id;
+        el.caller = emp;
+        return el;
+      });
+      lead.viewedBy.map((el) => {
+        const emp = jsonEmps.find((em) => em.oldId === el.employee)?._id;
+        el.employee = emp;
+        return el;
+      });
+      lead.approvalHistory.map((el) => {
+        const emp = jsonEmps.find((em) => em.oldId === el.employee)?._id;
+        el.employee = emp;
+        return el;
+      });
+      lead.updateHistory.map((el) => {
+        const emp = jsonEmps.find((em) => em.oldId === el.employee)?._id;
+        el.employee = emp;
+        return el;
+      });
+      return lead;
+    });
+    res.json(upLeads);
+  } catch (error) {
+    res.send(error);
+  }
+});
 
 const parsePhoneNumber = (phoneStr) => {
   if (!phoneStr || phoneStr == "") {
