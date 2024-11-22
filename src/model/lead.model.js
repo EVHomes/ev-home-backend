@@ -34,33 +34,50 @@ const callHistorySchema = new mongoose.Schema({
     type: String,
   },
 });
+const cycleSchema = new mongoose.Schema({
+  stage: {
+    type: String,
+    required: true,
+    default: null,
+  },
+  currentOrder: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  teamLeader: {
+    type: String,
+    ref: "employees",
+    default: null,
+  },
+  startDate: {
+    type: Date,
+    required: true,
+    default: null,
+  },
+  validTill: {
+    type: Date,
+    required: true,
+    default: null,
+  },
+});
 
 export const leadSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      // required: true,
       default: null,
-      // validate: {
-      //   validator: function (value) {
-      //     return emailFormat.test(value);
-      //   },
-      //   message: (props) => `${props.value} is not a valid email.`,
-      // },
     },
     project: [
       {
         type: String,
-        // type: String,
-        // ref: "ourProjects",
+        ref: "ourProjects",
         required: true,
       },
     ],
     requirement: [
       {
         type: String,
-        // type: String,
-        // ref: "ourProjects",
         required: true,
       },
     ],
@@ -87,10 +104,17 @@ export const leadSchema = new mongoose.Schema(
       ref: "employees",
       default: null,
     },
+    salesExecutive: {
+      type: String,
+      ref: "employees",
+      default: null,
+    },
     countryCode: { type: String, default: "+91" },
     phoneNumber: { type: Number, default: null },
     altPhoneNumber: { type: Number, default: null },
     remark: { type: String, default: null },
+    leadType: { type: String, default: null },
+    stage: { type: String, default: "approval" },
     startDate: {
       type: Date,
       required: true,
@@ -110,21 +134,65 @@ export const leadSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    approvalStatus: {
-      type: String,
-      default: "Pending",
-      enum: ["Pending", "Rejected", "Approved"],
-    },
+    // approvalStatus: {
+    //   type: String,
+    //   default: "Pending",
+    //   enum: ["Pending", "Rejected", "Approved"],
+    // },
     status: {
       type: String,
       default: "Pending",
-      // enum: ["Pending", "Rejected", "Approved"],
     },
     interestedStatus: {
       type: String,
       default: "Cold",
       enum: ["Cold", "Hot", "Warm"],
     },
+    cycle: {
+      stage: {
+        type: String,
+        required: true,
+        default: null,
+      },
+      currentOrder: {
+        type: Number,
+        required: true,
+        default: 0,
+      },
+      teamLeader: {
+        type: String,
+        ref: "employees",
+        default: null,
+      },
+      startDate: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+      validTill: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+    },
+    approvalStage: {
+      status: {
+        type: String,
+        required: true,
+        default: null,
+      },
+      date: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+      remark: {
+        type: String,
+        required: true,
+        default: null,
+      },
+    },
+    cycleHistory: [cycleSchema],
     callHistory: [callHistorySchema],
     viewedBy: [
       {
