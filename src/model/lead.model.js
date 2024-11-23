@@ -84,8 +84,19 @@ export const leadSchema = new mongoose.Schema(
     firstName: { type: String, default: null },
     lastName: { type: String, default: null },
     address: { type: String, default: null },
+    refrence: {
+      firstName: { type: String, default: null },
+      lastName: { type: String, default: null },
+      email: {
+        type: String,
+        default: null,
+      },
+      address: { type: String, default: null },
+      countryCode: { type: String, default: "+91" },
+      phoneNumber: { type: Number, default: null },
+    },
     channelPartner: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "channelPartners",
       default: null,
     },
@@ -134,11 +145,11 @@ export const leadSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    // approvalStatus: {
-    //   type: String,
-    //   default: "Pending",
-    //   enum: ["Pending", "Rejected", "Approved"],
-    // },
+    approvalStatus: {
+      type: String,
+      default: "Pending",
+      // enum: ["Pending", "Rejected", "Approved"],
+    },
     status: {
       type: String,
       default: "Pending",
@@ -218,7 +229,7 @@ export const leadSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
-        remarks: { type: String, default: null },
+        remark: { type: String, default: null },
       },
     ],
     updateHistory: [

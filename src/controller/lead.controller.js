@@ -5,7 +5,10 @@ import leadModel from "../model/lead.model.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import TeamLeaderAssignTurn from "../model/teamLeaderAssignTurn.model.js";
-import { sendNotificationWithInfo } from "./oneSignal.controller.js";
+import {
+  sendNotificationWithImage,
+  sendNotificationWithInfo,
+} from "./oneSignal.controller.js";
 import {
   startOfWeek,
   addDays,
@@ -514,43 +517,54 @@ export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let approvalStatus = req.query.approvalStatus;
+    let stage = req.query.stage;
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
 
+    let orFilters = [
+      { firstName: { $regex: query, $options: "i" } },
+      { lastName: { $regex: query, $options: "i" } },
+    ];
+
+    if (isNumberQuery) {
+      orFilters.push(
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$phoneNumber" },
+              regex: query,
+            },
+          },
+        },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$altPhoneNumber" },
+              regex: query,
+            },
+          },
+        }
+      );
+    }
+
+    orFilters.push(
+      { email: { $regex: query, $options: "i" } },
+      { address: { $regex: query, $options: "i" } },
+      { interestedStatus: { $regex: query, $options: "i" } }
+    );
+
     let searchFilter = {
-      $or: [
-        { firstName: { $regex: query, $options: "i" } },
-        { lastName: { $regex: query, $options: "i" } },
-        isNumberQuery
-          ? {
-              $expr: {
-                $regexMatch: {
-                  input: { $toString: "$phoneNumber" },
-                  regex: query,
-                },
-              },
-            }
-          : null,
-        isNumberQuery
-          ? {
-              $expr: {
-                $regexMatch: {
-                  input: { $toString: "$altPhoneNumber" },
-                  regex: query,
-                },
-              },
-            }
-          : null,
-        { email: { $regex: query, $options: "i" } },
-        { address: { $regex: query, $options: "i" } },
-        { interestedStatus: { $regex: query, $options: "i" } },
-      ].filter(Boolean),
-      ...(approvalStatus
-        ? { approvalStatus: { $regex: approvalStatus, $options: "i" } }
-        : {}),
+      $or: orFilters,
+      ...(approvalStatus && {
+        "approvalStage.status": { $regex: approvalStatus, $options: "i" },
+      }),
+      ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
     };
+
+    // Use searchFilter in your query
+    const results = await leadModel.find(searchFilter);
 
     // Execute the search with the refined filter
     const respCP = await leadModel
@@ -561,6 +575,9 @@ export const searchLeads = async (req, res, next) => {
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
+      })
+      .populate({
+        path: "project",
       })
       .populate({
         path: "teamLeader",
@@ -677,18 +694,29 @@ export const searchLeads = async (req, res, next) => {
     // Count the total items matching the filter
     // const totalItems = await leadModel.countDocuments(searchFilter);
     // Count the total items matching the filter
-    const totalItems = await leadModel.countDocuments();
+    const totalItems = await leadModel.countDocuments({
+      stage: { $ne: "tagging-over" },
+    });
     // const totalItems = await leadModel.countDocuments(searchFilter);
     const rejectedCount = await leadModel.countDocuments({
-      $and: [{ approvalStatus: "Rejected" }],
+      $and: [
+        { "approvalStage.status": "Rejected" },
+        { stage: { $ne: "tagging-over" } },
+      ],
     });
 
     const pendingCount = await leadModel.countDocuments({
-      $and: [{ approvalStatus: "Pending" }],
+      $and: [
+        { "approvalStage.status": "Pending" },
+        { stage: { $ne: "tagging-over" } },
+      ],
     });
 
     const approvedCount = await leadModel.countDocuments({
-      $and: [{ approvalStatus: "Approved" }],
+      $and: [
+        { "approvalStage.status": "Approved" },
+        { stage: { $ne: "tagging-over" } },
+      ],
     });
 
     // const assignedCount = await leadModel.countDocuments({
@@ -1201,17 +1229,23 @@ export const rejectLeadById = async (req, res, next) => {
       id,
       {
         ...body,
+        $set: {
+          approvalStage: {
+            status: "Rejected",
+            date: new Date(),
+            remark: remark ?? "Rejected",
+          },
+        },
         $addToSet: {
           approvalHistory: {
             employee: user?._id,
-            approvedAt: Date.now(),
+            approvedAt: new Date(),
             remark: remark ?? "Rejected",
           },
-
           updateHistory: {
             employee: user?._id,
-            changes: `${JSON.stringify(body)}`,
-            updatedAt: Date.now(),
+            changes: `Lead Rejected`,
+            updatedAt: new Date(),
             remark: remark,
           },
         },
@@ -1219,12 +1253,8 @@ export const rejectLeadById = async (req, res, next) => {
       { new: true }
     );
 
-    // Check if the lead was updated successfully
-    if (!updatedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
-
     return res.send(
-      successRes(200, `Lead updated successfully`, {
+      successRes(200, `Lead Rejected Successfully`, {
         data: updatedLead,
       })
     );
@@ -1257,6 +1287,197 @@ export const deleteLead = async (req, res, next) => {
   }
 };
 
+export const LeadAssignToTeamLeader = async (req, res, next) => {
+  const id = req.params.id;
+  const user = req.user;
+
+  const { remark, teamLeaderId } = req.body;
+
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+
+    if (!teamLeaderId)
+      return res.send(errorRes(403, "teamLeaderId is required"));
+
+    const respLead = await leadModel.findById(id);
+
+    if (!respLead) return res.send(errorRes(404, "No lead found"));
+
+    console.log("pass 1");
+    const teamLeaderResp = await employeeModel.find({ _id: teamLeaderId });
+
+    const updatedLead = await leadModel
+      .findByIdAndUpdate(
+        id,
+        {
+          teamLeader: teamLeaderId,
+          dataAnalyser: user?._id,
+          // approvalStatus: "Approved",
+          $set: {
+            approvalStage: {
+              status: "Approved",
+              date: new Date(),
+              remark: remark ?? "Approved",
+            },
+          },
+          $addToSet: {
+            approvalHistory: {
+              employee: user?._id,
+              approvedAt: new Date(),
+              remark: remark ?? "Approved",
+            },
+            updateHistory: {
+              employee: user?._id,
+              changes: `Lead Assign to Team Leader ${teamLeaderResp?.firstName} ${teamLeaderResp?.lastName}`,
+              updatedAt: new Date(),
+              remark: remark,
+            },
+          },
+        },
+        { new: true, runValidators: true }
+      )
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyser",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "viewedBy.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+    console.log("pass 2");
+
+    const foundTLPlayerId = await oneSignalModel.findOne({
+      docId: teamLeaderResp?._id,
+      role: teamLeaderResp?.role,
+    });
+
+    console.log("pass 3");
+    if (foundTLPlayerId) {
+      // console.log(foundTLPlayerId);
+      await sendNotificationWithImage({
+        playerIds: [foundTLPlayerId.playerId],
+        title: "You've Got a New Lead!",
+        message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+        imageUrl:
+          "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+      });
+    }
+    console.log("pass 4");
+
+    return res.send(
+      successRes(200, "Lead Assigned Successfully", { data: updatedLead })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
 export const assignLeadToTeamLeader = async (req, res, next) => {
   const id = req.params.id;
   const user = req.user;
@@ -1411,7 +1632,10 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
 
     const teamLeaders = await employeeModel
       .find({
-        designation: "desg-pre-sales-team-leader",
+        $or: [
+          { designation: "desg-senior-closing-manager" },
+          { designation: "desg-site-head" },
+        ],
         status: "active",
       })
       .sort({ createdAt: 1 });
@@ -1865,7 +2089,7 @@ export const updateCallHistoryPreSales = async (req, res) => {
   }
 };
 
-export const markLeadAsApproved = async (leadId, employeeId, remarks) => {
+export const markLeadAsApproved = async (leadId, employeeId, remark) => {
   try {
     const updatedLead = await leadModel.findByIdAndUpdate(
       leadId,
@@ -1874,7 +2098,7 @@ export const markLeadAsApproved = async (leadId, employeeId, remarks) => {
           approvalHistory: {
             employee: employeeId,
             approvedAt: Date.now(),
-            remarks: remarks,
+            remark: remark,
           },
         },
       },

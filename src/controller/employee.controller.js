@@ -75,7 +75,7 @@ export const getEmployees = async (req, res, next) => {
   }
 };
 
-export const getClosingManagers = async (req, res, next) => {
+export const getVisitEntryAllowedStaff = async (req, res, next) => {
   try {
     const respCP = await employeeModel
       .find({
@@ -83,9 +83,6 @@ export const getClosingManagers = async (req, res, next) => {
           {
             designation: "desg-pre-sales-head",
           },
-          // {
-          //   designation: "desg-senior-closing-manager",
-          // },
           {
             designation: "desg-site-head",
           },
@@ -96,6 +93,7 @@ export const getClosingManagers = async (req, res, next) => {
             designation: "desg-floor-manager",
           },
         ],
+        status: "active",
       })
       .select("-password -refreshToken")
       .populate("designation")
@@ -113,6 +111,39 @@ export const getClosingManagers = async (req, res, next) => {
 
     return res.send(
       successRes(200, "get Employees", {
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+export const getTeamLeaderCSM = async (req, res, next) => {
+  try {
+    const respCP = await employeeModel
+      .find({
+        $or: [
+          { designation: "desg-senior-closing-manager" },
+          { designation: "desg-site-head" },
+        ],
+        status: "active",
+      })
+      .select("-password -refreshToken")
+      .populate("designation")
+      .populate("department")
+      .populate("division")
+      .populate({
+        path: "reportingTo",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
+      });
+
+    return res.send(
+      successRes(200, "get TeamLeaders", {
         data: respCP,
       })
     );

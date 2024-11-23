@@ -21,6 +21,7 @@ import {
   getLeadCountsByPreSaleExecutve,
   getAllLeadCountsFunnelForPreSaleTL,
   rejectLeadById,
+  LeadAssignToTeamLeader,
   // getAllLeadsWithValidity
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -41,7 +42,8 @@ import {
   sendNotificationWithImage,
   sendNotificationWithInfo,
 } from "../../controller/oneSignal.controller.js";
-// import jsonLeads from "./update_leads2.json" assert { type: "json" };
+// import jsonLeads from "./ev_homes_main.leads_23_11_24.json" assert { type: "json" };
+// import jsonCps from "./ev_cps.json" assert { type: "json" };
 // import jsonEmps from "./ev_home_employe.json" assert { type: "json" };
 
 dayjs.extend(customParseFormat);
@@ -74,7 +76,7 @@ leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 leadRouter.post(
   "/lead-assign-tl/:id",
   authenticateToken,
-  assignLeadToTeamLeader
+  LeadAssignToTeamLeader
 );
 leadRouter.post("/lead-reject/:id", authenticateToken, rejectLeadById);
 
@@ -376,6 +378,52 @@ leadRouter.post("/fix-project-miss-leads", async (req, res) => {
     return res.status(500).send({ error: error.message });
   }
 });
+leadRouter.get("/sept-after-lead", async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+
+    const septemberFirst = new Date(currentYear, 8, 1);
+
+    // Fetch leads before September 1 of the current year
+    const resp = await leadModel.find({});
+
+    // Update each document
+    await Promise.all(
+      resp.map(async (el) => {
+        try {
+          if (Array.isArray(el.project)) {
+            const updatedProjects = el.project.map((proj) => {
+              if (proj?.toLowerCase()?.includes("marina")) {
+                return "project-ev-10-marina-bay-vashi-sector-10";
+              } else {
+                return "project-ev-9-square-vashi-sector-9";
+              }
+            });
+
+            // Update the document with new project IDs
+            // await leadModel.updateOne(
+            //   { _id: el._id },
+            //   {
+            //     $set: {
+            //       project: updatedProjects, // Use the transformed array directly
+            //     },
+            //   }
+            // );
+          }
+        } catch (error) {
+          console.error("Error updating document:", error);
+        }
+      })
+    );
+
+    res.send({
+      data: resp,
+      length: resp?.length,
+    });
+  } catch (error) {
+    res.status(500).send({ error: error.message });
+  }
+});
 
 leadRouter.get(
   "/similar-leads2",
@@ -383,37 +431,41 @@ leadRouter.get(
   checkLeadsExists
 );
 // leadRouter.get("/what", async (req, res) => {
-//   try {
-//     const upLeads = jsonLeads.map((lead) => {
-//       if (lead.approvalStatus != "Pending") {
-//         lead.approvalStage = {
-//           status: lead.approvalStatus,
-//           date:
-//             (lead.approvalHistory?.length > 0 &&
-//               lead.approvalHistory[0]?.approvedAt) ||
-//             null,
-//           remark:
-//             (lead.approvalHistory?.length > 0 &&
-//               lead.approvalHistory[0]?.remarks) ||
-//             lead.approvalStatus,
-//         };
-//       } else {
-//         lead.approvalStage = {
-//           status: null,
-//           date: null,
-//           remark: null,
-//         };
-//       }
-//       lead.cycle = {
-//         stage: null,
-//         currentOrder: null,
-//         teamLeader: null,
-//         startDate: null,
-//         validTill: null,
-//       };
-//       return lead;
-//     });
-//     res.json(upLeads);
+// try {
+// const upLeads = jsonLeads.map((lead) => {
+//   const fcp =
+//     jsonCps.find((iCp) => iCp?.oldId == lead?.channelPartner?.$oid)?._id ||
+//     null;
+//   lead.channelPartner = fcp;
+// if (lead.approvalStatus != "Pending") {
+//   lead.approvalStage = {
+//     status: lead.approvalStatus,
+//     date:
+//       (lead.approvalHistory?.length > 0 &&
+//         lead.approvalHistory[0]?.approvedAt) ||
+//       null,
+//     remark:
+//       (lead.approvalHistory?.length > 0 &&
+//         lead.approvalHistory[0]?.remarks) ||
+//       lead.approvalStatus,
+//   };
+// } else {
+//   lead.approvalStage = {
+//     status: null,
+//     date: null,
+//     remark: null,
+//   };
+// }
+// lead.cycle = {
+//   stage: null,
+//   currentOrder: null,
+//   teamLeader: null,
+//   startDate: null,
+//   validTill: null,
+// };
+//   return lead;
+// });
+// res.json(upLeads);
 //   } catch (error) {
 //     res.send(error);
 //   }

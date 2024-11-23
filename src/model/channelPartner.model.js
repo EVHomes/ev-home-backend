@@ -4,6 +4,7 @@ const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 export const channelPartnerSchema = new mongoose.Schema(
   {
+    _id: { type: String, required: true },
     email: {
       type: String,
       required: true,
@@ -15,7 +16,6 @@ export const channelPartnerSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
-
     password: { type: String, required: true, minlength: 6 },
     firstName: { type: String, default: null },
     lastName: { type: String, default: null },
