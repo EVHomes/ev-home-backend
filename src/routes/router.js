@@ -17,10 +17,10 @@ import reqRouter from "./requirement/reqRouter.js";
 import { encryptPassword } from "../utils/helper.js";
 import postSaleRouter from "./postSaleLead/postSaleLeadRouter.js";
 import contestRouter from "./contest/contestRouter.js";
-import paymentModel from "../model/payment.model.js";
 import paymentRouter from "./payment/paymentRouter.js";
 import demandRouter from "./demand/demandRouter.js";
 import meetingRouter from "./meetingSummary/meetingSummaryRouter.js";
+import targetRouter from "./target/targetRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -74,5 +74,6 @@ router.use(contestRouter);
 router.use(paymentRouter);
 router.use(demandRouter);
 router.use(meetingRouter);
+router.use(targetRouter);
 
 export default router;

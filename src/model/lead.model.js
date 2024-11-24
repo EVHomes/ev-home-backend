@@ -203,6 +203,89 @@ export const leadSchema = new mongoose.Schema(
         default: null,
       },
     },
+    followupStage: {
+      status: {
+        type: String,
+        required: true,
+        default: null,
+      },
+      date: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+      attendedBy: {
+        type: String,
+        ref: "employees",
+        default: null,
+      },
+      remark: {
+        type: String,
+        required: true,
+        default: null,
+      },
+    },
+    visitStage: {
+      status: {
+        type: String,
+        required: true,
+        default: null,
+      },
+      date: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+      attendedBy: {
+        type: String,
+        ref: "employees",
+        default: null,
+      },
+      remark: {
+        type: String,
+        required: true,
+        default: null,
+      },
+    },
+    revisitStage: {
+      status: {
+        type: String,
+        required: true,
+        default: null,
+      },
+      date: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+      attendedBy: {
+        type: String,
+        ref: "employees",
+        default: null,
+      },
+      remark: {
+        type: String,
+        required: true,
+        default: null,
+      },
+    },
+    taggingOverStage: {
+      status: {
+        type: String,
+        required: true,
+        default: null,
+      },
+      date: {
+        type: Date,
+        required: true,
+        default: null,
+      },
+      remark: {
+        type: String,
+        required: true,
+        default: null,
+      },
+    },
     cycleHistory: [cycleSchema],
     callHistory: [callHistorySchema],
     viewedBy: [

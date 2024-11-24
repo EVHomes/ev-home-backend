@@ -162,10 +162,19 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let status = req.query.status;
+    0;
     const isNumberQuery = !isNaN(query);
 
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
+    let statusToFind = null;
+    if (status === "visit-done") {
+      statusToFind = { "visitStage.status": "done" };
+    } else if (status === "revisit-done") {
+      statusToFind = { "revisitStage.status": "done" };
+    } else if (status === "booking") {
+      statusToFind = { "bookingStage.status": "booked" };
+    }
 
     let skip = (page - 1) * limit;
     let searchFilter = {
@@ -196,15 +205,13 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         { email: { $regex: query, $options: "i" } },
         { address: { $regex: query, $options: "i" } },
         { status: { $regex: query, $options: "i" } },
-        status != null || status != undefined || status === "Pending-assign"
-          ? { preSalesExecutive: null }
-          : null,
-        status != null ||
-        status != undefined ||
-        status != "Total" ||
-        status != "Pending-assign"
-          ? { status: status }
-          : null,
+        statusToFind != null ? statusToFind : null,
+        // status != null || status != undefined
+        //   ? { preSalesExecutive: null }
+        //   : null,
+        // status != null || status != undefined || status != "total"
+        //   ? { status: status }
+        //   : null,
         { interestedStatus: { $regex: query, $options: "i" } },
       ].filter(Boolean),
     };
@@ -220,6 +227,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .populate({
         path: "channelPartner",
         select: "-password -refreshToken",
+      })
+      .populate({
+        path: "project",
       })
       .populate({
         path: "teamLeader",
@@ -359,6 +369,19 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       preSalesExecutive: { $ne: null },
     });
 
+    const visitCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      "visitStage.status": "done",
+    });
+    const revisitCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      "revisitStage.status": "done",
+    });
+    const bookingCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      "bookingStage.status": "booked",
+    });
+
     // Calculate the total number of pages
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -372,6 +395,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         contactedCount,
         followUpCount,
         assignedCount,
+        visitCount,
+        revisitCount,
+        bookingCount,
         data: respLeads,
       })
     );

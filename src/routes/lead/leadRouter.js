@@ -54,7 +54,12 @@ const __dirname = path.dirname(__filename);
 const leadRouter = Router();
 
 leadRouter.get("/leads", authenticateToken, getAllLeads);
-leadRouter.get("/leads-team-leader/:id", authenticateToken, getLeadsTeamLeader);
+leadRouter.get(
+  "/leads-team-leader/:id",
+
+  // authenticateToken,
+  getLeadsTeamLeader
+);
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
