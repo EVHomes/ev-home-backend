@@ -44,7 +44,7 @@ cpRouter.post(
 
 cpRouter.post(
   "/channel-partner-edit/:id",
-  // authenticateToken,
+  authenticateToken,
   validateChannelPartnerFields,
   editChannelPartnerById
 );
