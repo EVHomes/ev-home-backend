@@ -434,7 +434,7 @@ export const getEmployeeById = async (req, res, next) => {
 };
 
 export const editEmployeeById = async (req, res, next) => {
-  const id = req.params.id;
+  const id = req.params.id;  
   const body = req.filteredBody;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));

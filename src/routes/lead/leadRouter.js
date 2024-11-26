@@ -91,7 +91,7 @@ leadRouter.post(
   assignLeadToPreSaleExecutive
 );
 
-leadRouter.post("/leads-add", authenticateToken, validateLeadsFields, addLead);
+leadRouter.post("/leads-add",  validateLeadsFields, addLead);
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
 leadRouter.get(
