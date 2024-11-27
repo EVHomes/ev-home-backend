@@ -12,6 +12,22 @@ export const paymentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  carpetArea: {
+    type: String,
+    required: true,
+  },
+  address1: {
+    type: String,
+  },
+  address2: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  pincode: {
+    type: Number,
+  },
   countryCode: { type: String, default: "+91" },
   phoneNumber: {
     type: Number,
@@ -48,6 +64,10 @@ export const paymentSchema = new mongoose.Schema({
   },
   flatNo: { type: String, required: true, default: null },
   amtReceived: {
+    type: Number,
+    required: true,
+  },
+  allinclusiveamt: {
     type: Number,
     required: true,
   },

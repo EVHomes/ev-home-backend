@@ -4,7 +4,7 @@ import teamSectionModel from "../model/teamSections.model.js";
 //GET BY ALL
 export const getTeamSections = async (req, res) => {
   try {
-    const respSections = await teamSectionModel.find();
+    const respSections = await teamSectionModel.find().populate("designations");
     return res.send(
       successRes(200, "Get team Sections", {
         data: respSections,
