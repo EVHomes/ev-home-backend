@@ -83,23 +83,23 @@ export const getAllLeads = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -278,23 +278,23 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -518,23 +518,23 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -817,7 +817,7 @@ export const searchLeads = async (req, res, next) => {
     };
 
     // Use searchFilter in your query
-    const results = await leadModel.find(searchFilter);
+    // const results = await leadModel.find(searchFilter);
 
     // Execute the search with the refined filter
     const respCP = await leadModel
@@ -831,113 +831,123 @@ export const searchLeads = async (req, res, next) => {
       })
       .populate({
         path: "project",
+        select: "name",
       })
       .populate({
         path: "teamLeader",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
+          // { path: "department" },
+          // { path: "division" },
           {
             path: "reportingTo",
+            select: "firstName lastName",
             populate: [
               { path: "designation" },
-              { path: "department" },
-              { path: "division" },
+              // { path: "department" },
+              // { path: "division" },
             ],
           },
         ],
       })
       .populate({
         path: "dataAnalyser",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
+          // { path: "department" },
+          // { path: "division" },
           {
             path: "reportingTo",
+            select: "firstName lastName",
+
             populate: [
               { path: "designation" },
-              { path: "department" },
-              { path: "division" },
+              // { path: "department" },
+              // { path: "division" },
             ],
           },
         ],
       })
       .populate({
         path: "preSalesExecutive",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
+          // { path: "department" },
+          // { path: "division" },
           {
             path: "reportingTo",
+            select: "firstName lastName",
             populate: [
               { path: "designation" },
-              { path: "department" },
-              { path: "division" },
+              // { path: "department" },
+              // { path: "division" },
             ],
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
+          // { path: "department" },
+          // { path: "division" },
           {
             path: "reportingTo",
+            select: "firstName lastName",
             populate: [
               { path: "designation" },
-              { path: "department" },
-              { path: "division" },
+              // { path: "department" },
+              // { path: "division" },
             ],
           },
         ],
       })
       .populate({
         path: "updateHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
+          // { path: "department" },
+          // { path: "division" },
           {
             path: "reportingTo",
+            select: "firstName lastName",
             populate: [
               { path: "designation" },
-              { path: "department" },
-              { path: "division" },
+              // { path: "department" },
+              // { path: "division" },
             ],
           },
         ],
       })
       .populate({
         path: "callHistory.caller",
-        select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          // { path: "department" }, { path: "division" }
+        ],
       });
 
     // Count the total items matching the filter
@@ -1045,23 +1055,23 @@ export const getLeadById = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -1189,23 +1199,23 @@ export const getSimilarLeadsById = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -1620,23 +1630,23 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -1947,23 +1957,23 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
           },
         ],
       })
-      .populate({
-        path: "viewedBy.employee",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
+      // .populate({
+      //   path: "viewedBy.employee",
+      //   select: "-password -refreshToken",
+      //   populate: [
+      //     { path: "designation" },
+      //     { path: "department" },
+      //     { path: "division" },
+      //     {
+      //       path: "reportingTo",
+      //       populate: [
+      //         { path: "designation" },
+      //         { path: "department" },
+      //         { path: "division" },
+      //       ],
+      //     },
+      //   ],
+      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
