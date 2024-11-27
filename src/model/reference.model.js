@@ -1,7 +1,8 @@
 import mongoose from "mongoose";
 const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
-export const refrenceSchema = new mongoose.Schema({
+export const referenceSchema = new mongoose.Schema({
+  _id: { type: String, required: true },
   firstName: { type: String, required: true, default: null },
   lastName: { type: String, required: true, default: null },
   email: {
@@ -21,5 +22,5 @@ export const refrenceSchema = new mongoose.Schema({
   },
 });
 
-const refrenceModel = mongoose.model("reference", refrenceSchema, "references");
+const refrenceModel = mongoose.model("reference", referenceSchema, "references");
 export default refrenceModel;

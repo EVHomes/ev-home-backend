@@ -118,7 +118,7 @@ export const leadSchema = new mongoose.Schema(
     address: { type: String, default: null },
     leadType: { type: String, default: "channel-partner" },
     reference: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "reference",
       default: null,
     },
