@@ -19,6 +19,25 @@ export const getPayment = async (req, res) => {
   }
 };
 
+export const getPaymentbyFlat = async (req, res) => {
+  try {
+    const flatNo = req.query.flatNo;
+    const respPayment = await paymentModel.findOne({flatNo:flatNo})
+    .populate({
+        path: "projects",
+    
+      });
+
+    return res.send(
+      successRes(200, "Get Payment", {
+        data: respPayment,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, error));
+  }
+};
+
 export const addPayment = async (req, res) => {
   const body = req.body;
   
@@ -32,7 +51,13 @@ export const addPayment = async (req, res) => {
       paymentMode,
       transactionId,
       flatNo,
+      carpetArea,
+      address1,
+      address2,
+      city,
+      pincode,
       amtReceived,
+      allinclusiveamt,
       bookingAmt,
       stampDuty,
       tds,
@@ -52,7 +77,13 @@ export const addPayment = async (req, res) => {
         paymentMode: paymentMode,
         transactionId:transactionId,
         flatNo: flatNo,
+        carpetArea: carpetArea,
+        address1: address1,
+        address2: address2,
+        city: city,
+        pincode: pincode,
         amtReceived: amtReceived,
+        allinclusiveamt: allinclusiveamt,
         bookingAmt: bookingAmt,
         stampDuty: stampDuty,
         tds: tds,

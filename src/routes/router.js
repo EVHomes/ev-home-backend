@@ -21,6 +21,7 @@ import paymentRouter from "./payment/paymentRouter.js";
 import demandRouter from "./demand/demandRouter.js";
 import meetingRouter from "./meetingSummary/meetingSummaryRouter.js";
 import targetRouter from "./target/targetRouter.js";
+import teamSectionRouter from "./teamSection/teamSectionRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -75,5 +76,6 @@ router.use(paymentRouter);
 router.use(demandRouter);
 router.use(meetingRouter);
 router.use(targetRouter);
+router.use(teamSectionRouter);
 
 export default router;
