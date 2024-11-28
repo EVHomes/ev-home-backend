@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getTeamSections } from "../../controller/teamSection.controller";
+import { getTeamSections } from "../../controller/teamSection.controller.js";
 const teamSectionRouter = Router();
 
 teamSectionRouter.get("/team-sections", getTeamSections);

@@ -44,7 +44,7 @@ import {
 } from "../../controller/oneSignal.controller.js";
 // import jsonLeads from "./ev_homes_main.leads_23_11_24.json" assert { type: "json" };
 // import jsonCps from "./ev_cps.json" assert { type: "json" };
-// import jsonEmps from "./ev_home_employe.json" assert { type: "json" };
+// import jsonLeads from "./leads_updates.json" assert { type: "json" };
 
 dayjs.extend(customParseFormat);
 
@@ -91,7 +91,7 @@ leadRouter.post(
   assignLeadToPreSaleExecutive
 );
 
-leadRouter.post("/leads-add",  validateLeadsFields, addLead);
+leadRouter.post("/leads-add", validateLeadsFields, addLead);
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
 leadRouter.get(
@@ -435,6 +435,129 @@ leadRouter.get(
   // authenticateToken,
   checkLeadsExists
 );
+// leadRouter.get("/fix-what", async (req, res) => {
+//   try {
+//     const upLeads = jsonLeads.map((lead) => {
+//       const ana = lead?.dataAnalyser;
+//       const appr = lead?.approvalStatus ?? lead?.approvalStage?.status;
+
+//       if (ana !== null) {
+//         lead.dataAnalyzer = ana ?? null;
+//         lead.dataAnalyser = null;
+//       } else {
+//         lead.dataAnalyzer = null;
+//         lead.dataAnalyser = null;
+//       }
+
+//       if (lead?.teamLeader != null) {
+//         lead.teamLeader = lead.teamLeader;
+//       } else {
+//         lead.teamLeader = null;
+//       }
+//       if (lead?.channelPartner != null) {
+//         lead.channelPartner = lead.channelPartner;
+//       } else {
+//         lead.channelPartner = null;
+//       }
+//       if (lead?.preSalesExecutive != null) {
+//         lead.preSalesExecutive = lead.preSalesExecutive;
+//       } else {
+//         lead.preSalesExecutive = null;
+//       }
+//       if (lead?.salesExecutive != null) {
+//         lead.salesExecutive = lead.salesExecutive;
+//       } else {
+//         lead.salesExecutive = null;
+//       }
+//       if (lead?.salesManager != null) {
+//         lead.salesManager = lead.salesManager;
+//       } else {
+//         lead.salesManager = null;
+//       }
+//       if (lead?.reference != null) {
+//         lead.reference = lead.reference;
+//       } else {
+//         lead.reference = null;
+//       }
+//       if (lead?.leadType != null) {
+//         lead.leadType = lead.leadType;
+//       } else {
+//         lead.leadType = "channel-partner";
+//       }
+
+//       if (appr != null) {
+//         lead.approvalStatus = appr?.toLowerCase();
+//       } else {
+//         lead.approvalStatus = "pending";
+//       }
+
+//       if (lead?.approvalRemark != null) {
+//         lead.approvalRemark = lead.approvalRemark;
+//       } else {
+//         lead.approvalRemark = "";
+//       }
+//       if (lead?.approvalDate != null) {
+//         lead.approvalDate = lead.approvalDate;
+//       } else {
+//         lead.approvalDate = null;
+//       }
+//       if (lead?.visitStatus != null) {
+//         lead.visitStatus = lead.visitStatus?.toLowerCase();
+//       } else {
+//         lead.visitStatus = "pending";
+//       }
+//       if (lead?.visitRef != null) {
+//         lead.visitRef = lead.visitRef;
+//       } else {
+//         lead.visitRef = null;
+//       }
+//       if (lead?.revisitStatus != null) {
+//         lead.revisitStatus = lead.revisitStatus?.toLowerCase();
+//       } else {
+//         lead.revisitStatus = "pending";
+//       }
+//       if (lead?.revisitRef != null) {
+//         lead.revisitRef = lead.revisitRef;
+//       } else {
+//         lead.revisitRef = null;
+//       }
+//       if (lead?.bookingStatus != null) {
+//         lead.bookingStatus = lead.bookingStatus?.toLowerCase();
+//       } else {
+//         lead.bookingStatus = "pending";
+//       }
+//       if (lead?.bookingRef != null) {
+//         lead.bookingRef = lead.bookingRef;
+//       } else {
+//         lead.bookingRef = null;
+//       }
+//       if (lead?.clientRef != null) {
+//         lead.clientRef = lead.clientRef;
+//       } else {
+//         lead.clientRef = null;
+//       }
+//       if (lead?.status != null) {
+//         lead.status = lead.status?.toLowerCase();
+//       } else {
+//         lead.status = "pending";
+//       }
+//       if (lead?.clientStatus != null) {
+//         lead.clientStatus = lead.clientStatus?.toLowerCase();
+//       } else {
+//         lead.clientStatus = "none";
+//       }
+//       if (lead?.interestedStatus != null) {
+//         lead.interestedStatus = lead.interestedStatus?.toLowerCase();
+//       } else {
+//         lead.interestedStatus = "cold";
+//       }
+
+//       return lead;
+//     });
+
+//     return res.send(upLeads);
+//   } catch (error) {}
+// });
 // leadRouter.get("/what", async (req, res) => {
 // try {
 // const upLeads = jsonLeads.map((lead) => {

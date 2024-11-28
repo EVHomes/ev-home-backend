@@ -31,9 +31,7 @@ export const siteVisitSchema = new mongoose.Schema(
     ],
     source: {
       type: String,
-      // required: true,
       default: null,
-      // enum: ["Walk-in", "CP", "Reference"],
     },
     reference: {
       type: String,
@@ -75,5 +73,9 @@ export const siteVisitSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const siteVisitModel = mongoose.model("siteVisits", siteVisitSchema, "siteVisits");
+const siteVisitModel = mongoose.model(
+  "siteVisits",
+  siteVisitSchema,
+  "siteVisits"
+);
 export default siteVisitModel;

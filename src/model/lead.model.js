@@ -127,7 +127,7 @@ export const leadSchema = new mongoose.Schema(
       ref: "channelPartners",
       default: null,
     },
-    dataAnalyser: {
+    dataAnalyzer: {
       type: String,
       ref: "employees",
       default: null,

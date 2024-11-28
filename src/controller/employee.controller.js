@@ -266,11 +266,13 @@ export const getPostSaleExecutives = async (req, res, next) => {
 
 export const getEmployeeByDesignation = async (req, res, next) => {
   try {
-    if (!req.params.id) return res.send(errorRes(200, "id is required"));
-
+    const desgId = req.params.id;
+    if (!desgId) return res.send(errorRes(200, "id is required"));
+    console.log(desgId);
     const respCP = await employeeModel
       .find({
-        designation: req.params.id,
+        designation: desgId,
+        status: "active",
       })
       .select("-password -refreshToken")
       .populate("designation")
@@ -434,7 +436,7 @@ export const getEmployeeById = async (req, res, next) => {
 };
 
 export const editEmployeeById = async (req, res, next) => {
-  const id = req.params.id;  
+  const id = req.params.id;
   const body = req.filteredBody;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
