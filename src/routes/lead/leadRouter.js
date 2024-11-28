@@ -125,310 +125,310 @@ leadRouter.get(
   getAllLeadCountsFunnelForPreSaleTL
 );
 
-leadRouter.post("/lead-delete-dec", async (req, res) => {
-  try {
-    // Define the start date as December 1, 2024
-    const startOfDecember = new Date("2024-12-01T00:00:00.000Z");
+// leadRouter.post("/lead-delete-dec", async (req, res) => {
+//   try {
+//     // Define the start date as December 1, 2024
+//     const startOfDecember = new Date("2024-12-01T00:00:00.000Z");
 
-    // Query leads with startDate from December 1, 2024, onwards
-    const leads = await leadModel.find({
-      startDate: {
-        $gte: startOfDecember, // Greater than or equal to December 1, 2024
-      },
-    });
+//     // Query leads with startDate from December 1, 2024, onwards
+//     const leads = await leadModel.find({
+//       startDate: {
+//         $gte: startOfDecember, // Greater than or equal to December 1, 2024
+//       },
+//     });
 
-    res.status(200).json({ success: true, data: leads });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
-  }
-});
-leadRouter.post("/lead-test-update", async (req, res) => {
-  const results = [];
-  const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "narayan_lead.csv");
+//     res.status(200).json({ success: true, data: leads });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// });
+// leadRouter.post("/lead-test-update", async (req, res) => {
+//   const results = [];
+//   const dataTuPush = [];
+//   const csvFilePath = path.join(__dirname, "narayan_lead.csv");
 
-  if (!fs.existsSync(csvFilePath)) {
-    return res.status(400).send("CSV file not found");
-  }
-  const channelPartners = await cpModel.find().lean();
-  const employees = await employeeModel.find().lean();
+//   if (!fs.existsSync(csvFilePath)) {
+//     return res.status(400).send("CSV file not found");
+//   }
+//   const channelPartners = await cpModel.find().lean();
+//   const employees = await employeeModel.find().lean();
 
-  fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on("data", (data) => {
-      results.push(data);
-    })
-    .on("end", async () => {
-      for (const row of results) {
-        const {
-          firstName,
-          lastName,
-          channelPartner,
-          phoneNumber,
-          project,
-          "Team Leader": teamLeader,
-          dataAnalyzer,
-          approvalStatus,
-          startDate,
-        } = row;
-        let foundCp =
-          channelPartners.find((ele) =>
-            ele.firmName
-              ?.toLowerCase()
-              .includes(channelPartner?.toLowerCase().split(" ")[0])
-          )?._id || null;
+//   fs.createReadStream(csvFilePath)
+//     .pipe(csv())
+//     .on("data", (data) => {
+//       results.push(data);
+//     })
+//     .on("end", async () => {
+//       for (const row of results) {
+//         const {
+//           firstName,
+//           lastName,
+//           channelPartner,
+//           phoneNumber,
+//           project,
+//           "Team Leader": teamLeader,
+//           dataAnalyzer,
+//           approvalStatus,
+//           startDate,
+//         } = row;
+//         let foundCp =
+//           channelPartners.find((ele) =>
+//             ele.firmName
+//               ?.toLowerCase()
+//               .includes(channelPartner?.toLowerCase().split(" ")[0])
+//           )?._id || null;
 
-        let teamLeader1 =
-          employees.find((ele) =>
-            ele.firstName
-              ?.toLowerCase()
-              .includes(teamLeader?.toLowerCase().split(" ")[0])
-          )?._id || null;
+//         let teamLeader1 =
+//           employees.find((ele) =>
+//             ele.firstName
+//               ?.toLowerCase()
+//               .includes(teamLeader?.toLowerCase().split(" ")[0])
+//           )?._id || null;
 
-        let dataAnalyzer1 =
-          employees.find((ele) =>
-            ele.firstName
-              ?.toLowerCase()
-              .includes(dataAnalyzer?.toLowerCase().split(" ")[0])
-          )?._id || null;
+//         let dataAnalyzer1 =
+//           employees.find((ele) =>
+//             ele.firstName
+//               ?.toLowerCase()
+//               .includes(dataAnalyzer?.toLowerCase().split(" ")[0])
+//           )?._id || null;
 
-        dataTuPush.push({
-          firstName: firstName?.trim(),
-          lastName: lastName?.trim(),
-          channelPartner: foundCp,
-          phoneNumber: phoneNumber?.trim(),
-          project: project?.trim()?.split(","),
-          teamLeader: teamLeader1,
-          dataAnalyzer: dataAnalyzer1,
-          approvalStatus: approvalStatus?.trim(),
-          startDate: formatDate1(startDate),
-          startDate2: startDate,
-        });
-      }
-      // await leadModel.insertMany(dataTuPush);
-      // Send the results only after processing is done
-      return res.send(dataTuPush);
-    })
-    .on("error", (err) => {
-      return res.status(500).send({ error: err.message });
-    });
-});
+//         dataTuPush.push({
+//           firstName: firstName?.trim(),
+//           lastName: lastName?.trim(),
+//           channelPartner: foundCp,
+//           phoneNumber: phoneNumber?.trim(),
+//           project: project?.trim()?.split(","),
+//           teamLeader: teamLeader1,
+//           dataAnalyzer: dataAnalyzer1,
+//           approvalStatus: approvalStatus?.trim(),
+//           startDate: formatDate1(startDate),
+//           startDate2: startDate,
+//         });
+//       }
+//       // await leadModel.insertMany(dataTuPush);
+//       // Send the results only after processing is done
+//       return res.send(dataTuPush);
+//     })
+//     .on("error", (err) => {
+//       return res.status(500).send({ error: err.message });
+//     });
+// });
 
-leadRouter.post("/update-lead2-from-csv", async (req, res) => {
-  const results = [];
-  const errors = [];
-  const csvFilePath = path.join(__dirname, "leads_list2.csv");
+// leadRouter.post("/update-lead2-from-csv", async (req, res) => {
+//   const results = [];
+//   const errors = [];
+//   const csvFilePath = path.join(__dirname, "leads_list2.csv");
 
-  if (!fs.existsSync(csvFilePath)) {
-    return res.status(400).send("CSV file not found");
-  }
+//   if (!fs.existsSync(csvFilePath)) {
+//     return res.status(400).send("CSV file not found");
+//   }
 
-  // Load all channel partners once
-  const channelPartners = await cpModel.find().lean();
-  const employees = await employeeModel.find().lean();
-  const projectsDb = await ourProjectModel.find().lean();
+//   // Load all channel partners once
+//   const channelPartners = await cpModel.find().lean();
+//   const employees = await employeeModel.find().lean();
+//   const projectsDb = await ourProjectModel.find().lean();
 
-  fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on("data", (data) => results.push(data))
-    .on("end", async () => {
-      const dataToInsert = [];
+//   fs.createReadStream(csvFilePath)
+//     .pipe(csv())
+//     .on("data", (data) => results.push(data))
+//     .on("end", async () => {
+//       const dataToInsert = [];
 
-      for (const row of results) {
-        try {
-          const {
-            "First Name": firstName,
-            "Last Name": lastName,
-            Source: source,
-            "Phone no": phoneNumber,
-            "Project Name": projectsStr,
-            "Team Leader": teamLeader,
-            date3,
-            // Time: time,
-          } = row;
-          // const date2 = parseDate(date);
-          const projectsLocal = projectsStr ? projectsStr.split(",") : [];
+//       for (const row of results) {
+//         try {
+//           const {
+//             "First Name": firstName,
+//             "Last Name": lastName,
+//             Source: source,
+//             "Phone no": phoneNumber,
+//             "Project Name": projectsStr,
+//             "Team Leader": teamLeader,
+//             date3,
+//             // Time: time,
+//           } = row;
+//           // const date2 = parseDate(date);
+//           const projectsLocal = projectsStr ? projectsStr.split(",") : [];
 
-          // Check for existing firm name based on the specified logic
-          let foundCp =
-            channelPartners.find((ele) =>
-              ele.firmName
-                ?.toLowerCase()
-                .includes(source?.toLowerCase().split(" ")[0])
-            )?._id || null;
-          let teamLeader1 =
-            employees.find((ele) =>
-              ele.firstName
-                ?.toLowerCase()
-                .includes(teamLeader?.toLowerCase().split(" ")[0])
-            )?._id || null;
+//           // Check for existing firm name based on the specified logic
+//           let foundCp =
+//             channelPartners.find((ele) =>
+//               ele.firmName
+//                 ?.toLowerCase()
+//                 .includes(source?.toLowerCase().split(" ")[0])
+//             )?._id || null;
+//           let teamLeader1 =
+//             employees.find((ele) =>
+//               ele.firstName
+//                 ?.toLowerCase()
+//                 .includes(teamLeader?.toLowerCase().split(" ")[0])
+//             )?._id || null;
 
-          let ourProj = [];
+//           let ourProj = [];
 
-          projectsLocal.map((projL) => {
-            let projectR = projectsDb.find(
-              (ele) =>
-                ele?.name?.trim()?.toLowerCase() ===
-                projL?.trim()?.toLowerCase()
-            );
-            ourProj.push(projectR._id);
-          });
+//           projectsLocal.map((projL) => {
+//             let projectR = projectsDb.find(
+//               (ele) =>
+//                 ele?.name?.trim()?.toLowerCase() ===
+//                 projL?.trim()?.toLowerCase()
+//             );
+//             ourProj.push(projectR._id);
+//           });
 
-          // Create new CP if not found
-          // if (!foundCp && source) {
-          //   try {
-          //     const email = `${source
-          //       .trim()
-          //       .replace(/\s+/g, "")}@gmail.com`.toLowerCase();
-          //     const pwd = await encryptPassword("EVCP@1234");
-          //     const newCp = await cpModel.create({
-          //       firstName: "",
-          //       lastName: "",
-          //       firmName: source,
-          //       email, // Ensure this is unique
-          //       gender: "other",
-          //       password: pwd,
-          //     });
-          //     foundCp = newCp._id; // Set foundCp to new CP's ID
-          //   } catch (error) {
-          //     if (error.code === 11000) {
-          //       errors.push(`Duplicate email for ${source}`);
-          //     } else {
-          //       errors.push(
-          //         `Error creating cpModel for ${source}: ${error.message}`
-          //       );
-          //     }
-          //   }
-          // }
-          // console.log("done ....");
+//           // Create new CP if not found
+//           // if (!foundCp && source) {
+//           //   try {
+//           //     const email = `${source
+//           //       .trim()
+//           //       .replace(/\s+/g, "")}@gmail.com`.toLowerCase();
+//           //     const pwd = await encryptPassword("EVCP@1234");
+//           //     const newCp = await cpModel.create({
+//           //       firstName: "",
+//           //       lastName: "",
+//           //       firmName: source,
+//           //       email, // Ensure this is unique
+//           //       gender: "other",
+//           //       password: pwd,
+//           //     });
+//           //     foundCp = newCp._id; // Set foundCp to new CP's ID
+//           //   } catch (error) {
+//           //     if (error.code === 11000) {
+//           //       errors.push(`Duplicate email for ${source}`);
+//           //     } else {
+//           //       errors.push(
+//           //         `Error creating cpModel for ${source}: ${error.message}`
+//           //       );
+//           //     }
+//           //   }
+//           // }
+//           // console.log("done ....");
 
-          dataToInsert.push({
-            // date,
-            startDate: parseDate(date3),
-            // time,
-            // timestamp: timestamp2,
-            dateMain: date3,
-            email: null,
-            firstName,
-            lastName,
-            phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
-            teamLeader: teamLeader1,
-            project: projectsStr,
-            // channelPartner: foundCp,
-            source,
-            // teamLeader1,
-            // foundCp,
-          });
-        } catch (error) {
-          errors.push(`Error processing ${row.firstName}: ${error.message}`);
-        }
-      }
+//           dataToInsert.push({
+//             // date,
+//             startDate: parseDate(date3),
+//             // time,
+//             // timestamp: timestamp2,
+//             dateMain: date3,
+//             email: null,
+//             firstName,
+//             lastName,
+//             phoneNumber: parsePhoneNumber(phoneNumber) ?? null,
+//             teamLeader: teamLeader1,
+//             project: projectsStr,
+//             // channelPartner: foundCp,
+//             source,
+//             // teamLeader1,
+//             // foundCp,
+//           });
+//         } catch (error) {
+//           errors.push(`Error processing ${row.firstName}: ${error.message}`);
+//         }
+//       }
 
-      const n9date = dataToInsert.filter(
-        (ts) =>
-          // ts.phoneNumber != null
-          ts.phoneNumber != null && !ts?.startDate?.toString()?.includes("1999")
-      );
-      // const mappedMerged = jsonLeads.map((ele, i) => {
-      //   const foundSameLead = n9date.find(
-      //     (fele) =>
-      //       fele.phoneNumber === ele.phoneNumber && fele.phoneNumber === ele.phoneNumber
-      //   );
-      //   return ele;
-      // });
-      const today = new Date();
+//       const n9date = dataToInsert.filter(
+//         (ts) =>
+//           // ts.phoneNumber != null
+//           ts.phoneNumber != null && !ts?.startDate?.toString()?.includes("1999")
+//       );
+//       // const mappedMerged = jsonLeads.map((ele, i) => {
+//       //   const foundSameLead = n9date.find(
+//       //     (fele) =>
+//       //       fele.phoneNumber === ele.phoneNumber && fele.phoneNumber === ele.phoneNumber
+//       //   );
+//       //   return ele;
+//       // });
+//       const today = new Date();
 
-      // const futureLeads = dataToInsert.filter((lead) => lead.startDate > today);
+//       // const futureLeads = dataToInsert.filter((lead) => lead.startDate > today);
 
-      // Bulk insert data
-      // try {
-      //   await leadModel.insertMany(n9date);
-      //   res.json({
-      //     message: "CSV processing completed",
-      //     updatedCount: results.length - errors.length,
-      //     errors,
-      //     dataLength: n9date.length,
-      //     data: n9date,
-      //   });
-      // } catch (error) {
-      //   res
-      //     .status(500)
-      //     .json({ message: "Bulk insert failed", error: error.message });
-      // }
-      // const filterdName = dataToInsert.filter((ld) =>
-      //   ld?.startDate?.includes("1999")
-      // );
-      res.json(n9date);
-    });
-});
+//       // Bulk insert data
+//       // try {
+//       //   await leadModel.insertMany(n9date);
+//       //   res.json({
+//       //     message: "CSV processing completed",
+//       //     updatedCount: results.length - errors.length,
+//       //     errors,
+//       //     dataLength: n9date.length,
+//       //     data: n9date,
+//       //   });
+//       // } catch (error) {
+//       //   res
+//       //     .status(500)
+//       //     .json({ message: "Bulk insert failed", error: error.message });
+//       // }
+//       // const filterdName = dataToInsert.filter((ld) =>
+//       //   ld?.startDate?.includes("1999")
+//       // );
+//       res.json(n9date);
+//     });
+// });
 
-leadRouter.post("/fix-project-miss-leads", async (req, res) => {
-  try {
-    const resp = await leadModel.find({ project: { $size: 0 } });
-    const ids = resp.map((ele) => ele._id);
+// leadRouter.post("/fix-project-miss-leads", async (req, res) => {
+//   try {
+//     const resp = await leadModel.find({ project: { $size: 0 } });
+//     const ids = resp.map((ele) => ele._id);
 
-    const update = await leadModel.updateMany(
-      { _id: { $in: ids } }, // Use $in to match IDs
-      { project: ["Ev 9 Square", "Marina Bay"] } // Set project array
-    );
+//     const update = await leadModel.updateMany(
+//       { _id: { $in: ids } }, // Use $in to match IDs
+//       { project: ["Ev 9 Square", "Marina Bay"] } // Set project array
+//     );
 
-    return res.send({
-      message: "Projects updated successfully",
-      modifiedCount: update.modifiedCount,
-      matchedCount: update.matchedCount,
-      data: update,
-    });
-  } catch (error) {
-    return res.status(500).send({ error: error.message });
-  }
-});
-leadRouter.get("/sept-after-lead", async (req, res) => {
-  try {
-    const currentYear = new Date().getFullYear();
+//     return res.send({
+//       message: "Projects updated successfully",
+//       modifiedCount: update.modifiedCount,
+//       matchedCount: update.matchedCount,
+//       data: update,
+//     });
+//   } catch (error) {
+//     return res.status(500).send({ error: error.message });
+//   }
+// });
+// leadRouter.get("/sept-after-lead", async (req, res) => {
+//   try {
+//     const currentYear = new Date().getFullYear();
 
-    const septemberFirst = new Date(currentYear, 8, 1);
+//     const septemberFirst = new Date(currentYear, 8, 1);
 
-    // Fetch leads before September 1 of the current year
-    const resp = await leadModel.find({});
+//     // Fetch leads before September 1 of the current year
+//     const resp = await leadModel.find({});
 
-    // Update each document
-    await Promise.all(
-      resp.map(async (el) => {
-        try {
-          if (Array.isArray(el.project)) {
-            const updatedProjects = el.project.map((proj) => {
-              if (proj?.toLowerCase()?.includes("marina")) {
-                return "project-ev-10-marina-bay-vashi-sector-10";
-              } else {
-                return "project-ev-9-square-vashi-sector-9";
-              }
-            });
+//     // Update each document
+//     await Promise.all(
+//       resp.map(async (el) => {
+//         try {
+//           if (Array.isArray(el.project)) {
+//             const updatedProjects = el.project.map((proj) => {
+//               if (proj?.toLowerCase()?.includes("marina")) {
+//                 return "project-ev-10-marina-bay-vashi-sector-10";
+//               } else {
+//                 return "project-ev-9-square-vashi-sector-9";
+//               }
+//             });
 
-            // Update the document with new project IDs
-            // await leadModel.updateOne(
-            //   { _id: el._id },
-            //   {
-            //     $set: {
-            //       project: updatedProjects, // Use the transformed array directly
-            //     },
-            //   }
-            // );
-          }
-        } catch (error) {
-          console.error("Error updating document:", error);
-        }
-      })
-    );
+//             // Update the document with new project IDs
+//             // await leadModel.updateOne(
+//             //   { _id: el._id },
+//             //   {
+//             //     $set: {
+//             //       project: updatedProjects, // Use the transformed array directly
+//             //     },
+//             //   }
+//             // );
+//           }
+//         } catch (error) {
+//           console.error("Error updating document:", error);
+//         }
+//       })
+//     );
 
-    res.send({
-      data: resp,
-      length: resp?.length,
-    });
-  } catch (error) {
-    res.status(500).send({ error: error.message });
-  }
-});
+//     res.send({
+//       data: resp,
+//       length: resp?.length,
+//     });
+//   } catch (error) {
+//     res.status(500).send({ error: error.message });
+//   }
+// });
 
 leadRouter.get(
   "/similar-leads2",
