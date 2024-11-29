@@ -1,4 +1,3 @@
-import { name } from "ejs";
 import { validateRequiredLeadsFields } from "../middleware/lead.middleware.js";
 import employeeModel from "../model/employee.model.js";
 import leadModel from "../model/lead.model.js";
@@ -9,14 +8,7 @@ import {
   sendNotificationWithImage,
   sendNotificationWithInfo,
 } from "./oneSignal.controller.js";
-import {
-  startOfWeek,
-  addDays,
-  format,
-  startOfMonth,
-  startOfYear,
-  endOfYear,
-} from "date-fns";
+import { startOfWeek, addDays, format, startOfYear, endOfYear } from "date-fns";
 
 export const getAllLeads = async (req, res, next) => {
   try {
@@ -161,23 +153,31 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
     let query = req.query.query || "";
-    let status = req.query.status;
+    let status = req.query.status?.toLowerCase();
 
     const isNumberQuery = !isNaN(query);
 
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
-    if (status === "visit-done") {
-      statusToFind = { "visitStage.status": "done" };
-    } else if (status === "revisit-done") {
-      statusToFind = { "revisitStage.status": "done" };
+    if (status === "visit") {
+      statusToFind = { visitStatus: { $ne: "pending" } };
+    } else if (status === "revisit") {
+      statusToFind = { revisitStatus: { $ne: "pending" } };
     } else if (status === "booking") {
-      statusToFind = { "bookingStage.status": "booked" };
+      statusToFind = { bookingStatus: { $ne: "pending" } };
+    } else if (status === "followup") {
+      statusToFind = { followupStatus: { $ne: "pending" } };
+    } else if (status === "pending") {
+      statusToFind = {
+        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+      };
     }
 
     let skip = (page - 1) * limit;
     let searchFilter = {
+      ...(statusToFind != null ? statusToFind : null),
+
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
@@ -201,17 +201,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
               },
             }
           : null,
-        // isNumberQuery ? { altPhoneNumber: Number(query) } : null,
         { email: { $regex: query, $options: "i" } },
         { address: { $regex: query, $options: "i" } },
         { status: { $regex: query, $options: "i" } },
-        statusToFind != null ? statusToFind : null,
-        // status != null || status != undefined
-        //   ? { preSalesExecutive: null }
-        //   : null,
-        // status != null || status != undefined || status != "total"
-        //   ? { status: status }
-        //   : null,
         { interestedStatus: { $regex: query, $options: "i" } },
       ].filter(Boolean),
     };
@@ -230,117 +222,72 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       })
       .populate({
         path: "project",
+        select: "name",
       })
       .populate({
         path: "teamLeader",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "dataAnalyzer",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "preSalesExecutive",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
-      // .populate({
-      //   path: "viewedBy.employee",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "approvalHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "updateHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "callHistory.caller",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -349,37 +296,45 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const totalItems = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
     });
-    const pendingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      status: "Pending",
-    });
 
     const contactedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      status: "Contacted",
+      contactedStatus: { $ne: "pending" },
     });
 
     const followUpCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      status: "FollowUp",
+      followupStatus: { $ne: "pending" },
     });
 
     const assignedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       preSalesExecutive: { $ne: null },
     });
-
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      "visitStage.status": "done",
+      visitStatus: { $ne: "pending" },
     });
+
     const revisitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      "revisitStage.status": "done",
+      revisitStatus: { $ne: "pending" },
     });
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      "bookingStage.status": "booked",
+      bookingStatus: { $ne: "pending" },
+    });
+
+    const pendingCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      $or: [
+        {
+          visitStatus: "pending",
+        },
+        {
+          revisitStatus: "pending",
+        },
+      ],
     });
 
     // Calculate the total number of pages
@@ -403,6 +358,60 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     );
   } catch (error) {
     next(error);
+  }
+};
+export const getLeadTeamLeaderGraph = async (req, res, next) => {
+  const teamLeaderId = req.params.id;
+  try {
+    if (!teamLeaderId) return res.send(errorRes(401, "id Required"));
+
+    const leadCount =
+      (await leadModel.countDocuments({
+        teamLeader: { $eq: teamLeaderId },
+      })) || 0;
+
+    const bookingCount =
+      (await leadModel.countDocuments({
+        teamLeader: { $eq: teamLeaderId },
+        bookingStatus: { $ne: "pending" },
+      })) || 0;
+
+    const visitCount =
+      (await leadModel.countDocuments({
+        teamLeader: { $eq: teamLeaderId },
+        visitStatus: { $ne: "pending" },
+      })) || 0;
+
+    const revisitCount =
+      (await leadModel.countDocuments({
+        teamLeader: { $eq: teamLeaderId },
+        revisitStatus: { $ne: "pending" },
+      })) || 0;
+
+    // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
+    // const visitToBookingCount =
+    //   visitCount > 0 ? (bookingCount * 100) / visitCount : 0;
+    // const revisitToBookingCount =
+    //   revisitCount > 0 ? (bookingCount * 100) / revisitCount : 0;
+    // const leadToBookingCount =
+    //   leadCount > 0 ? (bookingCount * 100) / leadCount : 0;
+
+    return res.send(
+      successRes(200, "graphs", {
+        data: {
+          leadCount,
+          bookingCount,
+          visitCount,
+          revisitCount,
+          // leadToVisitCount,
+          // visitToBookingCount,
+          // revisitToBookingCount,
+          // leadToBookingCount,
+        },
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, "Internal Server Error", error));
   }
 };
 
@@ -649,135 +658,6 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
   }
 };
 
-// export const getLeadsPreSalesExecutive = async (req, res, next) => {
-//   const preSalesExecutiveId = req.params.id;
-//   try {
-//     const respLeads = await leadModel
-//       .find({ preSalesExecutive: preSalesExecutiveId })
-//       .populate({
-//         path: "channelPartner",
-//         select: "-password -refreshToken",
-//       })
-//       .populate({
-//         path: "teamLeader",
-//         select: "-password -refreshToken",
-//         populate: [
-//           { path: "designation" },
-//           { path: "department" },
-//           { path: "division" },
-//           {
-//             path: "reportingTo",
-//             populate: [
-//               { path: "designation" },
-//               { path: "department" },
-//               { path: "division" },
-//             ],
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "dataAnalyzer",
-//         select: "-password -refreshToken",
-//         populate: [
-//           { path: "designation" },
-//           { path: "department" },
-//           { path: "division" },
-//           {
-//             path: "reportingTo",
-//             populate: [
-//               { path: "designation" },
-//               { path: "department" },
-//               { path: "division" },
-//             ],
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "preSalesExecutive",
-//         select: "-password -refreshToken",
-//         populate: [
-//           { path: "designation" },
-//           { path: "department" },
-//           { path: "division" },
-//           {
-//             path: "reportingTo",
-//             populate: [
-//               { path: "designation" },
-//               { path: "department" },
-//               { path: "division" },
-//             ],
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "viewedBy.employee",
-//         select: "-password -refreshToken",
-//         populate: [
-//           { path: "designation" },
-//           { path: "department" },
-//           { path: "division" },
-//           {
-//             path: "reportingTo",
-//             populate: [
-//               { path: "designation" },
-//               { path: "department" },
-//               { path: "division" },
-//             ],
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "approvalHistory.employee",
-//         select: "-password -refreshToken",
-//         populate: [
-//           { path: "designation" },
-//           { path: "department" },
-//           { path: "division" },
-//           {
-//             path: "reportingTo",
-//             populate: [
-//               { path: "designation" },
-//               { path: "department" },
-//               { path: "division" },
-//             ],
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "updateHistory.employee",
-//         select: "-password -refreshToken",
-//         populate: [
-//           { path: "designation" },
-//           { path: "department" },
-//           { path: "division" },
-//           {
-//             path: "reportingTo",
-//             populate: [
-//               { path: "designation" },
-//               { path: "department" },
-//               { path: "division" },
-//             ],
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "callHistory.caller",
-//         select: "-password -refreshToken",
-//         populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
-//       });
-
-//     if (!respLeads) return res.send(errorRes(404, "No leads found"));
-
-//     return res.send(
-//       successRes(200, "Leads for team Leader", {
-//         data: respLeads,
-//       })
-//     );
-//   } catch (error) {
-//     next(error);
-//   }
-// };
-
 export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
@@ -828,9 +708,6 @@ export const searchLeads = async (req, res, next) => {
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
     };
 
-    // Use searchFilter in your query
-    // const results = await leadModel.find(searchFilter);
-
     // Execute the search with the refined filter
     const respCP = await leadModel
       .find(searchFilter)
@@ -850,16 +727,10 @@ export const searchLeads = async (req, res, next) => {
         select: "firstName lastName",
         populate: [
           { path: "designation" },
-          // { path: "department" },
-          // { path: "division" },
           {
             path: "reportingTo",
             select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              // { path: "department" },
-              // { path: "division" },
-            ],
+            populate: [{ path: "designation" }],
           },
         ],
       })
@@ -868,17 +739,10 @@ export const searchLeads = async (req, res, next) => {
         select: "firstName lastName",
         populate: [
           { path: "designation" },
-          // { path: "department" },
-          // { path: "division" },
           {
             path: "reportingTo",
             select: "firstName lastName",
-
-            populate: [
-              { path: "designation" },
-              // { path: "department" },
-              // { path: "division" },
-            ],
+            populate: [{ path: "designation" }],
           },
         ],
       })
@@ -887,51 +751,22 @@ export const searchLeads = async (req, res, next) => {
         select: "firstName lastName",
         populate: [
           { path: "designation" },
-          // { path: "department" },
-          // { path: "division" },
           {
             path: "reportingTo",
             select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              // { path: "department" },
-              // { path: "division" },
-            ],
+            populate: [{ path: "designation" }],
           },
         ],
       })
-      // .populate({
-      //   path: "viewedBy.employee",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "approvalHistory.employee",
         select: "firstName lastName",
         populate: [
           { path: "designation" },
-          // { path: "department" },
-          // { path: "division" },
           {
             path: "reportingTo",
             select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              // { path: "department" },
-              // { path: "division" },
-            ],
+            populate: [{ path: "designation" }],
           },
         ],
       })
@@ -940,26 +775,17 @@ export const searchLeads = async (req, res, next) => {
         select: "firstName lastName",
         populate: [
           { path: "designation" },
-          // { path: "department" },
-          // { path: "division" },
           {
             path: "reportingTo",
             select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              // { path: "department" },
-              // { path: "division" },
-            ],
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "callHistory.caller",
         select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          // { path: "department" }, { path: "division" }
-        ],
+        populate: [{ path: "designation" }],
       });
 
     // Count the total items matching the filter
@@ -1221,23 +1047,6 @@ export const getSimilarLeadsById = async (req, res, next) => {
           },
         ],
       })
-      // .populate({
-      //   path: "viewedBy.employee",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -1571,7 +1380,6 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
 
     if (!respLead) return res.send(errorRes(404, "No lead found"));
 
-    console.log("pass 1");
     const teamLeaderResp = await employeeModel.find({ _id: teamLeaderId });
 
     const updatedLead = await leadModel
@@ -1580,19 +1388,14 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
         {
           teamLeader: teamLeaderId,
           dataAnalyser: user?._id,
-          // approvalStatus: "Approved",
-          $set: {
-            approvalStage: {
-              status: "Approved",
-              date: new Date(),
-              remark: remark ?? "Approved",
-            },
-          },
+          approvalStatus: "approved",
+          approvalRemark: remark ?? "approved",
+          approvalDate: new Date(),
           $addToSet: {
             approvalHistory: {
               employee: user?._id,
               approvedAt: new Date(),
-              remark: remark ?? "Approved",
+              remark: remark ?? "approved",
             },
             updateHistory: {
               employee: user?._id,
@@ -1610,103 +1413,62 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
       })
       .populate({
         path: "teamLeader",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "dataAnalyzer",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "preSalesExecutive",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+
+            populate: [{ path: "designation" }],
           },
         ],
       })
-      // .populate({
-      //   path: "viewedBy.employee",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "approvalHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "updateHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
@@ -1719,7 +1481,6 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
           { path: "division" },
         ],
       });
-    console.log("pass 2");
 
     const foundTLPlayerId = await oneSignalModel.findOne({
       docId: teamLeaderResp?._id,
@@ -2850,11 +2611,11 @@ export async function getAllLeadCountsFunnel(req, res, next) {
 
     // Define all possible statuses for the funnel
     const allStatuses = [
-      "Booked",
-      "Site Visit",
+      "booked",
+      "site visit",
       "Supposed to Site Visit",
-      "Approved",
-      "Rejected",
+      "approved",
+      "rejected",
     ];
 
     // Group stage by lead status and interval
@@ -3619,7 +3380,9 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
 
     // Map lead counts to allStatuses to ensure each status is represented
     const responseData = allStatuses.map((status) => {
-      const found = leadCounts.find((item) => item.status === status);
+      const found = leadCounts.find(
+        (item) => item.status === status || item.approvalStatus === status
+      );
       return {
         status,
         count: found ? found.count : 0,

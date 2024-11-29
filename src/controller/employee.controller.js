@@ -373,7 +373,8 @@ export const getPreSalesExecutive = async (req, res, next) => {
 
     let searchFilter = {
       designation: "desg-pre-sales-executive",
-      // ...(reportingTo && { reportingTo: reportingTo }),
+      status: "active",
+      ...(reportingTo && { reportingTo: reportingTo }),
     };
     const respPreSaleEx = await employeeModel
       .find(searchFilter)

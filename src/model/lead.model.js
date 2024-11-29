@@ -4,12 +4,10 @@ import mongoose from "mongoose";
 const cycle = {
   stage: {
     type: String,
-    required: true,
     default: null,
   },
   currentOrder: {
     type: Number,
-    required: true,
     default: 0,
   },
   teamLeader: {
@@ -19,12 +17,10 @@ const cycle = {
   },
   startDate: {
     type: Date,
-    required: true,
     default: null,
   },
   validTill: {
     type: Date,
-    required: true,
     default: null,
   },
   nextTeamLeader: {
@@ -216,6 +212,15 @@ export const leadSchema = new mongoose.Schema(
       ref: "booking",
       default: null,
     },
+    followupStatus: {
+      type: String,
+      default: "pending",
+    },
+    contactedStatus: {
+      type: String,
+      default: "pending",
+    },
+
     interestedStatus: {
       type: String,
       default: "Cold",
