@@ -13,7 +13,6 @@ import {
 export const getChannelPartners = async (req, res, next) => {
   try {
     const respCP = await cpModel.find().select("-password -refreshToken");
-
     return res.send(
       successRes(200, "get Channel Partners", {
         data: respCP,
@@ -112,7 +111,7 @@ export const editChannelPartnerById = async (req, res, next) => {
       );
     }
     if (body.password) {
-      const saltRounds = 10;  // You can adjust the number of salt rounds based on your security requirements
+      const saltRounds = 10; // You can adjust the number of salt rounds based on your security requirements
       body.password = await encryptPassword(body.password, saltRounds);
     }
 
@@ -264,7 +263,6 @@ export const loginChannelPartner = async (req, res, next) => {
       return res.send(errorRes(401, "Password didn't Matched"));
     }
 
-
     const {
       password: dbPassword,
       refreshToken: dbRefreshToken,
@@ -302,9 +300,9 @@ export const loginChannelPartner = async (req, res, next) => {
 
     return res.send(
       successRes(200, "Login Successful", {
-          data: userWithoutPassword,
-          accessToken,
-          refreshToken,
+        data: userWithoutPassword,
+        accessToken,
+        refreshToken,
       })
     );
   } catch (error) {
@@ -328,32 +326,35 @@ export const newPassword = async (req, res, next) => {
     }
 
     const respCP = await cpModel.findById(id);
-    
+
     if (!respCP) {
-      return res.send(errorRes(404, `Channel Partner not found with id: ${id}`));
+      return res.send(
+        errorRes(404, `Channel Partner not found with id: ${id}`)
+      );
     }
     console.log("pass 1");
     console.log(respCP.password);
 
     const isMatch = await comparePassword(password, respCP.password);
     console.log("pass 2");
-    
+
     if (!isMatch) {
       return res.send(errorRes(400, "Old password is incorrect"));
     }
     console.log("pass 3");
-    
+
     const hashedNewPassword = await encryptPassword(newPassword);
     respCP.password = hashedNewPassword;
     await respCP.save();
     console.log("pass 4");
 
-    return res.send(successRes(200, "Password updated successfully",{data:respCP}));
+    return res.send(
+      successRes(200, "Password updated successfully", { data: respCP })
+    );
   } catch (error) {
     return next(error);
   }
 };
-
 
 export const reAuthChannelPartner = async (req, res, next) => {
   const body = req.body;
