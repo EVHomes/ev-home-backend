@@ -2045,63 +2045,46 @@ export const updateCallHistoryPreSales = async (req, res) => {
 
       .populate({
         path: "teamLeader",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "dataAnalyzer",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "preSalesExecutive",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "callHistory.caller",
-        select: "-password",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
       });
     if (!updatedLead) {
       return res.send(errorRes(404, `Lead not found with ID: ${id}`));
