@@ -37,10 +37,13 @@ export const addTeamSection = async (req, res) => {
       section: section,
       designations: designations,
     });
+    const respFound = await teamSectionModel
+      .findById(newSection?._id)
+      .populate("designations");
 
     return res.send(
       successRes(200, "New Section added", {
-        data: newSection,
+        data: respFound,
       })
     );
   } catch (error) {
@@ -50,7 +53,7 @@ export const addTeamSection = async (req, res) => {
 
 export const getTeamSectionById = async (req, res) => {
   try {
-    const respSections = await teamSectionModel.find();
+    const respSections = await teamSectionModel.find().populate("designations");
     return res.send(
       successRes(200, "Get team Sections", {
         data: respSections,

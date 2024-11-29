@@ -52,7 +52,6 @@ export const channelPartnerSchema = new mongoose.Schema(
     isVerifiedEmail: { type: Boolean, default: false },
     role: {
       type: String,
-
       default: "channel-partner",
       enum: ["employee", "channel-partner", "customer"],
     },

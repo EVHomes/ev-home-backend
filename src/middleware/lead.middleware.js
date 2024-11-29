@@ -21,6 +21,16 @@ const ALLOWED_LEAD_FIELDS = [
   "countryCode",
   "status",
   "interestedStatus",
+  "approvalStatus",
+  "visitStatus",
+  "visitRef",
+  "revisitStatus",
+  "revisitRef",
+  "bookingStatus",
+  "bookingRef",
+  "clientStatus",
+  "clientRef",
+  "leadType",
 ];
 
 // Middleware to validate and filter fields

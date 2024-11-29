@@ -13,7 +13,9 @@ export const upsertTarget = async ({
   const maxCarryForward = Math.floor(extraAchieved / 2);
 
   if (carryForward > maxCarryForward) {
-    throw new Error("Invalid carry-forward value. It exceeds the maximum possible.");
+    throw new Error(
+      "Invalid carry-forward value. It exceeds the maximum possible."
+    );
   }
 
   await TargetModel.updateOne(
@@ -70,7 +72,9 @@ export const getMyTarget = async (req, res, next) => {
     return res.send(successRes(200, "Target Fetched", { data: target }));
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(errorRes(409, "Target already exists for this month and year."));
+      return res.send(
+        errorRes(409, "Target already exists for this month and year.")
+      );
     }
 
     return res.send(errorRes(500, "Server Error"));
@@ -108,8 +112,32 @@ export const addNewTarget = async (req, res) => {
     return res.send(successRes(200, "Target Fetched", { data: target }));
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(errorRes(409, "Target already exists for this month and year."));
+      return res.send(
+        errorRes(409, "Target already exists for this month and year.")
+      );
     }
     return res.send(errorRes(500, "An error occurred while adding the target"));
+  }
+};
+
+export const getCarryForwardOption = async (req, res) => {
+  const { id } = req.params;
+  try {
+    if (!id) return res.send(errorRes(401, "id required"));
+    console.log(id);
+    const date = new Date();
+    const resp = await getCarryForwardOptions(
+      id,
+      date.getMonth() + 1,
+      date.getFullYear()
+    );
+    console.log(resp);
+    return res.send(
+      successRes(200, "carry forward options", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(200, `${error}`));
   }
 };

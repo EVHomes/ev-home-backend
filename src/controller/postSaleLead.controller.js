@@ -49,38 +49,188 @@ export const getPostSaleLeads = async (req, res, next) => {
       .sort({ date: -1 })
       .populate({
         path: "project",
+        select: "name",
       })
       .populate({
         path: "closingManager",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "postSaleExecutive",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .skip(skip)
+      .limit(limit);
+
+    // Count the total items matching the filter
+    const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
+    const registrationDone = await postSaleLeadModel.countDocuments({
+      bookingStatus: "Registration Done",
+    });
+    const eoiRecieved = await postSaleLeadModel.countDocuments({
+      bookingStatus: "EOI Recieved",
+    });
+    const cancelled = await postSaleLeadModel.countDocuments({
+      bookingStatus: "Cancelled",
+    });
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get post sale leads", {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        registrationDone,
+        eoiRecieved,
+        cancelled,
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getPostSaleLeadById = async (req, res, next) => {
+  try {
+    const flatNo = req.params.flatNo;
+
+    if (!flatNo) return res.send(errorRes(401, "Flat No Required"));
+
+    const resp = await postSaleLeadModel
+      .findOne({ unitNo: flatNo })
+      .populate({
+        path: "project",
+        select: "name",
+      })
+      .populate({
+        path: "closingManager",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      });
+
+    // Count the total items matching the filter
+    console.log("data Sent");
+    return res.send(
+      successRes(200, "get post sale lead by id", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+export const getPostSaleLeadsForExecutive = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+
+    if (!id) return res.send(errorRes(401, "Exucitve id required"));
+
+    let query = req.query.query || "";
+    let project = req.query.project; // Get the project name from the query
+    let page = parseInt(req.query.page) || 1; // Start from page 1
+    let limit = parseInt(req.query.limit) || 10;
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: new RegExp(query, "i") },
+        { lastName: new RegExp(query, "i") },
+        { email: new RegExp(query, "i") },
+        { address: new RegExp(query, "i") },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        {
+          applicants: {
+            $elemMatch: {
+              $or: [
+                { firstName: new RegExp(query, "i") },
+                { lastName: new RegExp(query, "i") },
+                { email: new RegExp(query, "i") },
+                { address: new RegExp(query, "i") },
+              ].filter(Boolean),
+            },
+          },
+        },
+      ].filter(Boolean),
+      ...(project ? { project: project } : {}), // Filter by project if provided
+      postSaleExecutive: id,
+    };
+
+    const resp = await postSaleLeadModel
+      .find(searchFilter)
+      .sort({ date: -1 })
+      .populate({
+        path: "project",
+        select: "name",
+      })
+      .populate({
+        path: "closingManager",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
