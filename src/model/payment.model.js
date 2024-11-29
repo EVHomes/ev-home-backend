@@ -10,53 +10,47 @@ export const paymentSchema = new mongoose.Schema(
     },
     customerName: {
       type: String,
-      required: true,
     },
     carpetArea: {
       type: String,
-      required: true,
+      default: "",
     },
     address1: {
       type: String,
+      default: "",
     },
     address2: {
       type: String,
+      default: "",
     },
     city: {
       type: String,
+      default: "",
     },
     pincode: {
       type: Number,
+      default: 0,
     },
     countryCode: { type: String, default: "+91" },
     phoneNumber: {
       type: Number,
-      required: true,
+      default: 0,
     },
     dateOfAmtReceive: {
       type: String,
-      required: true,
       default: "1999-01-01",
-      validate: {
-        validator: function (value) {
-          // Check if the date matches the YYYY-MM-DD format
-          return dateOfAmtReceive.test(value);
-        },
-        message: (props) =>
-          `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
-      },
     },
     receiptNo: {
       type: String,
-      required: true,
+      default: "",
     },
     account: {
       type: String,
-      // enum: ["ICICI-22390", "ICICI-22186"],
+      default: "",
     },
     paymentMode: {
       type: String,
-      // enum: ["Online", "Cheque"],
+      default: "",
     },
     transactionId: {
       type: String,

@@ -1,0 +1,194 @@
+﻿Sr. No.,recordDate,recieptNo,account,paymentMode,paymentDate,flatNo,name,totalRecieved,stampDutyReg,bookingAmount,gst,tds
+1,09-04-2024,4807,ICICI-22186,22, 18-02-2024,1401,Manoj Singh Bhoj,200000,,200000,, -   
+2,09-04-2024,4822,ICICI-22186,122621, 10-03-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,50000,,50000,, -   
+3,09-04-2024,4808,ICICI-22186,427643, 01-04-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,100000,,100000,, -   
+4,15-04-2024,4813,ICICI-22186,112297, 17-02-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,300000,,300000,, -   
+5,15-04-2024,4814,ICICI-22186,89906, 17-02-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,300000,,300000,, -   
+6,15-04-2024,4815,ICICI-22186,112302, 07-03-2024,13,Tushar Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,51000,,51000,, -   
+7,15-04-2024,4781,ICICI-22186,110957, 27-02-2024,11,Abhishek Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,2200000,,2200000,, -   
+8,30-04-2024,4809,ICICI-22186,UPI , 30-04-2024,1806,Shanty Cecil / Cecil Thomas ,54000, -   ,54000, -   , -   
+9,21-05-2024,4749,ICICI-22186,Online Tranfer , 21-05-2024,1701,Dimple Bhosale / Hardev Singh (Cancelled),54000,54000, -   ,, -   
+10,28-05-2024,4763,ICICI-22186,Online Tranfer , 28-05-2024,2006,Rakesh Kacholia / Meenal Kacholia,54000, -   ,54000, -   , -   
+11,04-06-2024,4810,ICICI-22186,18, 01-06-2024,15,Pradeep Kumar B Makhija ,1000000,,1000000,, -   
+12,10-06-2024,4812,ICICI-22186,179, 06-06-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,54000,,54000,, -   
+13,11-06-2024,4800,ICICI-22186,Online Transfer,,2006,Rakesh Kacholia / Meenal Kacholia,1639108, -   ,1639108, -   , -   
+14,11-06-2024,4801,ICICI-22186,Online Transfer,,2006,Rakesh Kacholia / Meenal Kacholia,1000000, -   ,1000000, -   ,25649
+15,14-06-2024,4823,ICICI-22186,Online Transfer,,1806,Shanty Cecil / Cecil Thomas ,1000000, -   ,1000000, -   , -   
+16,19-06-2024,4834,ICICI-22186,24,19-06-2024,1401,Manoj Singh Bhoj,2312612,,2312612,,238468
+17,19-06-2024,4839,ICICI-22390,203644, 16-06-2024,1301,Margaret Kingsley / Stanley Kingsley,54000,54000, -   , -   , -   
+18,20-06-2024,4841,ICICI-22390,25, 15-06-2024,1401,Manoj Singh Bhoj,115631, -   , -   ,115631, -   
+19,20-06-2024,4842,ICICI-22390,282, 18-06-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,146000,143300, -   ,2700, -   
+20,24-06-2024,4840,ICICI-22390,104, 20-06-2024,1201,Darshana Dilip Jambhale,200000,81500, -   ,118500, -   
+21,25-06-2024,4868,ICICI-22186,19, 24-06-2024,15,Pradeep Kumar B Makhija ,1000000,,1000000,, -   
+22,27-06-2024,4865,ICICI-22186,203646, 26-06-2024,1301,Margaret Kingsley / Stanley Kingsley,2348649,,2348649,, -   
+23,27-06-2024,4864,ICICI-22390,203645, 26-06-2024,1301,Margaret Kingsley / Stanley Kingsley,1556621,1339189, -   ,217432, -   
+24,01-07-2024,4876,ICICI-22390,48,,1901,Lipi Banerjee / Bholanath Banerjee,54000,54000, -   , -   , -   
+25,02-07-2024,4880,ICICI-22186,NEFT , 02-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,100,,100,, -   
+26,03-07-2024,4881,ICICI-22186,NEFT , 03-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,800000,,800000,, -   
+27,03-07-2024,4869,ICICI-22390,427647, 26-06-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,1900000,1163520, -   ,736480, -   
+28,04-07-2024,4882,ICICI-22186,618790, 01-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,150000,,150000,, -   
+29,04-07-2024,4883,ICICI-22186,24, 01-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,157595,,157595,, -   
+30,04-07-2024,4885,ICICI-22186,673308, 01-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,79000,,79000,, -   
+31,04-07-2024,4886,ICICI-22186,618791, 02-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,58000,,58000,, -   
+32,04-07-2024,4887,ICICI-22186,427648, 28-06-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,1200000,,1200000,,188918
+33,05-07-2024,4891,ICICI-22186,NEFT , 05-07-2024,1806,Shanty Cecil / Cecil Thomas ,1000000, -   ,1000000, -   , -   
+34,05-07-2024,4892,ICICI-22186,RTGS , 05-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,899900,,899900,,229459
+35,09-07-2024,4903,ICICI-22186,161239, 06-07-2024,1902,Sanchita Tukaram Bhor,4500000, -   ,4500000, -   , -   
+36,09-07-2024,4904,ICICI-22186,RTGS , 09-07-2024,1,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+37,09-07-2024,4905,ICICI-22186,RTGS , 09-07-2024,2,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+38,09-07-2024,4906,ICICI-22186,RTGS , 09-07-2024,3,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+39,09-07-2024,4907,ICICI-22186,RTGS , 09-07-2024,4,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+40,09-07-2024,4908,ICICI-22186,RTGS , 09-07-2024,5,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+41,09-07-2024,4909,ICICI-22186,RTGS , 09-07-2024,6,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+42,09-07-2024,4910,ICICI-22186,RTGS , 09-07-2024,7,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+43,09-07-2024,4911,ICICI-22186,RTGS , 09-07-2024,8,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+44,09-07-2024,4912,ICICI-22186,RTGS , 09-07-2024,9,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+45,09-07-2024,4913,ICICI-22186,RTGS , 09-07-2024,10,Tukaram Mahadev Bhor,3000000,,3000000,, -   
+46,10-07-2024,4914,ICICI-22186,112222, 07-07-2024,13,Tushar Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,655321,,655321,, -   
+47,10-07-2024,4915,ICICI-22186,128106, 07-07-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,650000,,650000,, -   
+48,10-07-2024,4916,ICICI-22390,125941, 07-07-2024,13,Tushar Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,990000,990000, -   , -   , -   
+49,10-07-2024,4917,ICICI-22390,107759, 07-07-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,450000,450000, -   , -   , -   
+50,10-07-2024,4918,ICICI-22390,110962, 07-07-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,119397,56897, -   ,62500, -   
+51,10-07-2024,4919,ICICI-22390,110961, 07-07-2024,13,Tushar Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,130603,95287, -   ,35316, -   
+52,10-07-2024,4920,ICICI-22390,112221, 07-07-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,44679,44679, -   , -   , -   
+53,10-07-2024,4941,ICICI-22390,161240, 10-07-2024,1902,Sanchita Tukaram Bhor,1025000,661110, -   ,363890, -   
+54,11-07-2024,4922,ICICI-22186,100, 05-07-2024,1,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+55,11-07-2024,4923,ICICI-22186,100, 05-07-2024,2,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+56,11-07-2024,4924,ICICI-22186,100, 05-07-2024,3,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+57,11-07-2024,4925,ICICI-22186,100, 05-07-2024,4,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+58,11-07-2024,4926,ICICI-22186,100, 05-07-2024,5,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+59,11-07-2024,4927,ICICI-22186,100, 05-07-2024,6,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+60,11-07-2024,4928,ICICI-22186,100, 05-07-2024,7,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+61,11-07-2024,4929,ICICI-22186,100, 05-07-2024,8,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+62,11-07-2024,4930,ICICI-22186,100, 05-07-2024,9,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+63,11-07-2024,4931,ICICI-22186,100, 05-07-2024,10,Tukaram Mahadev Bhor,1000000,,1000000,, -   
+64,11-07-2024,4884,ICICI-22186,115804, 01-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,150000,,150000,, -   
+65,11-07-2024,4942,ICICI-22390,RTGS , 11-07-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,300000,300000, -   , -   , -   
+66,15-07-2024,4946,ICICI-22390,Online Transfer , 15-07-2024,1505,Vighanesh Rajaram Dombe / Shraddha Vighanesh Dombe,500000,500000, -   , -   , -   
+67,17-07-2024,4949,ICICI-22186,19, 16-07-2024,15,Pradeep Kumar B Makhija ,1000000,,1000000,, -   
+68,17-07-2024,4947,ICICI-22186,105, 14-07-2024,1201,Darshana Dilip Jambhale,2370000,,2370000,, -   
+69,17-07-2024,4948,ICICI-22390,106, 14-07-2024,1201,Darshana Dilip Jambhale,1538095,1133500, -   ,404595, -   
+70,17-07-2024,4951,ICICI-22390,NEFT , 17-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,700000,582770, -   ,117230, -   
+71,17-07-2024,4952,ICICI-22390,Online Transfer , 17-07-2024,1905,Digar Singh P.S Rajput / Babita D.S Rajput,54000,54000, -   , -   , -   
+72,19-07-2024,4956,ICICI-22390,NEFT , 19-07-2024,1101,Anu Shaji / Shaji Thundiyil Kurian,771487,771487, -   , -   , -   
+73,21-07-2024,4961,ICICI-22390,Online Transfer , 21-07-2024,1801,Garima Jain,1001,1001, -   , -   , -   
+74,22-07-2024,4960,ICICI-22186,324681, 16-07-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,100000,,100000,,
+75,22-07-2024,4962,ICICI-22390,Online Transfer , 22-07-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,54000,54000, -   , -   , -   
+76,23-07-2024,4964,ICICI-22390,26, 22-07-2024,1401,Manoj Singh Bhoj,1217568,1207568, -   ,10000, -   
+77,24-07-2024,4965,ICICI-22390,5, 15-07-2024,1801,Garima Jain,54000,54000, -   , -   , -   
+78,27-07-2024,4972,ICICI-22390,Online Transfer , 27-07-2024,2003,Rajesh Sharma / Bhawana Sharma,100000, -   , -   ,100000, -   
+79,27-07-2024,4973,ICICI-22390,Online Transfer , 27-07-2024,2003,Rajesh Sharma / Bhawana Sharma,100000,94730, -   ,5270, -   
+80,28-07-2024,4974,ICICI-22390,Online Transfer , 28-07-2024,2003,Rajesh Sharma / Bhawana Sharma,1198520,1198520, -   , -   , -   
+81,28-07-2024,4975,ICICI-22186,Online Transfer , 28-07-2024,2003,Rajesh Sharma / Bhawana Sharma,2105406,,2105406,,210541
+82,03-08-2024,4991,ICICI-22186,203647, 02-08-2024,1301,Margaret Kingsley / Stanley Kingsley,2000000,,2000000,,
+83,14-08-2024,5010,ICICI-22186,IMPS , 14-08-2024,1801,Garima Jain,50000, -   ,50000, -   , -   
+84,14-08-2024,5011,ICICI-22186,Online Transfer , 14-08-2024,1801,Garima Jain,95000, -   ,95000, -   , -   
+85,14-08-2024,5022,ICICI-22186,IMPS , 14-08-2024,1801,Garima Jain,89414, -   ,89414, -   , -   
+86,19-08-2024,5026,ICICI-22186,IMPS , 19-08-2024,1301,Margaret Kingsley / Stanley Kingsley,1, -   ,1, -   , -   
+87,20-08-2024,5030,ICICI-22186,22, 17-08-2024,15,Pradeep Kumar B Makhija ,500000, -   ,500000, -   , -   
+88,20-08-2024,5031,ICICI-22390,22, 17-08-2024,15,Pradeep Kumar B Makhija ,500000,325000, -   ,175000, -   
+89,22-08-2024,5036,ICICI-22390,NEFT ,  22-08-2024,1806,Shanty Cecil / Cecil Thomas ,800000,800000, -   , -   , -   
+90,22-08-2024,5040,ICICI-22390,RTGS , 22-08-2024,1,Tukaram Mahadev Bhor,630000,630000, -   , -   , -   
+91,22-08-2024,5042,ICICI-22390,RTGS , 22-08-2024,2,Tukaram Mahadev Bhor,630000,630000, -   , -   , -   
+92,22-08-2024,5043,ICICI-22390,RTGS , 22-08-2024,3,Tukaram Mahadev Bhor,630000,630000, -   , -   , -   
+93,22-08-2024,5045,ICICI-22390,RTGS , 22-08-2024,4,Tukaram Mahadev Bhor,630000,630000, -   , -   , -   
+94,22-08-2024,5046,ICICI-22390,RTGS , 22-08-2024,5,Tukaram Mahadev Bhor,630000,630000, -   , -   , -   
+95,22-08-2024,5047,ICICI-22186,NEFT ,  22-08-2024,1301,Margaret Kingsley / Stanley Kingsley,2696297, -   ,2696297, -   ,234865
+96,22-08-2024,5070,ICICI-22186,NEFT ,  22-08-2024,1301,Margaret Kingsley / Stanley Kingsley,1000, -   ,1000, -   , -   
+97,23-08-2024,5037,ICICI-22390,Online Transfer , 23-08-2024,1801,Garima Jain,95000,95000, -   , -   , -   
+98,23-08-2024,5038,ICICI-22390,Online Transfer , 23-08-2024,1801,Garima Jain,63792,52079, -   ,11713, -   
+99,23-08-2024,5039,ICICI-22390,Online Transfer , 23-08-2024,1801,Garima Jain,1000000,1000000, -   , -   , -   
+100,23-08-2024,5055,ICICI-22390,161243, 22-08-2024,1902,Sanchita Tukaram Bhor,267216, -   , -   ,267216, -   
+101,24-08-2024,5055,ICICI-22186,161243, 22-08-2024,1902,Sanchita Tukaram Bhor,8122165, -   ,8122165, -   ,126222
+102,26-08-2024,5064,ICICI-22186,911569, 22-08-2024,1301,Margaret Kingsley / Stanley Kingsley,234865, -   ,234865, -   , -   
+103,27-08-2024,5068,ICICI-22390,NEFT ,  27-08-2024,2006,Rakesh Kacholia / Meenal Kacholia,1568919,1568919, -   , -   , -   
+104,03-09-2024,5100,ICICI-22390,102, 31-08-2024,1601,Salini Asokkumar / Mungath Asok kumar,200000,200000, -   , -   , -   
+105,04-09-2024,5090,ICICI-22186,107, 01-09-2024,1201,Darshana Dilip Jambhale,7891095, -   ,7891095, -   ,237000
+106,05-09-2024,5101,ICICI-22186,NEFT ,  05-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,100, -   ,100, -   , -   
+107,05-09-2024,5102,ICICI-22186,NEFT ,  05-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,100, -   ,100, -   , -   
+108,05-09-2024,2103,ICICI-22390,NEFT ,  05-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,100,100, -   , -   , -   
+109,05-09-2024,2104,ICICI-22390,NEFT ,  05-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,100,100, -   , -   , -   
+110,06-09-2024,5107,ICICI-22390,NEFT ,  06-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,499900,499900, -   , -   , -   
+111,06-09-2024,5108,ICICI-22390,NEFT ,  06-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,499900,499900, -   , -   , -   
+112,09-09-2024,TDS paid by customer & hence amt considered as booking amt,,,,1601,Salini Asokkumar / Mungath Asok kumar,24208, -   ,24208, -   ,24208
+113,09-09-2024,5111,ICICI-22186,NEFT ,  09-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,1000000, -   ,1000000, -   , -   
+114,09-09-2024,5112,ICICI-22186,NEFT ,  09-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,1000000, -   ,1000000, -   , -   
+115,09-09-2024,5113,ICICI-22186,NEFT ,  09-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,198157, -   ,198157, -   , -   
+116,09-09-2024,5114,ICICI-22186,NEFT ,  09-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,198157, -   ,198157, -   , -   
+117,11-09-2024,5123,ICICI-22390,103, 10-09-2024,1601,Salini Asokkumar / Mungath Asok kumar,403468,282440, -   ,121028, -   
+118,11-09-2024,5125,ICICI-22390,Online Transfer , 11-09-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,700000,700000, -   , -   , -   
+119,12-09-2024,5126,ICICI-22390,29, 11-09-2024,1401,Manoj Singh Bhoj,473255,253243, -   ,220012, -   
+120,12-09-2024,5127,ICICI-22186,27, 11-09-2024,1401,Manoj Singh Bhoj,4400259, -   ,4400259, -   , -   
+121,12-09-2024,5135,ICICI-22390,Online Transfer , 12-09-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,621091,517630, -   ,103461, -   
+122,12-09-2024,5136,ICICI-22390,RTGS ,12-09-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,200000,200000, -   , -   , -   
+123,13-09-2024,5137,ICICI-22186,RTGS ,13-09-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,500000, -   ,500000, -   , -   
+124,17-09-2024,5146,ICICI-22390,Online Transfer , 17-09-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,49000,49000, -   , -   , -   
+125,17-09-2024,5147,ICICI-22390,Online Transfer , 17-09-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,49000,49000, -   , -   , -   
+126,17-09-2024,5148,ICICI-22390,Online Transfer , 17-09-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,110000,110000, -   , -   , -   
+127,17-09-2024,5150,ICICI-22186,RTGS ,17-09-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,500000, -   ,500000, -   , -   
+128,18-09-2024,5149,ICICI-22186,RTGS ,18-09-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,1000000, -   ,1000000, -   ,
+129,18-09-2024,5151,ICICI-22390,RTGS ,18-09-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,300000,300000, -   , -   , -   
+130,19-09-2024,5152,ICICI-22186,IMPS ,19-09-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,69369, -   ,69369, -   , -   
+131,21-09-2024,5158,ICICI-22390,931396, 17-09-2024,1001,Ashutosh Pramod Singh,150000,150000, -   , -   , -   
+132,23-09-2024,5163,ICICI-22186,577, 23-09-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,2407703, -   ,2407703, -   , -   
+133,25-09-2024,5170,ICICI-22390,NEFT , 25-09-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,1383757,1263630, -   ,120127, -   
+134,27-09-2024,5179,ICICI-22186,103, 25-09-2024,1,Tukaram Mahadev Bhor,2000000, -   ,2000000, -   ,100000
+135,27-09-2024,5180,ICICI-22186,103, 25-09-2024,2,Tukaram Mahadev Bhor,2000000, -   ,2000000, -   ,100000
+136,27-09-2024,5181,ICICI-22186,103, 25-09-2024,3,Tukaram Mahadev Bhor,2000000, -   ,2000000, -   ,100000
+137,27-09-2024,5182,ICICI-22186,103, 25-09-2024,4,Tukaram Mahadev Bhor,2000000, -   ,2000000, -   ,100000
+138,27-09-2024,5183,ICICI-22186,103, 25-09-2024,5,Tukaram Mahadev Bhor,2000000, -   ,2000000, -   ,100000
+139,28-09-2024,5186,ICICI-22186,NEFT , 28-09-2024,1801,Garima Jain,67980, -   ,67980, -   , -   
+140,28-09-2024,5187,ICICI-22390,RTGS , 28-09-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,400000,400000, -   , -   , -   
+141,28-09-2024,5188,ICICI-22390,NEFT , 28-09-2024,1806,Shanty Cecil / Cecil Thomas ,1350000,747300, -   ,602700, -   
+142,30-09-2024,5191,ICICI-22186,NEFT , 30-09-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,46000, -   ,46000, -   , -   
+143,30-09-2024,5199,ICICI-22186,NEFT , 30-09-2024,1801,Garima Jain,2300001, -   ,2300001, -   ,234414
+144,01-10-2024,5202,ICICI-22186,NEFT , 01-10-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,100000, -   ,100000, -   , -   
+145,01-10-2024,5206,ICICI-22390,NEFT , 01-10-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,154000,154000, -   , -   , -   
+146,04-10-2024,5224,ICICI-22390,NEFT , 04-10-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,33781,33781, -   , -   , -   
+147,07-10-2024,5227,ICICI-22186,375607, 03-10-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,900000, -   ,900000, -   , -   
+148,07-10-2024,5234,ICICI-22186,IMPS ,07-10-2024,1801,Garima Jain,1000, -   ,1000, -   , -   
+149,07-10-2024,5235,ICICI-22186,NEFT , 07-10-2024,1801,Garima Jain,165435, -   ,165435, -   , -   
+150,08-10-2024,5236,ICICI-22186,583568, 05-10-2024,1001,Ashutosh Pramod Singh,2375676, -   ,2375676, -   , -   
+151,08-10-2024,5237,ICICI-22390,583569, 05-10-2024,1001,Ashutosh Pramod Singh,1424194,1305410, -   ,118784, -   
+152,08-10-2024,5241,ICICI-22186,NEFT , 08-10-2024,1801,Garima Jain,4769947, -   ,4769947, -   , -   
+153,10-10-2024,5248,ICICI-22390,125944, 09-10-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,106261,106261, -   , -   , -   
+154,10-10-2024,5249,ICICI-22390,89881, 09-10-2024,12,Ashish Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,430000,430000, -   , -   , -   
+155,10-10-2024,5250,ICICI-22390,125943, 09-10-2024,11,Abhishek Suresh Gupta / Suresh Lalchand Gupta / Nirmala Suresh Gupta,218739,108739, -   ,110000, -   
+156,11-10-2024,5261,ICICI-22186,NEFT , 11-10-2024,1601,Salini Asokkumar / Mungath Asok kumar,4793026, -   ,4793026, -   , -   
+157,14-10-2024,5265,ICICI-22390,Online Transfer , 14-10-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,41387, -   ,41387, -   ,41387
+158,15-10-2024,5267,ICICI-22390,Online Transfer , 15-10-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,165550, -   ,165550, -   ,165550
+159,21-10-2024,5278,ICICI-22390,NEFT , 21-10-2024,1601,Salini Asokkumar / Mungath Asok kumar,121040, -   , -   ,121040, -   
+160,21-10-2024,5279,ICICI-22390,NEFT , 21-10-2024,1601,Salini Asokkumar / Mungath Asok kumar,121040, -   , -   ,121040, -   
+161,21-10-2024,5280,ICICI-22390,NEFT , 21-10-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,206944, -   , -   ,206944, -   
+162,21-10-2024,5281,ICICI-22186,NEFT , 21-10-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,4097353, -   ,4097353, -   , -   
+163,25-10-2024,TDS paid by customer & hence amt considered as booking amt,,,,1601,Salini Asokkumar / Mungath Asok kumar,48414, -   ,48414, -   ,48414
+164,26-10-2024,5287,ICICI-22390,NEFT , 26-10-2024,2006,Rakesh Kacholia / Meenal Kacholia,230837, -   ,230837, -   ,230837
+165,28-10-2024,5292,ICICI-22186,37, 24-10-2024,1806,Shanty Cecil / Cecil Thomas ,5533000, -   ,5533000, -   ,252883
+166,29-10-2024,5296,ICICI-22186,300074, 28-10-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,500000, -   ,500000, -   , -   
+167,30-10-2024,5299,ICICI-22390,300075, 29-10-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,500000, -   , -   ,500000, -   
+168,31-10-2024,5301,ICICI-22390,56, 29-10-2024,1901,Lipi Banerjee / Bholanath Banerjee,121036, -   , -   ,121036, -   
+169,31-10-2024,5302,ICICI-22186,55, 29-10-2024,1901,Lipi Banerjee / Bholanath Banerjee,2420721, -   ,2420721, -   , -   
+170,31-10-2024,5303,ICICI-22186,100099, 30-10-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,500000, -   ,500000, -   , -   
+171,31-10-2024,5304,ICICI-22186,Online Transfer , 31-10-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,4800405, -   ,4800405, -   ,240270
+172,31-10-2024,5305,ICICI-22390,Online Transfer , 31-10-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,240278, -   , -   ,240278, -   
+173,08-11-2024,5314,ICICI-22186,RTGS , 08-11-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,200000, -   ,200000, -   , -   
+174,18-11-2024,5319,ICICI-22186,300076, 15-11-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,300000, -   ,300000, -   , -   
+175,18-11-2024,5320,ICICI-22390,Online Transfer , 18-11-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,180203, -   , -   ,180203, -   
+176,18-11-2024,5325,ICICI-22186,579, 18-11-2024,1503,Archana Vijay Ahire / Vijay Ramchandra Ahire,3604054, -   ,3604054, -   , -   
+177,19-11-2024,5326,ICICI-22186,109, 16-11-2024,1201,Darshana Dilip Jambhale,403905, -   ,403905, -   , -   
+178,19-11-2024,5327,ICICI-22390,110, 16-11-2024,1201,Darshana Dilip Jambhale,10155, -   , -   ,10155, -   
+179,19-11-2024,5329,ICICI-22186,NEFT , 19-11-2024,2006,Rakesh Kacholia / Meenal Kacholia,3950000, -   ,3950000, -   , -   
+180,19-11-2024,5330,ICICI-22186,NEFT , 19-11-2024,2006,Rakesh Kacholia / Meenal Kacholia,4667947, -   ,4667947, -   , -   
+181,20-11-2024,5331,ICICI-22390,NEFT , 20-11-2024,2006,Rakesh Kacholia / Meenal Kacholia,577095, -   , -   ,577095, -   
+182,22-11-2024,5341,ICICI-22390,911576, 20-11-2024,1301,Margaret Kingsley / Stanley Kingsley,357015,46001, -   ,311014, -   
+183,22-11-2024,5342,ICICI-22186,911575, 20-11-2024,1301,Margaret Kingsley / Stanley Kingsley,2242985, -   ,2242985, -   , -   
+184,25-11-2024,5343,ICICI-22390,RTGS , 25-11-2024,1506,Hitendra Kirankumar Jain / Vrushabh Kirankumar Jain / Tara Kirankumar Jain,250180, -   ,250180, -   ,250180
+185,26-11-2024,5361,ICICI-22186,473758, 25-11-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,900000, -   ,900000, -   , -   
+186,26-11-2024,5362,ICICI-22186,375608, 25-11-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,1600000, -   ,1600000, -   , -   
+187,26-11-2024,5363,ICICI-22186,324686, 25-11-2024,1501,Kamla Suresh Jain / Suresh Roshanlal Jain / Shivam Suresh Jain,500000, -   ,500000, -   , -   
+188,26-11-2024,5300,ICICI-22186,NEFT , 26-11-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,2938503, -   ,2938503, -   , -   
+189,26-11-2024,,ICICI-22390,Online Transfer , 26-11-2024,1903,Pranali Dipak Chavan / Ajay Tukaram Patil,155204, -   , -   ,155204, -   
+190,26-11-2024,,ICICI-22186,NEFT , 26-11-2024,1301,Margaret Kingsley / Stanley Kingsley,1045122, -   ,1045122, -   , -   
+191,27-11-2024,,ICICI-22186,NEFT , 27-11-2024,2003,Rajesh Sharma / Bhawana Sharma,7062290, -   ,7062290, -   , -   
+192,27-11-2024,,ICICI-22186,38, 26-11-2024,1806,Shanty Cecil / Cecil Thomas ,3759015, -   ,3759015, -   , -   
+,,,,,, -   ,TOTAL,213017399,26536491,179797314,6683594,3479265
