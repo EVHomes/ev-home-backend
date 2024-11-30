@@ -155,6 +155,13 @@ export const postSaleLeadSchema = new mongoose.Schema(
       },
     ],
     date: { type: Date, default: Date.now },
+    allInclusiveAmount: { type: Number, default: 0 },
+    totalAmount: { type: Number, default: 0 },
+    cgstAmount: { type: Number, default: 0 },
+    netAmount: { type: Number, default: 0 },
+    stampDutyAmount: { type: Number, default: 0 },
+    tdsAmount: { type: Number, default: 0 },
+    flatCost: { type: Number, default: 0 },
   },
   { timestamps: true }
 );
