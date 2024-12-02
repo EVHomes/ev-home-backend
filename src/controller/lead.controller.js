@@ -173,11 +173,10 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = { followupStatus: { $ne: "pending" } };
     } else if (status === "pending") {
       statusToFind = {
+        bookingStatus: { $ne: "booked" },
         $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
       };
     }
-    ``;
-
     let skip = (page - 1) * limit;
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
@@ -252,7 +251,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           },
         ],
       })
-
       .populate({
         path: "dataAnalyzer",
         select: "firstName lastName",
@@ -348,6 +346,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     const pendingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      bookingStatus: { $ne: "booked" },
       $or: [
         {
           visitStatus: "pending",
@@ -745,6 +744,18 @@ export const searchLeads = async (req, res, next) => {
       .populate({
         path: "project",
         select: "name",
+      })
+      .populate({
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
       })
       .populate({
         path: "teamLeader",
@@ -1425,6 +1436,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
           approvalStatus: "approved",
           approvalRemark: remark ?? "approved",
           approvalDate: startDate,
+          stage: "visit",
           $set: {
             cycle: {
               nextTeamLeader: null,
