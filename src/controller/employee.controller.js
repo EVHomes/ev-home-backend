@@ -268,7 +268,7 @@ export const getEmployeeByDesignation = async (req, res, next) => {
   try {
     const desgId = req.params.id;
     if (!desgId) return res.send(errorRes(200, "id is required"));
-    console.log(desgId);
+    // console.log(desgId);
     const respCP = await employeeModel
       .find({
         designation: desgId,

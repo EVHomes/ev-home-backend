@@ -3,6 +3,7 @@ import employeeModel from "../model/employee.model.js";
 import leadModel from "../model/lead.model.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import siteVisitModel from "../model/siteVisit.model.js";
 import TeamLeaderAssignTurn from "../model/teamLeaderAssignTurn.model.js";
 import {
   sendNotificationWithImage,
@@ -152,6 +153,8 @@ export const getAllLeads = async (req, res, next) => {
 export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
+    if (!teamLeaderId) return res.send(errorRes(401, "id required"));
+
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
 
@@ -173,6 +176,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
       };
     }
+    ``;
 
     let skip = (page - 1) * limit;
     let searchFilter = {
@@ -236,6 +240,19 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           },
         ],
       })
+      .populate({
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+
       .populate({
         path: "dataAnalyzer",
         select: "firstName lastName",
@@ -320,6 +337,10 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       teamLeader: { $eq: teamLeaderId },
       revisitStatus: { $ne: "pending" },
     });
+    const visit2Count = await siteVisitModel.countDocuments({
+      closingManager: { $eq: teamLeaderId },
+    });
+
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       bookingStatus: { $ne: "pending" },
@@ -351,6 +372,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         followUpCount,
         assignedCount,
         visitCount,
+        visit2Count,
         revisitCount,
         bookingCount,
         data: respLeads,
@@ -360,6 +382,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     next(error);
   }
 };
+
 export const getLeadTeamLeaderGraph = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
@@ -385,6 +408,7 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
     const revisitCount =
       (await leadModel.countDocuments({
         teamLeader: { $eq: teamLeaderId },
+
         revisitStatus: { $ne: "pending" },
       })) || 0;
 
@@ -1364,7 +1388,7 @@ export const deleteLead = async (req, res, next) => {
   }
 };
 
-export const LeadAssignToTeamLeader = async (req, res, next) => {
+export const leadAssignToTeamLeader = async (req, res, next) => {
   const id = req.params.id;
   const user = req.user;
 
@@ -1382,25 +1406,45 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
 
     const teamLeaderResp = await employeeModel.find({ _id: teamLeaderId });
 
+    const startDate = new Date(); // Current date
+    const daysToAdd = 30;
+
+    // Properly calculate validTill
+    const validTill = new Date(startDate);
+    validTill.setDate(validTill.getDate() + daysToAdd);
+
+    console.log("Start Date:", startDate.toISOString()); // For clarity, use ISO string
+    console.log("Valid Till:", validTill.toISOString());
+    console.log("pass dates");
     const updatedLead = await leadModel
       .findByIdAndUpdate(
         id,
         {
           teamLeader: teamLeaderId,
-          dataAnalyser: user?._id,
+          dataAnalyzer: user?._id,
           approvalStatus: "approved",
           approvalRemark: remark ?? "approved",
-          approvalDate: new Date(),
+          approvalDate: startDate,
+          $set: {
+            cycle: {
+              nextTeamLeader: null,
+              stage: "visit",
+              currentOrder: 1,
+              teamLeader: teamLeaderId,
+              startDate: startDate,
+              validTill: validTill,
+            },
+          },
           $addToSet: {
             approvalHistory: {
               employee: user?._id,
-              approvedAt: new Date(),
+              approvedAt: startDate,
               remark: remark ?? "approved",
             },
             updateHistory: {
               employee: user?._id,
               changes: `Lead Assign to Team Leader ${teamLeaderResp?.firstName} ${teamLeaderResp?.lastName}`,
-              updatedAt: new Date(),
+              updatedAt: startDate,
               remark: remark,
             },
           },
@@ -1481,15 +1525,19 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
           { path: "division" },
         ],
       });
+    console.log("pass update lead");
 
     const foundTLPlayerId = await oneSignalModel.findOne({
       docId: teamLeaderResp?._id,
       role: teamLeaderResp?.role,
     });
 
+    console.log("pass found playerId");
+
     console.log("pass 3");
     if (foundTLPlayerId) {
       // console.log(foundTLPlayerId);
+
       await sendNotificationWithImage({
         playerIds: [foundTLPlayerId.playerId],
         title: "You've Got a New Lead!",
@@ -1497,6 +1545,7 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
         imageUrl:
           "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
       });
+      console.log("pass sent notification");
     }
     console.log("pass 4");
 
@@ -1507,6 +1556,7 @@ export const LeadAssignToTeamLeader = async (req, res, next) => {
     return next(error);
   }
 };
+
 export const assignLeadToTeamLeader = async (req, res, next) => {
   const id = req.params.id;
   const user = req.user;
