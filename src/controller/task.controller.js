@@ -1,9 +1,126 @@
+import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import taskModel from "../model/task.model.js";
+import { sendNotificationWithImage } from "./oneSignal.controller.js";
 
 export const getTask = async (req, res, next) => {
   try {
-    const resp = await taskModel.find();
+    const resp = await taskModel
+      .find()
+      .populate({
+        path: "lead",
+        populate: [
+          {
+            path: "channelPartner",
+            select: "-password -refreshToken",
+          },
+          {
+            path: "project",
+            select: "name",
+          },
+          {
+            path: "teamLeader",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "cycle.teamLeader",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataAnalyzer",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "preSalesExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "approvalHistory.employee",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "updateHistory.employee",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "callHistory.caller",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "assignBy",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "assignTo",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      });
     return res.send(
       successRes(200, "get task", {
         data: resp,
@@ -21,12 +138,53 @@ export const assignTask = async (req, res, next) => {
   try {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
+
     const newData = {
       ...body,
-      assignTo,
-      assignBy: user._id,
+      // assignTo: assignTo,
+      assignTo: user._id,
     };
+
     const resp = await taskModel.create({ ...newData });
+
+    const foundTLPlayerId = await oneSignalModel.find({
+      docId: user._id,
+    });
+
+    if (foundTLPlayerId.length > 0) {
+      // console.log(foundTLPlayerId);
+      const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+      await sendNotificationWithImage({
+        playerIds: getPlayerIds,
+        title: "You've Got new task",
+        message: `A new task has been assigned to you. Check the details to move things forward.`,
+        imageUrl:
+          "https://images.ctfassets.net/rz1oowkt5gyp/1IgVe0tV9yDjWtp68dAZJq/36ca564d33306d407dabe39c33322dd9/TaskManagement-hero.png",
+      });
+    }
+
+    return res.send(
+      successRes(200, "get task", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updateTask = async (req, res, next) => {
+  const { status } = req.body;
+  const taskId = req.params.id;
+  const user = req.user;
+  try {
+    if (!taskId) return res.send(errorRes(401, "taskId required"));
+
+    const resp = await taskModel.findByIdAndUpdate(taskId, {
+      completed: status === "completed" ? true : false,
+      completedDate: new Date(),
+    });
 
     return res.send(
       successRes(200, "get task", {

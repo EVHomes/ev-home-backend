@@ -141,3 +141,50 @@ export const getCarryForwardOption = async (req, res) => {
     return res.send(errorRes(200, `${error}`));
   }
 };
+
+export const useCarryForward = async (req, res) => {
+  try {
+    const staffId = req.params.id;
+    const user = req.user;
+    console.log(staffId);
+    if (!staffId) return res.send(errorRes(401, "no id provided"));
+
+    const { carryForward } = req.body;
+
+    // Get the current month and year
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    // Check if a target already exists for this month and year
+    let target = await TargetModel.findOne({
+      staffId,
+      month: currentMonth,
+      year: currentYear,
+    });
+
+    if (target) {
+      target.carryForward = carryForward;
+      await target.save();
+
+      target = await TargetModel.create({
+        staffId,
+        target: 3,
+        achieved: carryForward,
+        carryForward: 0,
+        previousCarryForwardUsed: true,
+        month: currentMonth >= 12 ? 1 : currentMonth + 1,
+        year: currentMonth >= 12 ? currentYear + 1 : currentYear,
+      });
+    }
+
+    return res.send(successRes(200, "CarryForward is Used", { data: target }));
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.send(
+        errorRes(409, "Target already exists for this month and year.")
+      );
+    }
+    return res.send(errorRes(500, "An error occurred while adding the target"));
+  }
+};
