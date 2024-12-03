@@ -5,6 +5,7 @@ export const getPayment = async (req, res) => {
   try {
     const respPayment = await paymentModel.find().populate({
       path: "projects",
+      select: "name",
     });
 
     return res.send(
@@ -59,6 +60,7 @@ export const addPayment = async (req, res) => {
     await newPayment.save();
     const respP = await paymentModel.findById(newPayment._id).populate({
       path: "projects",
+      select: "name",
     });
 
     return res.send(
@@ -77,6 +79,7 @@ export const getPaymentbyFlat = async (req, res) => {
       .findOne({ flatNo: flatNo })
       .populate({
         path: "projects",
+        select: "name",
       });
 
     return res.send(

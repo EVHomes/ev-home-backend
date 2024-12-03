@@ -17,6 +17,7 @@ import {
   registerEmployee,
   resetPasswordEmployee,
   searchEmployee,
+  getReportingTo,
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -42,6 +43,7 @@ employeeRouter.get(
   // authenticateToken,
   getTeamLeaderCSM
 );
+employeeRouter.get("/employee-reporting/:id", getReportingTo);
 
 employeeRouter.get("/employee-closing-manager", getSeniorClosingManagers);
 

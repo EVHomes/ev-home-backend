@@ -20,7 +20,7 @@ import {
   getLeadCountsByPreSaleExecutve,
   getAllLeadCountsFunnelForPreSaleTL,
   rejectLeadById,
-  LeadAssignToTeamLeader,
+  leadAssignToTeamLeader,
   getLeadTeamLeaderGraph,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -61,7 +61,7 @@ leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 leadRouter.post(
   "/lead-assign-tl/:id",
   authenticateToken,
-  LeadAssignToTeamLeader
+  leadAssignToTeamLeader
 );
 leadRouter.post("/lead-reject/:id", authenticateToken, rejectLeadById);
 

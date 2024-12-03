@@ -268,7 +268,7 @@ export const getEmployeeByDesignation = async (req, res, next) => {
   try {
     const desgId = req.params.id;
     if (!desgId) return res.send(errorRes(200, "id is required"));
-    console.log(desgId);
+    // console.log(desgId);
     const respCP = await employeeModel
       .find({
         designation: desgId,
@@ -464,6 +464,31 @@ export const editEmployeeById = async (req, res, next) => {
     );
   } catch (error) {
     return next(error);
+  }
+};
+
+export const getReportingTo = async (req, res, next) => {
+  try {
+    const reportingToId = req.params.id;
+
+    const employees = await employeeModel
+      .find({ reportingTo: reportingToId })
+      .select("firstName lastName")
+      .populate("designation")
+      .populate({
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      });
+
+    // Return the list of employees
+    return res.status(200).send(
+      successRes(200, "Employees reporting to the specified ID", {
+        employees,
+      })
+    );
+  } catch (error) {
+    next(error); // Pass the error to the global error handler
   }
 };
 
