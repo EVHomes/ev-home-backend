@@ -215,6 +215,14 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .find({
         ...searchFilter,
         teamLeader: teamLeaderId,
+        $or: [
+          {
+            stage: { $ne: "tagging-over" },
+          },
+          {
+            stage: { $ne: "approval" },
+          },
+        ],
       })
       .skip(skip)
       .limit(limit)
@@ -315,25 +323,65 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const contactedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       contactedStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
 
     const followUpCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       followupStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
 
     const assignedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       preSalesExecutive: { $ne: null },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       visitStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
 
     const revisitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       revisitStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
     const visit2Count = await siteVisitModel.countDocuments({
       closingManager: { $eq: teamLeaderId },
@@ -342,6 +390,14 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       bookingStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
 
     const pendingCount = await leadModel.countDocuments({
@@ -506,117 +562,84 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
       })
       .populate({
         path: "project",
+        select: "name",
       })
       .populate({
         path: "teamLeader",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "dataAnalyzer",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "preSalesExecutive",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
-      // .populate({
-      //   path: "viewedBy.employee",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "approvalHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "updateHistory.employee",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "callHistory.caller",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));

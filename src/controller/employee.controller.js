@@ -484,7 +484,7 @@ export const getReportingTo = async (req, res, next) => {
     // Return the list of employees
     return res.status(200).send(
       successRes(200, "Employees reporting to the specified ID", {
-        employees,
+        data: employees,
       })
     );
   } catch (error) {

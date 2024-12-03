@@ -32,8 +32,10 @@ const taskSchema = new mongoose.Schema(
     type: { type: String, required: true, default: null },
     completed: { type: Boolean, default: false },
     completedDate: { type: Date, default: null },
+    deadline: { type: Date, default: null },
   },
   { timestamps: true }
 );
+
 const taskModel = mongoose.model("task", taskSchema, "tasks");
 export default taskModel;
