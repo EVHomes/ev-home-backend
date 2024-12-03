@@ -467,6 +467,31 @@ export const editEmployeeById = async (req, res, next) => {
   }
 };
 
+export const getReportingTo = async (req, res, next) => {
+  try {
+    const reportingToId = req.params.id;
+
+    const employees = await employeeModel
+      .find({ reportingTo: reportingToId })
+      .select("firstName lastName")
+      .populate("designation")
+      .populate({
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      });
+
+    // Return the list of employees
+    return res.status(200).send(
+      successRes(200, "Employees reporting to the specified ID", {
+        employees,
+      })
+    );
+  } catch (error) {
+    next(error); // Pass the error to the global error handler
+  }
+};
+
 export const deleteEmployeeById = async (req, res, next) => {
   const id = req.params.id;
   try {
