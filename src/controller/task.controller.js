@@ -141,14 +141,14 @@ export const assignTask = async (req, res, next) => {
 
     const newData = {
       ...body,
-      // assignTo: assignTo,
-      assignTo: user._id,
+      assignTo: assignTo,
+      // assignTo: user._id,
     };
 
     const resp = await taskModel.create({ ...newData });
 
     const foundTLPlayerId = await oneSignalModel.find({
-      docId: user._id,
+      docId: assignTo,
     });
 
     if (foundTLPlayerId.length > 0) {

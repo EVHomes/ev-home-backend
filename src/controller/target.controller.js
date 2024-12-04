@@ -150,6 +150,9 @@ export const useCarryForward = async (req, res) => {
     if (!staffId) return res.send(errorRes(401, "no id provided"));
 
     const { carryForward } = req.body;
+    if (carryForward == 0) {
+      return res.send(errorRes(401, "You dont have enough target"));
+    }
 
     // Get the current month and year
     const currentDate = new Date();
