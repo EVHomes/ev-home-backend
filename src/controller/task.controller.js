@@ -4,9 +4,12 @@ import taskModel from "../model/task.model.js";
 import { sendNotificationWithImage } from "./oneSignal.controller.js";
 
 export const getTask = async (req, res, next) => {
+  const id = req.params.id;
   try {
+    if (!id) return res.send(errorRes(401, "no id provided"));
+
     const resp = await taskModel
-      .find()
+      .find({ assignTo: id })
       .populate({
         path: "lead",
         populate: [
@@ -165,7 +168,7 @@ export const assignTask = async (req, res, next) => {
     }
 
     return res.send(
-      successRes(200, "get task", {
+      successRes(200, "Task Assigned", {
         data: resp,
       })
     );

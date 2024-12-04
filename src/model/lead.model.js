@@ -243,6 +243,7 @@ export const leadSchema = new mongoose.Schema(
     updateHistory: [updateSchema],
     cycleHistory: [cycleSchema],
     callHistory: [callHistorySchema],
+    followupHistory: [callHistorySchema],
   },
   { timestamps: true }
 );

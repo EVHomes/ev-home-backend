@@ -23,6 +23,7 @@ import meetingRouter from "./meetingSummary/meetingSummaryRouter.js";
 import targetRouter from "./target/targetRouter.js";
 import teamSectionRouter from "./teamSection/teamSectionRouter.js";
 import taskRouter from "./task/taskRouter.js";
+import notifyRouter from "./notification/notificationRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -79,5 +80,6 @@ router.use(meetingRouter);
 router.use(targetRouter);
 router.use(teamSectionRouter);
 router.use(taskRouter);
+router.use(notifyRouter);
 
 export default router;
