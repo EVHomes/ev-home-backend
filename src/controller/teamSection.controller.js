@@ -15,6 +15,7 @@ export const getTeamSections = async (req, res) => {
   }
 };
 
+
 export const addTeamSection = async (req, res) => {
   const { section, designations } = req.body;
   try {

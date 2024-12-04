@@ -5,6 +5,7 @@ import {
   getPostSaleLeads,
   getPostSaleLeadsForExecutive,
   updatePostSaleLeadById,
+  getPostSaleLeadByFlat
 } from "../../controller/postSaleLead.controller.js";
 
 const postSaleRouter = Router();
@@ -16,5 +17,7 @@ postSaleRouter.get(
   getPostSaleLeadsForExecutive
 );
 postSaleRouter.get("/post-sale-lead-by-id/:flatNo", getPostSaleLeadById);
+
+postSaleRouter.get("/post-sale-lead-by-flat", getPostSaleLeadByFlat);
 
 export default postSaleRouter;
