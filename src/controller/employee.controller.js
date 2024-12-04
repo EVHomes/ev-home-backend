@@ -534,9 +534,13 @@ export const registerEmployee = async (req, res, next) => {
     }
 
     const hashPassword = await encryptPassword(password);
+    const newId = `${body.employeeId}-${body.firstName
+      ?.replace(/\s+/g, "-")
+      .toLowerCase()}-${body.lastName?.replace(/\s+/g, "-").toLowerCase()}`;
 
     const newChannelPartner = new employeeModel({
       ...body,
+      _id: newId,
       password: hashPassword,
     });
     const savedEmployee = await newChannelPartner.save();
