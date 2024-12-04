@@ -651,6 +651,83 @@ export const deletePostSaleLeadBydId = async (req, res, next) => {
   }
 };
 
+
+export const getPostSaleLeadByFlat = async (req, res) => {
+  try {
+    const unitNo = req.query.unitNo;
+    const respPayment = await postSaleLeadModel
+      .findOne({ unitNo: unitNo })
+      .populate({
+        path: "project",
+        select: "name",
+      })
+      .populate({
+        path: "closingManager",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select:"-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select:"-password -refreshToken",
+            populate: [
+              { path: "designation" },
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "closingManagerTeam", 
+        select: "-password -refreshToken", 
+        populate: [
+          { path: "designation" }, 
+          { path: "department" },
+          { path: "division" },
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" }, 
+              { path: "department" },
+              { path: "division" },
+            ],
+          },
+        ],
+      });
+      
+
+    return res.send(
+      successRes(200, "Get Post Lead payment", {
+        data: respPayment,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, error));
+  }
+};
+
+
 export async function getPostSaleLeadCounts(req, res, next) {
   try {
     const { interval, year, startDate, endDate } = req.query;

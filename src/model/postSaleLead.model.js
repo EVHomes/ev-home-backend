@@ -164,6 +164,7 @@ export const postSaleLeadSchema = new mongoose.Schema(
     flatCost: { type: Number, default: 0 },
   },
   { timestamps: true }
+  
 );
 
 const postSaleLeadModel = mongoose.model(
