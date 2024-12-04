@@ -22,6 +22,7 @@ import {
   rejectLeadById,
   leadAssignToTeamLeader,
   getLeadTeamLeaderGraph,
+  getLeadsTeamLeaderReportingTo,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -33,6 +34,12 @@ leadRouter.get(
   "/leads-team-leader/:id",
   // authenticateToken,
   getLeadsTeamLeader
+);
+
+leadRouter.get(
+  "/leads-team-leader-reporting/:id",
+  // authenticateToken,
+  getLeadsTeamLeaderReportingTo
 );
 
 leadRouter.get(
