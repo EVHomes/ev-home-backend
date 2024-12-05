@@ -55,6 +55,6 @@ storageRouter.post("/uploads", upload.array("files", 10), uploadMultiple);
 storageRouter.get("/file/:filename", verifyTokenFromURL, getFileLink);
 
 // Route to delete a file
-storageRouter.delete("/file/:filename", verifyTokenFromURL, deleteFile);
+storageRouter.delete("/:filename", verifyTokenFromURL, deleteFile);
 
 export default storageRouter;

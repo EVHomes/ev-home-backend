@@ -268,11 +268,13 @@ export const loginPhone = async (req, res, next) => {
           { path: "division" },
         ],
       });
+
     if (!clientDb) {
       return res.send(
         errorRes(400, "Client not found with given phone Number")
       );
     }
+    console.log(clientDb.closingManager);
 
     const { password: dbPassword, ...userWithoutPhone } = clientDb._doc;
     const dataToken = {
@@ -308,7 +310,6 @@ export const loginPhone = async (req, res, next) => {
   }
 };
 
-
 export const newPasswordClient = async (req, res, next) => {
   const { id } = req.params;
   const { password, newPassword } = req.body;
@@ -325,7 +326,7 @@ export const newPasswordClient = async (req, res, next) => {
     }
 
     const respClient = await clientModel.findById(id);
-    
+
     if (!respClient) {
       return res.send(errorRes(404, `Client not found with id: ${id}`));
     }
@@ -341,7 +342,9 @@ export const newPasswordClient = async (req, res, next) => {
     respClient.password = hashedNewPassword;
     await respClient.save();
 
-    return res.send(successRes(200, "Password updated successfully",{data:respClient}));
+    return res.send(
+      successRes(200, "Password updated successfully", { data: respClient })
+    );
   } catch (error) {
     return next(error);
   }

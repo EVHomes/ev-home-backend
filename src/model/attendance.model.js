@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 export const attendanceSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: "employees",
     required: true,
   },
@@ -26,7 +26,7 @@ export const attendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ["not-present", "present", "in-break", "completed"],
+    enum: ["not-present", "present", "in-break", "in-meeting", "completed"],
     default: "not-present",
   },
   checkInTime: {
@@ -91,6 +91,7 @@ export const attendanceSchema = new mongoose.Schema({
           "break-start",
           "break-end",
           "inactive",
+          "meeting",
           "manual-entry",
         ],
         required: true,
@@ -123,6 +124,10 @@ export const attendanceSchema = new mongoose.Schema({
     },
   ],
 });
+attendanceSchema.index(
+  { userId: 1, day: 1, month: 1, year: 1 },
+  { unique: true }
+);
 
 const attendanceModel = mongoose.model("Attendance", attendanceSchema);
 export default attendanceModel;
