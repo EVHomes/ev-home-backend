@@ -1,0 +1,128 @@
+import mongoose from "mongoose";
+
+export const attendanceSchema = new mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "employees",
+    required: true,
+  },
+  day: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 31,
+  },
+  month: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 12,
+  },
+  year: {
+    type: Number,
+    required: true,
+    min: 2000,
+    max: new Date().getFullYear() + 10,
+  },
+  status: {
+    type: String,
+    enum: ["not-present", "present", "in-break", "completed"],
+    default: "not-present",
+  },
+  checkInTime: {
+    type: Date,
+    default: null,
+  },
+  checkInLatitude: {
+    type: Number,
+    default: null,
+  },
+  checkInLongitude: {
+    type: Number,
+    default: null,
+  },
+  checkInPhoto: {
+    type: String,
+    default: null,
+  },
+  checkOutTime: {
+    type: Date,
+    default: null,
+  },
+  checkOutLatitude: {
+    type: Number,
+    default: null,
+  },
+  checkOutLongitude: {
+    type: Number,
+    default: null,
+  },
+  checkOutPhoto: {
+    type: String,
+    default: null,
+  },
+  totalActiveSeconds: {
+    type: Number,
+    default: 0,
+  },
+  totalBreakSeconds: {
+    type: Number,
+    default: 0,
+  },
+  overtimeSeconds: {
+    type: Number,
+    default: 0,
+  },
+  breakStartTime: {
+    type: Date,
+    default: null,
+  },
+  breakEndTime: {
+    type: Date,
+    default: null,
+  },
+  timeline: [
+    {
+      event: {
+        type: String,
+        enum: [
+          "check-in",
+          "check-out",
+          "break-start",
+          "break-end",
+          "inactive",
+          "manual-entry",
+        ],
+        required: true,
+      },
+      timestamp: {
+        type: Date,
+        required: true,
+        default: Date.now,
+      },
+      durationSeconds: {
+        type: Number,
+        default: null,
+      },
+      remark: {
+        type: String,
+        default: null,
+      },
+      photo: {
+        type: String,
+        default: null,
+      },
+      latitude: {
+        type: Number,
+        default: null,
+      },
+      longitude: {
+        type: Number,
+        default: null,
+      },
+    },
+  ],
+});
+
+const attendanceModel = mongoose.model("Attendance", attendanceSchema);
+export default attendanceModel;
