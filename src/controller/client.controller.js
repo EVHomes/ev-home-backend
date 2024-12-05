@@ -98,7 +98,6 @@ export const registerClient = async (req, res, next) => {
     firstName,
     lastName,
     email,
-    gender,
     phoneNumber,
     altPhoneNumber,
     address,
@@ -111,7 +110,6 @@ export const registerClient = async (req, res, next) => {
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
     if (!password) return res.send(errorRes(403, "Password is required"));
     if (!email) return res.send(errorRes(403, "Email is required"));
-    if (!gender) return res.send(errorRes(403, "Gender is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
     if (!address) return res.send(errorRes(403, "Address is required"));
@@ -190,6 +188,10 @@ export const loginClient = async (req, res, next) => {
         email: email,
       })
       .populate({
+        path: "projects",
+        select: "name",
+      })
+      .populate({
         path: "closingManager",
         select: "-password -refreshToken",
         populate: [
@@ -198,7 +200,6 @@ export const loginClient = async (req, res, next) => {
           { path: "division" },
         ],
       });
-
     if (!clientDb) {
       return res.send(errorRes(400, "Client not found with given email"));
     }
@@ -259,6 +260,10 @@ export const loginPhone = async (req, res, next) => {
     }
     const clientDb = await clientModel
       .findOne({ phoneNumber: phoneNumber })
+      .populate({
+        path: "projects",
+        select: "name",
+      })
       .populate({
         path: "closingManager",
         select: "-password -refreshToken",
