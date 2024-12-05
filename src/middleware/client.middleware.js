@@ -5,7 +5,6 @@ const ALLOWED_ClIENT_FIELDS = [
   "firstName",
   "lastName",
   "email",
-  "gender",
   "phoneNumber",
   "altPhoneNumber",
   "address",
@@ -46,7 +45,6 @@ export const validateRegisterClientFields = (body, res) => {
     firstName,
     lastName,
     email,
-    gender,
     phoneNumber,
     altPhoneNumber,
     address,
@@ -85,13 +83,13 @@ export const validateRegisterClientFields = (body, res) => {
     );
   }
 
-  if (!gender) {
-    return res.send(
-      errorRes(400, {
-        message: "gender is required",
-      })
-    );
-  }
+  // if (!gender) {
+  //   return res.send(
+  //     errorRes(400, {
+  //       message: "gender is required",
+  //     })
+  //   );
+  // }
 
   if (!address) {
     return res.send(
