@@ -1,5 +1,6 @@
 import express from "express";
 import attendanceModel from "../../model/attendance.model.js";
+import { errorRes, successRes } from "../../model/response.js";
 
 const attendanceRouter = express.Router();
 
@@ -16,7 +17,7 @@ attendanceRouter.post("/check-in", async (req, res) => {
 
     // Validate required fields
     if (!userId || !checkInLatitude || !checkInLongitude || !checkInPhoto) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.send(errorRes(400, "Missing required fields"));
     }
 
     const now = new Date();
@@ -28,9 +29,7 @@ attendanceRouter.post("/check-in", async (req, res) => {
     });
 
     if (existingAttendance) {
-      return res
-        .status(400)
-        .json({ message: "User has already checked in today" });
+      return res.send(errorRes(400, "User has already checked in today"));
     }
 
     const newAttendance = new attendanceModel({
@@ -42,16 +41,16 @@ attendanceRouter.post("/check-in", async (req, res) => {
       checkInLatitude,
       checkInLongitude,
       checkInPhoto,
-      status: "checked-in",
+      status: "present",
     });
 
     await newAttendance.save();
-    res
-      .status(200)
-      .json({ message: "Check-in successful", data: newAttendance });
+    return res.send(
+      successRes(200, "Check-in successful", { data: newAttendance })
+    );
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.send(errorRes(500, "Internal Server Error"));
   }
 });
 
@@ -69,24 +68,22 @@ attendanceRouter.post("/break-start", async (req, res) => {
     });
 
     if (!attendance) {
-      return res
-        .status(404)
-        .json({ message: "Attendance record not found for today" });
+      return res.send(errorRes(404, "Attendance record not found for today"));
     }
 
     if (attendance.breakStartTime) {
-      return res.status(400).json({ message: "Break already started" });
+      return res.send(errorRes(400, "Break already started"));
     }
 
     attendance.breakStartTime = now;
     await attendance.save();
 
-    res
-      .status(200)
-      .json({ message: "Break started successfully", data: attendance });
+    return res.send(
+      successRes(200, "Break started successfully", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.send(errorRes(500, "Internal Server Error"));
   }
 });
 
@@ -104,7 +101,7 @@ attendanceRouter.post("/break-end", async (req, res) => {
     });
 
     if (!attendance || !attendance.breakStartTime) {
-      return res.status(400).json({ message: "No active break to end" });
+      return res.send(errorRes(400, "No active break to end"));
     }
 
     const breakDuration = calculateSeconds(attendance.breakStartTime, now);
@@ -112,12 +109,12 @@ attendanceRouter.post("/break-end", async (req, res) => {
     attendance.breakStartTime = null;
     await attendance.save();
 
-    res
-      .status(200)
-      .json({ message: "Break ended successfully", data: attendance });
+    return res.send(
+      successRes(200, "Break ended successfully", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.send(errorRes(500, "Internal Server Error"));
   }
 });
 
@@ -136,13 +133,11 @@ attendanceRouter.post("/check-out", async (req, res) => {
     });
 
     if (!attendance) {
-      return res
-        .status(404)
-        .json({ message: "Attendance record not found for today" });
+      return res.send(errorRes(404, "Attendance record not found for today"));
     }
 
     if (attendance.checkOutTime) {
-      return res.status(400).json({ message: "User has already checked out" });
+      return res.send(errorRes(400, "User has already checked out"));
     }
 
     const activeDuration =
@@ -153,13 +148,14 @@ attendanceRouter.post("/check-out", async (req, res) => {
     attendance.checkOutLongitude = checkOutLongitude;
     attendance.checkOutPhoto = checkOutPhoto;
     attendance.totalActiveSeconds = activeDuration;
-    attendance.status = "checked-out";
+    attendance.status = "completed";
     await attendance.save();
-
-    res.status(200).json({ message: "Check-out successful", data: attendance });
+    return res.send(
+      successRes(200, "Check-out successful", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.send(errorRes(500, "Internal Server Error"));
   }
 });
 
@@ -169,7 +165,7 @@ attendanceRouter.post("/manual-entry", async (req, res) => {
     const { userId, startTime, endTime, remarks } = req.body;
 
     if (!userId || !startTime || !endTime || !remarks) {
-      return res.status(400).json({ message: "Missing required fields" });
+      return res.send(errorRes(400, "Missing required fields"));
     }
 
     const now = new Date();
@@ -181,9 +177,7 @@ attendanceRouter.post("/manual-entry", async (req, res) => {
     });
 
     if (!attendance) {
-      return res
-        .status(404)
-        .json({ message: "Attendance record not found for today" });
+      return res.send(errorRes(404, "Attendance record not found for today"));
     }
 
     const manualDuration = calculateSeconds(startTime, endTime);
@@ -197,13 +191,50 @@ attendanceRouter.post("/manual-entry", async (req, res) => {
     });
 
     await attendance.save();
-
-    res
-      .status(200)
-      .json({ message: "Manual entry added successfully", data: attendance });
+    return res.send(
+      successRes(200, "Manual entry added successfully", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Internal Server Error" });
+    return res.send(errorRes(500, "Internal Server Error"));
+  }
+});
+
+attendanceRouter.post("/update-timeline", async (req, res) => {
+  try {
+    const { userId, startTime, endTime, remarks } = req.body;
+
+    if (!userId || !startTime || !endTime || !remarks) {
+      return res.send(errorRes(400, "Missing required fields"));
+    }
+
+    const now = new Date();
+    const attendance = await attendanceModel.findOne({
+      userId,
+      day: now.getDate(),
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+    });
+
+    if (!attendance) {
+      return res.send(errorRes(404, "Attendance record not found for today"));
+    }
+
+    // Add inactive period to timeline
+    attendance.timeline = attendance.timeline || [];
+    attendance.timeline.push({
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      remarks,
+    });
+
+    await attendance.save();
+    return res.send(
+      successRes(200, "Timeline updated successfully", { data: attendance })
+    );
+  } catch (error) {
+    console.error(error);
+    return res.send(errorRes(500, "Internal Server Error"));
   }
 });
 

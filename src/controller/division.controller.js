@@ -67,19 +67,15 @@ export const addDivision = async (req, res) => {
 export const updateDivision = async (req, res) => {
   const body = req.body;
   const id = req.params.id;
-  const { division, location } = body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
 
     if (!body) return res.send(errorRes(403, "data is required"));
 
-    if (!division) return res.send(errorRes(403, "division is required"));
-    // if (!location) return res.send(errorRes(403, "location  is required"));
-
     const updatedDivision = await divisionModel.findByIdAndUpdate(
       id,
-      { division, location },
+      { ...body },
       { new: true }
     );
     if (!updateDivision)
