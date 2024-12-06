@@ -311,6 +311,147 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         path: "callHistory.caller",
         select: "firstName lastName",
         populate: [{ path: "designation" }],
+      })
+      .populate({
+        path: "visitRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "revisitRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "bookingRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -1731,7 +1872,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
     const teamLeaderResp = await employeeModel.find({ _id: teamLeaderId });
 
     const startDate = new Date(); // Current date
-    const daysToAdd = 30;
+    const daysToAdd = 15;
 
     // Properly calculate validTill
     const validTill = new Date(startDate);
