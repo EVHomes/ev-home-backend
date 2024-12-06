@@ -4,6 +4,7 @@ import axios from "axios";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
 import { generateOTP } from "../utils/helper.js";
+import leadModel from "../model/lead.model.js";
 
 export const getSiteVisits = async (req, res) => {
   try {
@@ -500,6 +501,19 @@ export const addSiteVisits = async (req, res) => {
     //   ],
     // });
     // console.log(body);
+    console.log("updating lead");
+    const leadThrou = await leadModel.findOneAndUpdate(
+      {
+        phoneNumber: phoneNumber,
+      },
+      {
+        // stage: "visit",
+        // status: "visit",
+        visitStatus: "visit-done",
+        visitRef: populateNewSiteVisit._id,
+      }
+    );
+    console.log("lead update passed");
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,
