@@ -209,7 +209,7 @@ export const leadSchema = new mongoose.Schema(
     },
     bookingRef: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "booking",
+      ref: "postSaleLead",
       default: null,
     },
     followupStatus: {
