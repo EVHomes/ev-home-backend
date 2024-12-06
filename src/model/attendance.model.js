@@ -101,6 +101,11 @@ export const attendanceSchema = new mongoose.Schema({
         required: true,
         default: Date.now,
       },
+      timestampEnd: {
+        type: Date,
+        required: true,
+        default: null,
+      },
       durationSeconds: {
         type: Number,
         default: null,

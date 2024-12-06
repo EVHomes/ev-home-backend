@@ -1731,7 +1731,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
     const teamLeaderResp = await employeeModel.find({ _id: teamLeaderId });
 
     const startDate = new Date(); // Current date
-    const daysToAdd = 30;
+    const daysToAdd = 15;
 
     // Properly calculate validTill
     const validTill = new Date(startDate);

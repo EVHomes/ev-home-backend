@@ -29,7 +29,11 @@ attendanceRouter.post("/check-in", async (req, res) => {
     });
 
     if (existingAttendance) {
-      return res.send(errorRes(400, "User has already checked in today"));
+      return res.send(
+        successRes(400, "User has already checked in today", {
+          data: existingAttendance,
+        })
+      );
     }
 
     const newAttendance = new attendanceModel({
