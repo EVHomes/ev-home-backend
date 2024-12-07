@@ -424,7 +424,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       })
       .populate({
         path: "bookingRef",
-        select: "firstName lastName",
         populate: [
           { path: "project", select: "name" },
           {
@@ -856,7 +855,6 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       })
       .populate({
         path: "bookingRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
@@ -1529,7 +1527,6 @@ export const searchLeads = async (req, res, next) => {
       })
       .populate({
         path: "bookingRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
