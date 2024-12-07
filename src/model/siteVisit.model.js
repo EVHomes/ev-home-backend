@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+
+ import mongoose from "mongoose";
 const emailFormat = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 export const siteVisitSchema = new mongoose.Schema(
   {
@@ -10,6 +11,7 @@ export const siteVisitSchema = new mongoose.Schema(
     gender: { type: String, default: "male" },
     phoneNumber: { type: Number, required: true, default: 0 },
     date: { type: Date, default: Date.now },
+    
     countryCode: { type: String, default: "+91" },
     email: {
       type: String,

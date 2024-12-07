@@ -18,7 +18,6 @@ export const clientSchema = new mongoose.Schema({
   },
   gender: {
     type: String,
-    required: true,
     default: "male",
     enum: ["male", "female", "other"],
   },
@@ -29,14 +28,12 @@ export const clientSchema = new mongoose.Schema({
   altPhoneNumber: { type: Number, required: false },
   address: { type: String, required: false, default: null },
   password: { type: String, required: true, minlength: 6 },
-  projects: [
-    {
-      type: String,
-      required: true,
-      default: null,
-      // enum: ["EV 9 Square", "EV Heart City", "Marina Bay"],
-    },
-  ],
+  projects: {
+    type: String,
+    required: true,
+    default: null,
+    ref: "ourProjects",
+  },
   closingManager: {
     type: String,
     ref: "employees",

@@ -426,7 +426,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         path: "bookingRef",
         select: "firstName lastName",
         populate: [
-          { path: "projects", select: "name" },
+          { path: "project", select: "name" },
           {
             path: "closingManager",
             select: "firstName lastName",
