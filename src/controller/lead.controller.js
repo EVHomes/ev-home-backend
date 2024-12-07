@@ -1008,6 +1008,52 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     next(error);
   }
 };
+
+export const leadUpdateStatus = async (req, res, next) => {
+  const id = req.params.id;
+  const { status, bookingRef, visitRef, revisitRef } = req.body;
+  try {
+    if (!id) return res.send(errorRes(401, "id required"));
+    if (!status) return res.send(errorRes(401, "status required"));
+
+    const foundLead = await leadModel.findById(id);
+    if (!foundLead) {
+      return res.send(errorRes(404, "no lead found with id"));
+    }
+
+    if (status === "booked") {
+      foundLead.bookingStatus = "booked";
+      foundLead.bookingRef = bookingRef;
+      await foundLead.save();
+    }
+
+    if (status === "visited") {
+      foundLead.visitStatus = "visited";
+      foundLead.stage = "revisit";
+      foundLead.visitRef = visitRef;
+      await foundLead.save();
+    }
+    if (status === "revisited") {
+      foundLead.revisitStatus = "revisited";
+      foundLead.stage = "booking";
+      foundLead.revisitRef = revisitRef;
+      await foundLead.save();
+    }
+    if (status === "called") {
+      foundLead.contactedStatus = "contacted";
+      foundLead.revisitRef = revisitRef;
+      await foundLead.save();
+    }
+
+    return res.send(
+      successRes(200, "Status Updated", {
+        data: foundLead,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
 export const getLeadTeamLeaderGraph = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {

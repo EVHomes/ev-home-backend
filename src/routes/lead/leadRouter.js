@@ -23,6 +23,7 @@ import {
   leadAssignToTeamLeader,
   getLeadTeamLeaderGraph,
   getLeadsTeamLeaderReportingTo,
+  leadUpdateStatus,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -69,6 +70,11 @@ leadRouter.get(
   "/search-lead",
   //  authenticateToken,
   searchLeads
+);
+leadRouter.post(
+  "/lead-update-status/:id",
+  // authenticateToken,
+  leadUpdateStatus
 );
 
 leadRouter.get("/lead/:id", authenticateToken, getLeadById);
@@ -132,7 +138,7 @@ const parseDate = (dateString) => {
   const [day, month, year] = dateString.split("-").map(Number);
 
   // Create a new Date object
-  const date = new Date(year + 2000, month - 1, day); // Adjust year and month (0-indexed)
+  const date = new Date(year, month - 1, day); // Adjust year and month (0-indexed)
 
   return date;
 };
@@ -140,7 +146,7 @@ const parseDate = (dateString) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "Leads_tl.csv");
+  const csvFilePath = path.join(__dirname, "Leads_tl_3.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
