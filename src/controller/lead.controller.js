@@ -1031,6 +1031,9 @@ export const leadUpdateStatus = async (req, res, next) => {
       foundLead.visitStatus = "visited";
       foundLead.stage = "revisit";
       foundLead.visitRef = visitRef;
+      foundLead.cycle.stage = "revisit";
+      // foundLead.cycle.validTill = new Date().addDays
+
       await foundLead.save();
     }
     if (status === "revisited") {

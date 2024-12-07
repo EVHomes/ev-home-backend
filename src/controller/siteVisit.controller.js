@@ -501,19 +501,24 @@ export const addSiteVisits = async (req, res) => {
     //   ],
     // });
     // console.log(body);
-    console.log("updating lead");
+
+    let updates = {
+      visitStatus: "visit-done",
+      visitRef: populateNewSiteVisit._id,
+    };
+
+    if (body.visitType == "revisit") {
+      updates = {
+        revisitStatus: "revisit-done",
+        revisitRef: populateNewSiteVisit._id,
+      };
+    }
     const leadThrou = await leadModel.findOneAndUpdate(
       {
         phoneNumber: phoneNumber,
       },
-      {
-        // stage: "visit",
-        // status: "visit",
-        visitStatus: "visit-done",
-        visitRef: populateNewSiteVisit._id,
-      }
+      updates
     );
-    console.log("lead update passed");
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,

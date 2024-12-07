@@ -141,7 +141,8 @@ export const assignTask = async (req, res, next) => {
   try {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
-
+    console.log(assignTo);
+    console.log(body);
     const newData = {
       ...body,
       assignTo: assignTo,
