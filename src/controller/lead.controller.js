@@ -180,6 +180,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let skip = (page - 1) * limit;
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
+      teamLeader: teamLeaderId,
 
       $or: [
         { firstName: { $regex: query, $options: "i" } },
@@ -212,18 +213,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     };
 
     const respLeads = await leadModel
-      .find({
-        ...searchFilter,
-        teamLeader: teamLeaderId,
-        $or: [
-          {
-            stage: { $ne: "tagging-over" },
-          },
-          {
-            stage: { $ne: "approval" },
-          },
-        ],
-      })
+      .find(searchFilter)
       .skip(skip)
       .limit(limit)
       .sort({ startDate: -1 })
@@ -611,8 +601,16 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let skip = (page - 1) * limit;
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
+      teamLeader: teamLeaderId,
 
       $or: [
+        // {
+        //   stage: { $ne: "tagging-over" },
+        // },
+        // {
+        //   stage: { $ne: "approval" },
+        // },
+
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
         isNumberQuery
@@ -643,18 +641,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     };
 
     const respLeads = await leadModel
-      .find({
-        ...searchFilter,
-        teamLeader: teamLeaderId,
-        $or: [
-          {
-            stage: { $ne: "tagging-over" },
-          },
-          {
-            stage: { $ne: "approval" },
-          },
-        ],
-      })
+      .find(searchFilter)
       .skip(skip)
       .limit(limit)
       .sort({ startDate: -1 })
