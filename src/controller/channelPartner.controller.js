@@ -167,7 +167,8 @@ export const deleteChannelPartnerById = async (req, res, next) => {
 };
 
 export const registerChannelPartner = async (req, res, next) => {
-  const body = req.filteredBody;  const {firmName,firstName,lastName, email, phoneNumber, password } = body;
+  const body = req.filteredBody;
+  const { firmName, firstName, lastName, email, phoneNumber, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (password.length < 6) {
@@ -198,10 +199,15 @@ export const registerChannelPartner = async (req, res, next) => {
     }
 
     const hashPassword = await encryptPassword(password);
-const newCpId=firmName?.replace(/\s+/g, "-").toLowerCase()+"-"+firstName?.replace(/\s+/g, "").toLowerCase() +"-"+lastName.replace(/\s+/g, "").toLowerCase();
+    const newCpId =
+      firmName?.replace(/\s+/g, "-").toLowerCase() +
+      "-" +
+      firstName?.replace(/\s+/g, "").toLowerCase() +
+      "-" +
+      lastName.replace(/\s+/g, "").toLowerCase();
     const newChannelPartner = new cpModel({
       ...body,
-      _id:newCpId,
+      _id: newCpId,
       password: hashPassword,
     });
     const savedCp = await newChannelPartner.save();
