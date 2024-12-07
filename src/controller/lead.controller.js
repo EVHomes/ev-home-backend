@@ -1528,7 +1528,7 @@ export const searchLeads = async (req, res, next) => {
       .populate({
         path: "bookingRef",
         populate: [
-          { path: "projects", select: "name" },
+          { path: "project", select: "name" },
           {
             path: "closingManager",
             select: "firstName lastName",
