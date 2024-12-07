@@ -59,13 +59,14 @@ export const postSaleLeadSchema = new mongoose.Schema(
     address: { type: String, default: null },
     email: {
       type: String,
+      default: null,
 
-      validate: {
-        validator: function (value) {
-          return emailFormat.test(value);
-        },
-        message: (props) => `${props.value} is not a valid email.`,
-      },
+      // validate: {
+      //   validator: function (value) {
+      //     return emailFormat.test(value);
+      //   },
+      //   message: (props) => `${props.value} is not a valid email.`,
+      // },
     },
     carpetArea: { type: Number, default: null },
     flatCost: { type: Number, default: null },
@@ -164,7 +165,6 @@ export const postSaleLeadSchema = new mongoose.Schema(
     flatCost: { type: Number, default: 0 },
   },
   { timestamps: true }
-  
 );
 
 const postSaleLeadModel = mongoose.model(

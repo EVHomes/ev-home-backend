@@ -485,42 +485,54 @@ export const addPostSaleLead = async (req, res, next) => {
     carpetArea,
     flatCost,
     phoneNumber,
-  
   } = body;
   try {
+    console.log("pass 0");
     if (!body) return res.send(errorRes(401, "No Data Provided"));
-    // console.log(body);
-    if (body.applicants == null && body.applicants.length < 0)
+    console.log(body);
+    if (body.applicants == null || body.applicants?.length <= 0)
       return res.send(errorRes(401, "Aplicant cant be empty"));
+    console.log("pass apps");
 
     // const resp = await postSaleLeadModel.find();
     const resp = await postSaleLeadModel.create({
       ...body,
     });
 
-    // const newLead = postSaleLeadModel.findById(resp._id);
-
-    // .populate({
-    //   path: "closingManager",
-    //   select: "-password -refreshToken",
-    //   populate: [
-    //     { path: "designation" },
-    //     { path: "department" },
-    //     { path: "division" },
-    //     {
-    //       path: "reportingTo",
-    //       populate: [
-    //         { path: "designation" },
-    //         { path: "department" },
-    //         { path: "division" },
-    //       ],
-    //     },
-    //   ],
-    // });
+    const newLead = await postSaleLeadModel
+      .findById(resp._id)
+      .populate({
+        path: "project",
+        select: "name",
+      })
+      .populate({
+        path: "closingManager",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      });
 
     return res.send(
       successRes(200, "add post sale leads", {
-        data: resp,
+        data: newLead,
       })
     );
   } catch (error) {
@@ -652,7 +664,6 @@ export const deletePostSaleLeadBydId = async (req, res, next) => {
   }
 };
 
-
 export const getPostSaleLeadByFlat = async (req, res) => {
   try {
     const unitNo = req.query.unitNo;
@@ -671,7 +682,7 @@ export const getPostSaleLeadByFlat = async (req, res) => {
           { path: "division" },
           {
             path: "reportingTo",
-            select:"-password -refreshToken",
+            select: "-password -refreshToken",
             populate: [
               { path: "designation" },
               { path: "department" },
@@ -689,7 +700,7 @@ export const getPostSaleLeadByFlat = async (req, res) => {
           { path: "division" },
           {
             path: "reportingTo",
-            select:"-password -refreshToken",
+            select: "-password -refreshToken",
             populate: [
               { path: "designation" },
               { path: "department" },
@@ -699,24 +710,23 @@ export const getPostSaleLeadByFlat = async (req, res) => {
         ],
       })
       .populate({
-        path: "closingManagerTeam", 
-        select: "-password -refreshToken", 
+        path: "closingManagerTeam",
+        select: "-password -refreshToken",
         populate: [
-          { path: "designation" }, 
+          { path: "designation" },
           { path: "department" },
           { path: "division" },
           {
             path: "reportingTo",
             select: "-password -refreshToken",
             populate: [
-              { path: "designation" }, 
+              { path: "designation" },
               { path: "department" },
               { path: "division" },
             ],
           },
         ],
       });
-      
 
     return res.send(
       successRes(200, "Get Post Lead payment", {
@@ -727,7 +737,6 @@ export const getPostSaleLeadByFlat = async (req, res) => {
     return res.send(errorRes(500, error));
   }
 };
-
 
 export async function getPostSaleLeadCounts(req, res, next) {
   try {
