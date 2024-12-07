@@ -14,10 +14,14 @@ export const getChannelPartners = async (req, res, next) => {
   try {
     const respCP = await cpModel.find().select("-password -refreshToken");
     return res.send(
-      successRes(200, "get Channel Partners", {
+      successRes(200,  "Get Channel Partners ", {
         data: respCP,
-      })
+      }),
+      
+
     );
+    
+   
   } catch (error) {
     return next(error);
   }
