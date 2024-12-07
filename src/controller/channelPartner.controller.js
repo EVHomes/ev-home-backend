@@ -167,8 +167,7 @@ export const deleteChannelPartnerById = async (req, res, next) => {
 };
 
 export const registerChannelPartner = async (req, res, next) => {
-  const body = req.filteredBody;
-  const {firmName,firstName,lastName, email, phoneNumber, password } = body;
+  const body = req.filteredBody;  const {firmName,firstName,lastName, email, phoneNumber, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (password.length < 6) {

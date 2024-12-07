@@ -7,14 +7,13 @@ export const channelPartnerSchema = new mongoose.Schema(
     _id: { type: String, required: true },
     email: {
       type: String,
-      required: true,
       unique: true,
-      validate: {
-        validator: function (value) {
-          return emailFormat.test(value);
-        },
-        message: (props) => `${props.value} is not a valid email.`,
-      },
+      // validate: {
+      //   validator: function (value) {
+      //     return emailFormat.test(value);
+      //   },
+      //   message: (props) => `${props.value} is not a valid email.`,
+      // },
     },
     password: { type: String, required: true, minlength: 6 },
     firstName: { type: String, default: null },
@@ -28,14 +27,14 @@ export const channelPartnerSchema = new mongoose.Schema(
     dateOfBirth: {
       type: String,
       default: "1999-01-01",
-      validate: {
-        validator: function (value) {
-          // Check if the date matches the YYYY-MM-DD format
-          return dateOfBirthFormat.test(value);
-        },
-        message: (props) =>
-          `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
-      },
+      // validate: {
+      //   validator: function (value) {
+      //     // Check if the date matches the YYYY-MM-DD format
+      //     return dateOfBirthFormat.test(value);
+      //   },
+      //   message: (props) =>
+      //     `${props.value} is not a valid date of birth. Use YYYY-MM-DD format.`,
+      // },
     },
     firmName: { type: String, required: true, default: null },
     homeAddress: { type: String, default: null },

@@ -743,6 +743,147 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
         path: "callHistory.caller",
         select: "firstName lastName",
         populate: [{ path: "designation" }],
+      })
+      .populate({
+        path: "visitRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "revisitRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "bookingRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
       });
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
@@ -1200,7 +1341,7 @@ export const searchLeads = async (req, res, next) => {
         select: "name",
       })
       .populate({
-        path: "cycle.teamLeader",
+        path: "teamLeader",
         select: "firstName lastName",
         populate: [
           { path: "designation" },
@@ -1212,7 +1353,7 @@ export const searchLeads = async (req, res, next) => {
         ],
       })
       .populate({
-        path: "teamLeader",
+        path: "cycle.teamLeader",
         select: "firstName lastName",
         populate: [
           { path: "designation" },
@@ -1275,6 +1416,147 @@ export const searchLeads = async (req, res, next) => {
         path: "callHistory.caller",
         select: "firstName lastName",
         populate: [{ path: "designation" }],
+      })
+      .populate({
+        path: "visitRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "revisitRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "bookingRef",
+        select: "firstName lastName",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
       });
 
     // Count the total items matching the filter
