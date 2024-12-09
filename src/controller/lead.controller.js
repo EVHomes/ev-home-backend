@@ -76,23 +76,6 @@ export const getAllLeads = async (req, res, next) => {
           },
         ],
       })
-      // .populate({
-      //   path: "viewedBy.employee",
-      //   select: "-password -refreshToken",
-      //   populate: [
-      //     { path: "designation" },
-      //     { path: "department" },
-      //     { path: "division" },
-      //     {
-      //       path: "reportingTo",
-      //       populate: [
-      //         { path: "designation" },
-      //         { path: "department" },
-      //         { path: "division" },
-      //       ],
-      //     },
-      //   ],
-      // })
       .populate({
         path: "approvalHistory.employee",
         select: "-password -refreshToken",
@@ -171,10 +154,34 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = { bookingStatus: { $ne: "pending" } };
     } else if (status === "followup") {
       statusToFind = { followupStatus: { $ne: "pending" } };
+    } else if (status === "visit-pending") {
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        visitStatus: "pending",
+      };
+    } else if (status === "revisit-pending") {
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        revisitStatus: "pending",
+      };
+    } else if (status === "visit-done") {
+      statusToFind = { visitStatus: { $ne: "pending" } };
+    } else if (status === "revisit-done") {
+      statusToFind = { revisitStatus: { $ne: "pending" } };
+    } else if (status === "booking-done") {
+      statusToFind = { bookingStatus: "booked" };
     } else if (status === "pending") {
       statusToFind = {
         bookingStatus: { $ne: "booked" },
         $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+      };
+    } else if (status === "tagging-over") {
+      statusToFind = {
+        stage: "tagging-over",
+      };
+    } else if (status === "followup") {
+      statusToFind = {
+        stage: "tagging-over",
       };
     }
     let skip = (page - 1) * limit;
@@ -592,10 +599,30 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       statusToFind = { bookingStatus: { $ne: "pending" } };
     } else if (status === "followup") {
       statusToFind = { followupStatus: { $ne: "pending" } };
+    } else if (status === "visit-pending") {
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        visitStatus: "pending",
+      };
+    } else if (status === "revisit-pending") {
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        revisitStatus: "pending",
+      };
+    } else if (status === "visit-done") {
+      statusToFind = { visitStatus: { $ne: "pending" } };
+    } else if (status === "revisit-done") {
+      statusToFind = { revisitStatus: { $ne: "pending" } };
+    } else if (status === "booking-done") {
+      statusToFind = { bookingStatus: "booked" };
     } else if (status === "pending") {
       statusToFind = {
         bookingStatus: { $ne: "booked" },
         $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+      };
+    } else if (status === "tagging-over") {
+      statusToFind = {
+        stage: "tagging-over",
       };
     }
     let skip = (page - 1) * limit;
@@ -1019,7 +1046,7 @@ export const leadUpdateStatus = async (req, res, next) => {
       foundLead.stage = "revisit";
       foundLead.visitRef = visitRef;
       foundLead.cycle.stage = "revisit";
-      // foundLead.cycle.validTill = new Date().addDays
+      foundLead.cycle.validTill = new Date().addDays(30);
 
       await foundLead.save();
     }
@@ -1027,11 +1054,13 @@ export const leadUpdateStatus = async (req, res, next) => {
       foundLead.revisitStatus = "revisited";
       foundLead.stage = "booking";
       foundLead.revisitRef = revisitRef;
+      foundLead.cycle.validTill = new Date().addMonths(5);
+
       await foundLead.save();
     }
     if (status === "called") {
       foundLead.contactedStatus = "contacted";
-      foundLead.revisitRef = revisitRef;
+      // foundLead.revisitRef = revisitRef;
       await foundLead.save();
     }
 
@@ -2318,7 +2347,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
         imageUrl:
           "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
       });
-      console.log("pass sent notification");
+      // console.log("pass sent notification");
     }
 
     return res.send(

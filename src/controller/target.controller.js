@@ -81,6 +81,7 @@ export const getMyTarget = async (req, res, next) => {
     // return next(error);
   }
 };
+
 export const addNewTarget = async (req, res) => {
   try {
     const user = req.user;
@@ -124,14 +125,14 @@ export const getCarryForwardOption = async (req, res) => {
   const { id } = req.params;
   try {
     if (!id) return res.send(errorRes(401, "id required"));
-    console.log(id);
+
     const date = new Date();
     const resp = await getCarryForwardOptions(
       id,
       date.getMonth() + 1,
       date.getFullYear()
     );
-    console.log(resp);
+
     return res.send(
       successRes(200, "carry forward options", {
         data: resp,
@@ -146,7 +147,6 @@ export const useCarryForward = async (req, res) => {
   try {
     const staffId = req.params.id;
     const user = req.user;
-    console.log(staffId);
     if (!staffId) return res.send(errorRes(401, "no id provided"));
 
     const { carryForward } = req.body;
