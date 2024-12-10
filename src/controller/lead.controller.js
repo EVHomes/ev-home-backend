@@ -316,7 +316,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       })
       .populate({
         path: "visitRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
@@ -371,7 +370,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       })
       .populate({
         path: "revisitRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
@@ -764,7 +762,6 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       })
       .populate({
         path: "visitRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
@@ -819,7 +816,6 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       })
       .populate({
         path: "revisitRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
@@ -1488,7 +1484,6 @@ export const searchLeads = async (req, res, next) => {
       })
       .populate({
         path: "visitRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
@@ -1543,7 +1538,6 @@ export const searchLeads = async (req, res, next) => {
       })
       .populate({
         path: "revisitRef",
-        select: "firstName lastName",
         populate: [
           { path: "projects", select: "name" },
           {
