@@ -59,7 +59,7 @@ export const addMeetingSummary = async (req, res) => {
   try {
     // console.log("pass1");
     // Check for required fields
-    if (!date || !place || !purpose) {
+    if (!date || !project || !purpose) {
       return res.send(errorRes(403, "All fields are required"));
     }
     const leadResp = await leadModel.findById(lead);
