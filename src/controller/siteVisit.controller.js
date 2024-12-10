@@ -385,6 +385,9 @@ export const addSiteVisits = async (req, res) => {
     closingTeam,
     teamLeader,
     team,
+    lead,
+    visitType,
+    virtualMeetingDoc,
   } = body;
 
   try {
@@ -404,9 +407,10 @@ export const addSiteVisits = async (req, res) => {
     // console.log(body);
     const newSiteVisit = await siteVisitModel.create({
       ...body,
+      virtualMeetingDoc: virtualMeetingDoc,
     });
-    await newSiteVisit.save();
 
+    await newSiteVisit.save();
     //  if (!id) return res.send(errorRes(403, "id is required"));
     const populateNewSiteVisit = await siteVisitModel
       .findById(newSiteVisit._id)
@@ -482,43 +486,95 @@ export const addSiteVisits = async (req, res) => {
           },
         ],
       });
-    // .populate({
-    //   path: "teamLeaderTeam",
-    //   select: "-password -refreshToken",
-    //   populate: [
-    //     { path: "designation" },
-    //     { path: "department" },
-    //     { path: "division" },
-    //     {
-    //       path: "reportingTo",
-    //       select: "-password -refreshToken",
-    //       populate: [
-    //         { path: "designation" },
-    //         { path: "department" },
-    //         { path: "division" },
-    //       ],
-    //     },
-    //   ],
-    // });
-    // console.log(body);
 
-    let updates = {
-      visitStatus: "visit-done",
-      visitRef: populateNewSiteVisit._id,
-    };
+    if (lead != null) {
+      const foundLead = await leadModel.findById(lead);
 
-    if (body.visitType == "revisit") {
-      updates = {
-        revisitStatus: "revisit-done",
-        revisitRef: populateNewSiteVisit._id,
-      };
-    }
-    const leadThrou = await leadModel.findOneAndUpdate(
-      {
+      if (foundLead) {
+        // return res.send(errorRes(404, "no lead found with id"));
+        // if (visitType === "booked") {
+        //   foundLead.bookingStatus = "booked";
+        //   foundLead.bookingRef = bookingRef;
+        //   await foundLead.save();
+        // }
+
+        if (visitType === "visited") {
+          foundLead.visitStatus = "visited";
+          foundLead.stage = "revisit";
+          foundLead.visitRef = populateNewSiteVisit._id;
+          foundLead.cycle.stage = "revisit";
+          foundLead.cycle.validTill = new Date().addDays(30);
+          await foundLead.save();
+        }
+
+        if (visitType === "virtual-meeting") {
+          foundLead.visitStatus = "virtual-meeting";
+          foundLead.stage = "revisit";
+          foundLead.visitRef = populateNewSiteVisit._id;
+          foundLead.cycle.stage = "revisit";
+          foundLead.cycle.validTill = new Date().addDays(30);
+          foundLead.virtualMeetingDoc = virtualMeetingDoc;
+
+          await foundLead.save();
+        }
+
+        if (visitType === "revisited") {
+          foundLead.revisitStatus = "revisited";
+          foundLead.stage = "booking";
+          foundLead.revisitRef = populateNewSiteVisit._id;
+          foundLead.cycle.validTill = new Date().addMonths(5);
+
+          await foundLead.save();
+        }
+        if (visitType === "called") {
+          foundLead.contactedStatus = "contacted";
+          // foundLead.revisitRef = populateNewSiteVisit._id;
+          await foundLead.save();
+        }
+      }
+    } else {
+      const foundLead = await leadModel.findOne({
         phoneNumber: phoneNumber,
-      },
-      updates
-    );
+        approvalStatus: { $ne: "pending" },
+      });
+      if (foundLead) {
+        if (visitType === "visited") {
+          foundLead.visitStatus = "visited";
+          foundLead.stage = "revisit";
+          foundLead.visitRef = populateNewSiteVisit._id;
+          foundLead.cycle.stage = "revisit";
+          foundLead.cycle.validTill = new Date().addDays(30);
+
+          await foundLead.save();
+        }
+
+        if (visitType === "virtual-meeting") {
+          foundLead.visitStatus = "virtual-meeting";
+          foundLead.stage = "revisit";
+          foundLead.visitRef = populateNewSiteVisit._id;
+          foundLead.cycle.stage = "revisit";
+          foundLead.cycle.validTill = new Date().addDays(30);
+          foundLead.virtualMeetingDoc = virtualMeetingDoc;
+
+          await foundLead.save();
+        }
+
+        if (visitType === "revisited") {
+          foundLead.revisitStatus = "revisited";
+          foundLead.stage = "booking";
+          foundLead.revisitRef = populateNewSiteVisit._id;
+          foundLead.cycle.validTill = new Date().addMonths(5);
+
+          await foundLead.save();
+        }
+        if (visitType === "called") {
+          foundLead.contactedStatus = "contacted";
+          // foundLead.revisitRef = revisitRef;
+          await foundLead.save();
+        }
+      }
+    }
+
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,
@@ -530,8 +586,15 @@ export const addSiteVisits = async (req, res) => {
 };
 
 export const generateSiteVisitOtp = async (req, res, next) => {
-  const { project, firstName, lastName, phoneNumber, closingManager, email } =
-    req.body;
+  const {
+    project,
+    firstName,
+    lastName,
+    phoneNumber,
+    closingManager,
+    email,
+    lead,
+  } = req.body;
   let url;
   try {
     const user = await employeeModel.findById(closingManager);
@@ -539,7 +602,9 @@ export const generateSiteVisitOtp = async (req, res, next) => {
       $or: [{ phoneNumber: phoneNumber }, { email: email }],
     });
     if (findOldOtp) {
-      if (project?.toLowerCase() === "10 marina bay".toLowerCase()) {
+      if (
+        project?.toLowerCase() === "project-ev-10-marina-bay-vashi-sector-10"
+      ) {
         url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
           `+91${phoneNumber}`
         )}&name=${firstName} ${lastName}&project=${project}&closingManager=${
@@ -572,7 +637,7 @@ export const generateSiteVisitOtp = async (req, res, next) => {
     });
 
     const savedOtp = await newOtpModel.save();
-    if (project?.toLowerCase() === "10 Marina Bay") {
+    if (project?.toLowerCase() === "project-ev-10-marina-bay-vashi-sector-10") {
       url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
         `+91${phoneNumber}`
       )}&name=${firstName} ${lastName}&project=${project}&closingManager=${
