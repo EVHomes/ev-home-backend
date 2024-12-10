@@ -20,7 +20,7 @@ export const siteVisitSchema = new mongoose.Schema(
     location: {
       type: String,
       ref: "ourProjects",
-      required: true,
+      default: null,
     },
     projects: [
       {

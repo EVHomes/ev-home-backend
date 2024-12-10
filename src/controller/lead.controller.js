@@ -10,6 +10,11 @@ import {
   sendNotificationWithInfo,
 } from "./oneSignal.controller.js";
 import { startOfWeek, addDays, format, startOfYear, endOfYear } from "date-fns";
+Date.prototype.addDays = function (days) {
+  const date = new Date(this.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+};
 
 export const getAllLeads = async (req, res, next) => {
   try {
