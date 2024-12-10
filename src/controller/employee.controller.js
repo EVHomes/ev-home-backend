@@ -207,6 +207,10 @@ export const getSeniorClosingManagers = async (req, res, next) => {
           {
             designation: "desg-senior-closing-manager",
           },
+          //added as per request bcz of harshal desg changed
+          {
+            designation: "desg-post-sales-head",
+          },
         ],
         status: { $ne: "inactive" },
       })
