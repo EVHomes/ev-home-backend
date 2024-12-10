@@ -20,7 +20,7 @@ export const uploadFile = async (req, res) => {
     //   console.log(`Uploaded file: ${req.file}`);
     //   console.log(req.file);
     //   console.log(`Token: ${token}`);
-    let downloadUrl = `${req.protocol}://${req.get(
+    let downloadUrl = `${req.protocol}s://${req.get(
       "host"
     )}/${uniqueFileName}?token=${token}`;
 
