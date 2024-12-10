@@ -244,6 +244,10 @@ export const leadSchema = new mongoose.Schema(
     cycleHistory: [cycleSchema],
     callHistory: [callHistorySchema],
     followupHistory: [callHistorySchema],
+    virtualMeetingDoc: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

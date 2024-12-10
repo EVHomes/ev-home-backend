@@ -92,6 +92,9 @@ export const getVisitEntryAllowedStaff = async (req, res, next) => {
           {
             designation: "desg-floor-manager",
           },
+          {
+            designation: "desg-senior-closing-manager",
+          },
         ],
         status: "active",
       })

@@ -1073,6 +1073,7 @@ export const leadUpdateStatus = async (req, res, next) => {
     next(error);
   }
 };
+
 export const getLeadTeamLeaderGraph = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
@@ -2173,6 +2174,7 @@ export const rejectLeadById = async (req, res, next) => {
     // return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
+
 export const deleteLead = async (req, res, next) => {
   const id = req.params.id;
 
