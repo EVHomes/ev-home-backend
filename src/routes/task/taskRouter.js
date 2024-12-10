@@ -7,7 +7,7 @@ import {
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 const taskRouter = Router();
 
-taskRouter.get("/task/:id", authenticateToken, getTask);
+taskRouter.get("/task/:id", getTask);
 taskRouter.post("/assign-task/:id", authenticateToken, assignTask);
 taskRouter.post("/update-task/:id", authenticateToken, updateTask);
 
