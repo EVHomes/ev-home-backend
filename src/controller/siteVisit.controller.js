@@ -5,6 +5,11 @@ import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
 import { generateOTP } from "../utils/helper.js";
 import leadModel from "../model/lead.model.js";
+Date.prototype.addDays = function (days) {
+  const date = new Date(this.valueOf());
+  date.setDate(date.getDate() + days);
+  return date;
+};
 
 export const getSiteVisits = async (req, res) => {
   try {
