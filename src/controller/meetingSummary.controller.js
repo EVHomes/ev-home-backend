@@ -1,3 +1,5 @@
+import clientModel from "../model/client.model.js";
+import leadModel from "../model/lead.model.js";
 import meetingModel from "../model/meetingSummary.model.js";
 import { errorRes, successRes } from "../model/response.js";
 
@@ -55,16 +57,34 @@ export const addMeetingSummary = async (req, res) => {
   } = body;
 
   try {
+    // console.log("pass1");
     // Check for required fields
-    if (!date || !place || !purpose || !customer) {
+    if (!date || !place || !purpose) {
       return res.send(errorRes(403, "All fields are required"));
     }
+    const leadResp = await leadModel.findById(lead);
+    // console.log("passed note 1 ");
+
+    if (!leadResp) {
+      return res.send(errorRes("Meeting scheduled"));
+    }
+    // console.log("passed note 2 ");
+
+    const customerResp = await clientModel.findOne({
+      phoneNumber: leadResp.phoneNumber,
+    });
+
+    if (!customerResp) {
+      return res.send(errorRes("Customer not registered with us yet"));
+    }
+    // console.log("passed note 3 ");
 
     const newMeeting = await meetingModel.create({
       ...body,
+      customer:customerResp._id
     });
     const respPayment = await meetingModel
-      .find()
+      .findById(newMeeting._id)
       .populate({
         path: "project",
         select: "name",
