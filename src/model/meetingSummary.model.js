@@ -6,6 +6,7 @@ export const meetingSchema = new mongoose.Schema({
   },
   place: {
     type: String,
+    ref: "divisions",
   },
   purpose: {
     type: String,
@@ -14,6 +15,31 @@ export const meetingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "clients",
     default: null,
+  },
+  project: {
+    type: String,
+    default: null,
+    ref: "ourProjects",
+  },
+  meetingWith: {
+    type: String,
+    default: null,
+    ref: "employees",
+  },
+
+  summary: {
+    type: String,
+  },
+  meetingEnd: {
+    type: Date,
+  },
+  lead: {
+    type: String,
+    ref: "leads",
+  },
+  postSaleBooking: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref: "postSaleLead",
   },
 });
 
