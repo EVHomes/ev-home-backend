@@ -8,6 +8,7 @@ import {
   searchSiteVisits,
   updateSiteVisits,
   verifySiteVisitOtp,
+  getSiteVisitLeadById
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import path from "path";
@@ -34,6 +35,7 @@ siteVisitRouter.post(
   // authenticateToken,
   addSiteVisits
 );
+siteVisitRouter.get("/site-visit-lead/:id",getSiteVisitLeadById);
 siteVisitRouter.post(
   "/site-visit-generate-otp",
   // authenticateToken,

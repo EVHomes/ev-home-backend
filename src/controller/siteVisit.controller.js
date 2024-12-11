@@ -238,8 +238,19 @@ export const searchSiteVisits = async (req, res, next) => {
     let skip = (page - 1) * limit;
 
     const isNumberQuery = !isNaN(query);
+    let visitType = null;
+    let status = req.query.status?.toLowerCase();
 
+    if (status == "visit") {
+      visitType = { visitType: "visit" };
+    } else if (status == "revisit") {
+      visitType = { visitType: "revisit" };
+    }else if(status=="virtual-meeting"){
+      visitType = { visitType: "virtual-meeting" };
+    }
     let searchFilter = {
+      ...(visitType!=null? visitType:null),
+
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
@@ -373,6 +384,123 @@ export const searchSiteVisits = async (req, res, next) => {
     return next(error);
   }
 };
+
+
+export const getSiteVisitLeadById= async(req,res,next)=>{
+
+  try {
+    const id = req.params.id;
+
+
+    if (!id) return res.send(errorRes(401, "Id required"));
+
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1; // Start from page 1
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+      $or: [
+        { firstName: new RegExp(query, "i") },
+        { lastName: new RegExp(query, "i") },
+        { email: new RegExp(query, "i") },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+      ]
+      .filter(Boolean),
+      closingManager: id,
+    };
+    const resp = await siteVisitModel
+      .find(searchFilter)
+      .sort({ date: -1 })
+      .populate({
+        path: "projects",
+        select: "name",
+      })
+      // .populate({
+      //   path: "closingManager",
+      //   select: "firstName lastName",
+      //   populate: [
+      //     { path: "designation" },
+      //     {
+      //       path: "reportingTo",
+      //       select: "firstName lastName",
+      //       populate: [{ path: "designation" }],
+      //     },
+      //   ],
+      // })
+      .populate({
+        path: "closingTeam",
+        select: "-password -refreshToken",
+        populate: [
+    
+          { path: "department" },
+         
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+      
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "dataEntryBy",
+        select: "-password -refreshToken",
+        populate: [
+          { path: "designation" },
+     
+          {
+            path: "reportingTo",
+            select: "-password -refreshToken",
+            populate: [
+              { path: "designation" },
+             
+            ],
+          },
+        ],
+      })
+      .skip(skip)
+      .limit(limit);
+
+    // Count the total items matching the filter
+    const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
+    // const registrationDone = await siteVisitModel.countDocuments({
+    //   bookingStatus: "Registration Done",
+    // });
+    // const eoiRecieved = await postSaleLeadModel.countDocuments({
+    //   bookingStatus: "EOI Recieved",
+    // });
+    // const cancelled = await postSaleLeadModel.countDocuments({
+    //   bookingStatus: "Cancelled",
+    // });
+    // const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get site visit leads", {
+        page,
+        limit,
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+
+
+};
+
 
 export const addSiteVisits = async (req, res) => {
   const body = req.body;
