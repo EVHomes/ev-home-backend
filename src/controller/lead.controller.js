@@ -2133,6 +2133,7 @@ export const rejectLeadById = async (req, res, next) => {
     if (!body) return res.send(errorRes(403, "Data is required"));
 
     const { remark } = body;
+    const startDate = new Date(); // Current date
 
     // Update the lead by ID
     const updatedLead = await leadModel.findByIdAndUpdate(
@@ -2145,13 +2146,13 @@ export const rejectLeadById = async (req, res, next) => {
         $addToSet: {
           approvalHistory: {
             employee: user?._id,
-            approvedAt: new Date(),
+            approvedAt: startDate,
             remark: remark ?? "rejected",
           },
           updateHistory: {
             employee: user?._id,
             changes: `Lead Rejected`,
-            updatedAt: new Date(),
+            updatedAt: startDate,
             remark: remark,
           },
         },
