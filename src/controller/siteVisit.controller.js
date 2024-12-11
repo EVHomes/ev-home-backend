@@ -385,8 +385,6 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
 
   try {
     const id = req.params.id;
-
-
     if (!id) return res.send(errorRes(401, "Id required"));
 
     let query = req.query.query || "";
@@ -429,6 +427,9 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
     const resp = await siteVisitModel
       .find(searchFilter)
       .sort({ date: -1 })
+      
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: "projects",
         select: "name",
@@ -446,43 +447,55 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
         ],
       })
       .populate({
-        path: "closingTeam",
-        select: "-password -refreshToken",
+        path: "attendedBy",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-      
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
-  
       .populate({
         path: "dataEntryBy",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-     
           {
             path: "reportingTo",
-            select: "-password -refreshToken ",
-            populate: [
-              { path: "designation" },
-             
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
-        path:"channelPartner",
-        select:"firstName lastName firmName phoneNumber email"
+        path: "closingTeam",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
       })
-      .skip(skip)
-      .limit(limit);
+      .populate({
+        path: "dataEntryBy",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },)
+      ;
+
 
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
@@ -495,12 +508,13 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
     // const cancelled = await postSaleLeadModel.countDocuments({
     //   bookingStatus: "Cancelled",
     // });
-    // const totalPages = Math.ceil(totalItems / limit);
+    const totalPages = Math.ceil(totalItems / limit);
 
     return res.send(
       successRes(200, "get site visit leads", {
         page,
-        limit,
+        limit,totalItems,
+        totalPages,
         data: resp,
       })
     );

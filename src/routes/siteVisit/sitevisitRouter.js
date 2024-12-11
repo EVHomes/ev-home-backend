@@ -35,7 +35,7 @@ siteVisitRouter.post(
   // authenticateToken,
   addSiteVisits
 );
-siteVisitRouter.get("/site-visit-lead/:id",getClosingManagerSiteVisitById);
+siteVisitRouter.get("/site-visit-closing-manager/:id",getClosingManagerSiteVisitById);
 siteVisitRouter.post(
   "/site-visit-generate-otp",
   // authenticateToken,

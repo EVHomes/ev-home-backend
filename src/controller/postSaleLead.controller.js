@@ -156,11 +156,12 @@ export const getPostSaleLeadById = async (req, res, next) => {
     return next(error);
   }
 };
+
 export const getPostSaleLeadsForExecutive = async (req, res, next) => {
   try {
     const id = req.params.id;
 
-    if (!id) return res.send(errorRes(401, "Exucitve id required"));
+    if (!id) return res.send(errorRes(401, "Executive id required"));
 
     let query = req.query.query || "";
     let project = req.query.project; // Get the project name from the query
