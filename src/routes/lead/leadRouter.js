@@ -35,6 +35,8 @@ import employeeModel from "../../model/employee.model.js";
 import cpModel from "../../model/channelPartner.model.js";
 import ourProjectModel from "../../model/ourProjects.model.js";
 import leadModel from "../../model/lead.model.js";
+import moment from "moment-timezone";
+import PDFDocument from "pdfkit";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -142,6 +144,414 @@ const parseDate = (dateString) => {
 
   return date;
 };
+
+leadRouter.get("/lead-pdf", async (req, res) => {
+  try {
+    const timeZone = "Asia/Kolkata";
+
+    // Get yesterday's date range in local timezone
+    const startOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .startOf("day")
+      .toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
+
+    const leads = await leadModel
+      .find({
+        createdAt: { $gte: startOfYesterday, $lt: endOfYesterday },
+      })
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "project",
+        select: "name",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyzer",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      })
+      .populate({
+        path: "visitRef",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "revisitRef",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "bookingRef",
+        populate: [
+          { path: "project", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      });
+
+    if (!leads.length) {
+      return res.status(404).json({ message: "No leads found for yesterday" });
+    }
+
+    // Create PDF document
+    const doc = new PDFDocument({ size: "A4", margin: 40 });
+    const pdfPath = path.join(__dirname, "leads-yesterday.pdf");
+    const pdfStream = fs.createWriteStream(pdfPath);
+    doc.pipe(pdfStream);
+
+    // Add title
+    doc
+      .fontSize(20)
+      .text(
+        `Leads Report - ${moment(startOfYesterday)
+          .tz(timeZone)
+          .format("DD-MM-YYYY")}`,
+        {
+          align: "center",
+          underline: true,
+        }
+      )
+      .moveDown();
+
+    // Iterate through leads and add as card-style layout
+    leads.forEach((lead, index) => {
+      if (doc.y > 700) {
+        doc.addPage(); // Add new page if content exceeds height
+      }
+
+      // Draw card boundary
+      doc.rect(40, doc.y, 510, 150).stroke().moveDown(0.5);
+
+      const cardY = doc.y + 5;
+
+      // Add lead details within the card
+      doc
+        .fontSize(12)
+        .text(`Lead ${index + 1}`, 50, cardY, { align: "left" })
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
+        .text(
+          `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
+          50,
+          cardY + 30
+        )
+        .text(
+          `Alt Phone: ${
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
+          }`,
+          50,
+          cardY + 45
+        )
+
+        .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
+        .text(
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
+          50,
+          cardY + 75
+        )
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
+
+        .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
+        .text(
+          `Data Analyzer: ${
+            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
+            "N/A"
+          }`,
+          300,
+          cardY + 30
+        )
+        .text(
+          `Team Leader: ${
+            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
+            "N/A"
+          }`,
+          300,
+          cardY + 45
+        )
+
+        .text(
+          `Channel Partner: ${lead.channelPartner?.firmName || "N/A"}`,
+          300,
+          cardY + 60
+        )
+        // .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 60)
+        .text(
+          `Deadline: ${
+            lead.cycle?.validTill
+              ? moment(lead.cycle.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 75
+        )
+        .text(
+          `Tagging Start Date: ${
+            lead.startDate
+              ? moment(lead.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 90
+        )
+        .text(
+          `Tagging Valid Till: ${
+            lead.validTill
+              ? moment(lead.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 105
+        );
+
+      // Add some spacing between cards
+      doc.moveDown(4);
+    });
+
+    doc.end();
+
+    pdfStream.on("finish", () => {
+      res.download(pdfPath, "leads-yesterday.pdf", (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          res.status(500).send("Error downloading file.");
+        }
+        fs.unlinkSync(pdfPath);
+      });
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+function getStatus1(lead) {
+  if (lead.stage == "visit") {
+    return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+  } else if (lead.stage == "revisit") {
+    return `${lead.stage ?? ""} ${lead.revisitStatus ?? ""}`;
+  } else if (lead.stage == "booking") {
+    return `${lead.stage ?? ""} ${lead.bookingStatus ?? ""}`;
+  }
+
+  return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+}
 
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
