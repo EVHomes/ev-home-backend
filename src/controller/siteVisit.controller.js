@@ -381,7 +381,7 @@ export const searchSiteVisits = async (req, res, next) => {
 };
 
 
-export const getSiteVisitLeadById= async(req,res,next)=>{
+export const getClosingManagerSiteVisitById= async(req,res,next)=>{
 
   try {
     const id = req.params.id;
@@ -395,7 +395,19 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
 
+    let visitType = null;
+    let status = req.query.status?.toLowerCase();
+
+    if (status == "visit") {
+      visitType = { visitType: "visit" };
+    } else if (status == "revisit") {
+      visitType = { visitType: "revisit" };
+    }else if(status=="virtual-meeting"){
+      visitType = { visitType: "virtual-meeting" };
+    }
+
     let searchFilter = {
+   ...(visitType!=null? visitType:null),
       $or: [
         { firstName: new RegExp(query, "i") },
         { lastName: new RegExp(query, "i") },
@@ -421,25 +433,23 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
         path: "projects",
         select: "name",
       })
-      // .populate({
-      //   path: "closingManager",
-      //   select: "firstName lastName",
-      //   populate: [
-      //     { path: "designation" },
-      //     {
-      //       path: "reportingTo",
-      //       select: "firstName lastName",
-      //       populate: [{ path: "designation" }],
-      //     },
-      //   ],
-      // })
+      .populate({
+        path: "closingManager",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
       .populate({
         path: "closingTeam",
         select: "-password -refreshToken",
         populate: [
-    
-          { path: "department" },
-         
+          { path: "designation" },
           {
             path: "reportingTo",
             select: "-password -refreshToken",
@@ -450,6 +460,7 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
           },
         ],
       })
+  
       .populate({
         path: "dataEntryBy",
         select: "-password -refreshToken",
@@ -458,13 +469,17 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
      
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
+            select: "-password -refreshToken ",
             populate: [
               { path: "designation" },
              
             ],
           },
         ],
+      })
+      .populate({
+        path:"channelPartner",
+        select:"firstName lastName firmName phoneNumber email"
       })
       .skip(skip)
       .limit(limit);
@@ -520,7 +535,6 @@ export const addSiteVisits = async (req, res) => {
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
     // if (!residence) return res.send(errorRes(403, "Residence is required"));
-    if (!email) return res.send(errorRes(403, "Email is required"));
     if (!projects) return res.send(errorRes(403, "Project is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
