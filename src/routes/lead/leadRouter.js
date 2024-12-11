@@ -37,6 +37,7 @@ import ourProjectModel from "../../model/ourProjects.model.js";
 import leadModel from "../../model/lead.model.js";
 import moment from "moment-timezone";
 import PDFDocument from "pdfkit";
+import siteVisitModel from "../../model/siteVisit.model.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -138,6 +139,7 @@ leadRouter.get(
 const parseDate = (dateString) => {
   // Split the string into day, month, year
   const [day, month, year] = dateString.split("-").map(Number);
+  // const [day, month, year] = dateString.split("-").map(Number);
 
   // Create a new Date object
   const date = new Date(year, month - 1, day); // Adjust year and month (0-indexed)
@@ -1036,6 +1038,156 @@ leadRouter.post("/lead-updates", async (req, res) => {
         });
       }
       await leadModel.insertMany(dataTuPush);
+      // Send the results only after processing is done
+      return res.send(dataTuPush);
+    })
+    .on("error", (err) => {
+      return res.status(500).send({ error: err.message });
+    });
+});
+
+leadRouter.post("/visit-updates", async (req, res) => {
+  const results = [];
+  const dataTuPush = [];
+  const csvFilePath = path.join(__dirname, "site-visit-entry.csv");
+
+  const cpResp = await cpModel.find();
+  const teamLeaders = await employeeModel.find({});
+  const projectsResp = await ourProjectModel.find({});
+
+  if (!fs.existsSync(csvFilePath)) {
+    return res.status(400).send("CSV file not found");
+  }
+  let i = 0;
+
+  fs.createReadStream(csvFilePath)
+    .pipe(csv())
+    .on("data", (data) => {
+      results.push(data);
+    })
+    .on("end", async () => {
+      for (const row of results) {
+        const {
+          date_2,
+          "First Name": firstName,
+          "Last Name": lastName,
+          Phone: phoneNumber,
+          Email: email,
+          Residence: address,
+          Project,
+          "Choice of Apartment": Requirement,
+          Source: cp,
+          "Visit Type": vistType,
+          "ATTENDED BY": attendedBy,
+          TEAM: teamleader,
+        } = row;
+
+        let projects =
+          projectsResp.find((proj) =>
+            proj.name.toLowerCase().includes(Project.split("")[0])
+          )?._id ?? [];
+        let newTeamleader =
+          teamLeaders.find((tl) =>
+            tl.firstName
+              .toLowerCase()
+              .includes(teamleader.split(" ")[0].toLowerCase())
+          )?._id ?? null;
+        let test = [];
+        const test2 = attendedBy?.replace(/\s+/g, "").toLowerCase().split(",");
+        console.log(test2);
+        test2.map((ele, i) => {
+          let attendedBy1 =
+            teamLeaders.find(
+              (tl) =>
+                tl.firstName.toLowerCase().includes(ele.toLowerCase()) ||
+                tl.lastName.toLowerCase().includes(ele.toLowerCase())
+            )?._id ?? null;
+          test.push(attendedBy1);
+        });
+
+        dataTuPush.push({
+          date: parseDate(date_2),
+          firstName,
+          lastName,
+          phoneNumber,
+          email,
+          residence: address,
+          projects: [projects],
+
+          choiceApt: Requirement?.replace(/\s+/g, "").toUpperCase().split(","),
+          cp,
+          visitType:
+            vistType === "Virtual Meeting" ? "virtual-meeting" : "visit",
+          closingTeam: test,
+          closingManager: newTeamleader,
+          location:
+            vistType === "Virtual Meeting"
+              ? "project-ev-9-square-vashi-sector-9"
+              : "project-ev-10-marina-bay-vashi-sector-10",
+          verified: true,
+          source: cp,
+        });
+        // let startDate = parseDate(Leadreceivedon);
+        // let cycleStartDate = parseDate(leadAssignDate);
+        // let requirement = Requirement.replace(/\s+/g, "")
+        //   .toUpperCase()
+        //   ?.split(",");
+
+        // let newTeamleader =
+        //   teamLeaders.find((tl) =>
+        //     tl.firstName
+        //       .toLowerCase()
+        //       .includes(Teamleader.split(" ")[0].toLowerCase())
+        //   )?._id ?? null;
+
+        // let channelPartner =
+        //   cpResp.find((cp) =>
+        //     cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
+        //   )?._id ?? null;
+
+        // // if (Cp != "") {
+        // //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
+        // //   try {
+        // //     const newCp = await cpModel.create({
+        // //       _id: newCpId,
+        // //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
+        // //       firmName: Cp.toLowerCase(),
+        // //       password: "Evhomecp",
+        // //     });
+        // //     channelPartner = newCp._id;
+        // //   } catch (error) {}
+        // // }
+
+        // let dataAnalyzer = dataAnalyzers[i]?._id ?? null;
+
+        // i = i >= 1 ? 0 : 1;
+        // const validTill = new Date(cycleStartDate);
+        // validTill.setDate(validTill.getDate() + 15);
+        // // i++;
+        // dataTuPush.push({
+        //   firstName,
+        //   lastName,
+        //   phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
+        //   teamLeader: newTeamleader,
+        //   channelPartner,
+        //   dataAnalyzer,
+        //   requirement,
+        //   approvalStatus: taggingstatus,
+        //   approvalDate: cycleStartDate,
+        //   startDate,
+        //   cycleStartDate,
+        //   projects,
+        //   cycle: {
+        //     nextTeamLeader: null,
+        //     stage: "visit",
+        //     currentOrder: 1,
+        //     teamLeader: newTeamleader,
+        //     startDate: cycleStartDate,
+        //     validTill: validTill,
+        //   },
+        // });
+      }
+      await siteVisitModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })
