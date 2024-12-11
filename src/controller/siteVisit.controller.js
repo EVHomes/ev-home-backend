@@ -386,12 +386,10 @@ export const searchSiteVisits = async (req, res, next) => {
 };
 
 
-export const getSiteVisitLeadById= async(req,res,next)=>{
+export const getClosingManagerSiteVisitById= async(req,res,next)=>{
 
   try {
     const id = req.params.id;
-
-
     if (!id) return res.send(errorRes(401, "Id required"));
 
     let query = req.query.query || "";
@@ -400,7 +398,19 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
 
+    let visitType = null;
+    let status = req.query.status?.toLowerCase();
+
+    if (status == "visit") {
+      visitType = { visitType: "visit" };
+    } else if (status == "revisit") {
+      visitType = { visitType: "revisit" };
+    }else if(status=="virtual-meeting"){
+      visitType = { visitType: "virtual-meeting" };
+    }
+
     let searchFilter = {
+   ...(visitType!=null? visitType:null),
       $or: [
         { firstName: new RegExp(query, "i") },
         { lastName: new RegExp(query, "i") },
@@ -422,57 +432,75 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
     const resp = await siteVisitModel
       .find(searchFilter)
       .sort({ date: -1 })
+      
+      .skip(skip)
+      .limit(limit)
       .populate({
         path: "projects",
         select: "name",
       })
-      // .populate({
-      //   path: "closingManager",
-      //   select: "firstName lastName",
-      //   populate: [
-      //     { path: "designation" },
-      //     {
-      //       path: "reportingTo",
-      //       select: "firstName lastName",
-      //       populate: [{ path: "designation" }],
-      //     },
-      //   ],
-      // })
       .populate({
-        path: "closingTeam",
-        select: "-password -refreshToken",
+        path: "closingManager",
+        select: "firstName lastName",
         populate: [
-    
-          { path: "department" },
-         
+          { path: "designation" },
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-      
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "attendedBy",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "dataEntryBy",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-     
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-             
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
-      .skip(skip)
-      .limit(limit);
+      .populate({
+        path: "closingTeam",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "dataEntryBy",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },)
+      ;
+
 
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
@@ -485,12 +513,13 @@ export const getSiteVisitLeadById= async(req,res,next)=>{
     // const cancelled = await postSaleLeadModel.countDocuments({
     //   bookingStatus: "Cancelled",
     // });
-    // const totalPages = Math.ceil(totalItems / limit);
+    const totalPages = Math.ceil(totalItems / limit);
 
     return res.send(
       successRes(200, "get site visit leads", {
         page,
-        limit,
+        limit,totalItems,
+        totalPages,
         data: resp,
       })
     );
@@ -528,7 +557,6 @@ export const addSiteVisits = async (req, res) => {
     if (!firstName) return res.send(errorRes(403, "First name is required"));
     if (!lastName) return res.send(errorRes(403, "Last name is required"));
     // if (!residence) return res.send(errorRes(403, "Residence is required"));
-    if (!email) return res.send(errorRes(403, "Email is required"));
     if (!projects) return res.send(errorRes(403, "Project is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "Phone number is required"));
