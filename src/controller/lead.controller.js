@@ -2139,18 +2139,14 @@ export const rejectLeadById = async (req, res, next) => {
       id,
       {
         ...body,
-        $set: {
-          approvalStage: {
-            status: "Rejected",
-            date: new Date(),
-            remark: remark ?? "Rejected",
-          },
-        },
+        approvalStatus: "rejected",
+        approvalRemark: remark ?? "rejected",
+        approvalDate: startDate,
         $addToSet: {
           approvalHistory: {
             employee: user?._id,
             approvedAt: new Date(),
-            remark: remark ?? "Rejected",
+            remark: remark ?? "rejected",
           },
           updateHistory: {
             employee: user?._id,
@@ -2854,14 +2850,8 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const {
-    leadStage,
-    remark,
-    feedback,
-    siteVisit,
-    documentUrl,
-    recordingUrl,
-  } = body;
+  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } =
+    body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -3122,7 +3112,7 @@ export const updateCallHistoryPreSales = async (req, res) => {
 
     return res.send(
       successRes(200, `Caller updated successfully: ${id}`, {
-        data:updatedLead,
+        data: updatedLead,
       })
     );
   } catch (error) {

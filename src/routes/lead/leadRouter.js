@@ -403,7 +403,7 @@ leadRouter.get("/lead-pdf-self", async (req, res) => {
     doc
       .fontSize(20)
       .text(
-        `Leads Report - ${moment(startOfYesterday)
+        `Assigned Leads Report - ${moment(startOfYesterday)
           .tz(timeZone)
           .format("DD-MM-YYYY")}`,
         {
