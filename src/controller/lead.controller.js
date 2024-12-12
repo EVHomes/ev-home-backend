@@ -1953,14 +1953,17 @@ export const addLead = async (req, res, next) => {
     project,
     interestedStatus,
   } = body;
+  // console.log("p2");
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
     const validFields = validateRequiredLeadsFields(body);
+    // console.log("p3");
 
     if (!validFields.isValid) {
       return res.send(errorRes(400, validFields.message));
     }
+    // console.log("p4");
 
     const currentDate = new Date();
     const ninetyOneDaysAgo = new Date(currentDate);
@@ -1969,6 +1972,7 @@ export const addLead = async (req, res, next) => {
     const sixtyDaysAgo = new Date(currentDate);
     sixtyDaysAgo.setDate(currentDate.getDate() - 60);
 
+    // console.log("p5");
     // Condition 1: Check if the same CP is trying to create the same lead within 91 days
     if (channelPartner) {
       const existingLeadForCP = await leadModel.findOne({
@@ -1990,6 +1994,8 @@ export const addLead = async (req, res, next) => {
       }
     }
 
+    // console.log("p6");
+
     // Condition 2: Check if a different CP created a lead with the same phone number within 60 days
     const existingLeadForOtherCP = await leadModel.findOne({
       phoneNumber: phoneNumber,
@@ -1999,6 +2005,7 @@ export const addLead = async (req, res, next) => {
         $lte: currentDate,
       },
     });
+    // console.log("p7");
 
     if (existingLeadForOtherCP) {
       const newLead = await leadModel.create({ ...body });
@@ -2015,7 +2022,7 @@ export const addLead = async (req, res, next) => {
       });
 
       if (foundTLPlayerId.length > 0) {
-        // console.log(foundTLPlayerId);
+        console.log(foundTLPlayerId);
         const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
 
         await sendNotificationWithInfo({
@@ -2036,24 +2043,28 @@ export const addLead = async (req, res, next) => {
         )
       );
     }
+    // console.log("p8");
 
     // Condition 3: If no existing lead exists, create a new one
     const newLead = await leadModel.create({ ...body });
+    // console.log("p9");
 
     const dataAnalyser = await employeeModel
       .find({
         designation: "desg-data-analyzer",
       })
       .sort({ createdAt: 1 });
+    // console.log("p10");
 
     const getIds = dataAnalyser.map((dt) => dt._id.toString());
     const foundTLPlayerId = await oneSignalModel.find({
       docId: { $in: getIds },
-      role: "employee",
+      // role: "employee",
     });
+    // console.log("p11");
 
     if (foundTLPlayerId.length > 0) {
-      // console.log(foundTLPlayerId);
+      console.log(foundTLPlayerId);
       const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
 
       await sendNotificationWithInfo({
@@ -2069,6 +2080,8 @@ export const addLead = async (req, res, next) => {
       })
     );
   } catch (error) {
+    // console.log(error);
+
     return next(error);
   }
 };

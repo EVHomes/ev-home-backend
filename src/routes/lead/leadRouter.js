@@ -162,6 +162,19 @@ leadRouter.get("/lead-pdf-self", async (req, res) => {
       .subtract(1, "day")
       .endOf("day")
       .toDate();
+    console.log(startOfYesterday);
+    console.log(endOfYesterday);
+
+    console.log(
+      moment("2024-12-10T20:39:57.938+00:00")
+        .tz(timeZone)
+        .format("DD-MM-YYYY HH:mm")
+    );
+    console.log(
+      moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm")
+    );
+
+    console.log(moment(endOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
 
     const leads = await leadModel
       .find({
@@ -400,12 +413,11 @@ leadRouter.get("/lead-pdf-self", async (req, res) => {
     const pdfPath = path.join(__dirname, "leads-yesterday.pdf");
     const pdfStream = fs.createWriteStream(pdfPath);
     doc.pipe(pdfStream);
-
     // Add title
     doc
       .fontSize(20)
       .text(
-        `Assigned Leads Report - ${moment(startOfYesterday)
+        `Internal Assigned Leads Report - ${moment(startOfYesterday)
           .tz(timeZone)
           .format("DD-MM-YYYY")}`,
         {
