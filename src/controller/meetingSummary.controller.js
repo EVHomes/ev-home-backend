@@ -179,6 +179,196 @@ export const getMeetingSummary = async (req, res) => {
   }
 };
 
+export const getClientMeetingById= async(req,res)=>{
+  try{
+    const id=req.params.id;
+    if(!id) return res.send(errorRes(401,"ID is required"));
+    let query = req.query.query || "";
+    const isNumberQuery = !isNaN(query);
+
+    let searchFilter = {
+  
+         $or: [
+           { purpose: new RegExp(query, "i") },
+         
+         ]
+         .filter(Boolean),
+         customer: id,
+       };
+
+    const respMe = await meetingModel.find(searchFilter).populate({
+      path: "project",
+      select: "name",
+    })
+      .populate({
+        path: "place",
+        select: "",
+      })
+      
+      .populate({
+        path: "customer",
+        select: "-password",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+
+      .populate({
+        path: "meetingWith",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleBooking",
+        populate: [
+          { path: "project", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "lead",
+        populate: [
+          {
+            path: "channelPartner",
+            select: "-password -refreshToken",
+          },
+          {
+            path: "project",
+            select: "name",
+          },
+          {
+            path: "teamLeader",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "cycle.teamLeader",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataAnalyzer",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "preSalesExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "approvalHistory.employee",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "updateHistory.employee",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "callHistory.caller",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      });
+      return res.send(successRes(200,"get meeting scheduled by client id", {
+        data:respMe,
+      }))
+
+  }catch (error) {
+    return res.send(errorRes(500, error));
+  }
+
+};
+
 export const addMeetingSummary = async (req, res) => {
   const body = req.body;
   const {
@@ -207,12 +397,12 @@ export const addMeetingSummary = async (req, res) => {
       return res.send(errorRes("Meeting scheduled"));
     }
     // console.log("passed note 2 ");
-
+console.log(leadResp);
     const customerResp = await clientModel.findOne({
       phoneNumber: leadResp.phoneNumber,
     });
 
-    if (!customerResp) {
+    if (!customerResp) {  
       return res.send(errorRes("Customer not registered with us yet"));
     }
     // console.log("passed note 3 ");

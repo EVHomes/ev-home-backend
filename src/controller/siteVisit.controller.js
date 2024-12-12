@@ -3,8 +3,9 @@ import { errorRes, successRes } from "../model/response.js";
 import axios from "axios";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
-import { generateOTP } from "../utils/helper.js";
+import { encryptPassword, generateOTP } from "../utils/helper.js";
 import leadModel from "../model/lead.model.js";
+import clientModel from "../model/client.model.js";
 Date.prototype.addDays = function (days) {
   const date = new Date(this.valueOf());
   date.setDate(date.getDate() + days);
@@ -245,11 +246,11 @@ export const searchSiteVisits = async (req, res, next) => {
       visitType = { visitType: "visit" };
     } else if (status == "revisit") {
       visitType = { visitType: "revisit" };
-    }else if(status=="virtual-meeting"){
+    } else if (status == "virtual-meeting") {
       visitType = { visitType: "virtual-meeting" };
     }
     let searchFilter = {
-      ...(visitType!=null? visitType:null),
+      ...(visitType != null ? visitType : null),
 
       $or: [
         { firstName: { $regex: query, $options: "i" } },
@@ -385,9 +386,7 @@ export const searchSiteVisits = async (req, res, next) => {
   }
 };
 
-
-export const getClosingManagerSiteVisitById= async(req,res,next)=>{
-
+export const getClosingManagerSiteVisitById = async (req, res, next) => {
   try {
     const id = req.params.id;
     if (!id) return res.send(errorRes(401, "Id required"));
@@ -405,12 +404,12 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
       visitType = { visitType: "visit" };
     } else if (status == "revisit") {
       visitType = { visitType: "revisit" };
-    }else if(status=="virtual-meeting"){
+    } else if (status == "virtual-meeting") {
       visitType = { visitType: "virtual-meeting" };
     }
 
     let searchFilter = {
-   ...(visitType!=null? visitType:null),
+      ...(visitType != null ? visitType : null),
       $or: [
         { firstName: new RegExp(query, "i") },
         { lastName: new RegExp(query, "i") },
@@ -425,14 +424,13 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
               },
             }
           : null,
-      ]
-      .filter(Boolean),
+      ].filter(Boolean),
       closingManager: id,
     };
     const resp = await siteVisitModel
       .find(searchFilter)
       .sort({ date: -1 })
-      
+
       .skip(skip)
       .limit(limit)
       .populate({
@@ -498,10 +496,7 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
             populate: [{ path: "designation" }],
           },
         ],
-      },)
-      ;
-
-
+      });
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
     // const registrationDone = await siteVisitModel.countDocuments({
@@ -518,7 +513,8 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
     return res.send(
       successRes(200, "get site visit leads", {
         page,
-        limit,totalItems,
+        limit,
+        totalItems,
         totalPages,
         data: resp,
       })
@@ -526,10 +522,7 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
   } catch (error) {
     return next(error);
   }
-
-
 };
-
 
 export const addSiteVisits = async (req, res) => {
   const body = req.body;
@@ -570,8 +563,20 @@ export const addSiteVisits = async (req, res) => {
       ...body,
       virtualMeetingDoc: virtualMeetingDoc,
     });
-
+    const hashPassword = await encryptPassword(phoneNumber.toString());
+    const newClient = await clientModel.create({
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      projects,
+      address,
+      closingManager,
+      choiceApt,
+      password:hashPassword,
+    });
     await newSiteVisit.save();
+    await newClient.save();
     //  if (!id) return res.send(errorRes(403, "id is required"));
     const populateNewSiteVisit = await siteVisitModel
       .findById(newSiteVisit._id)

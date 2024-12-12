@@ -34,7 +34,7 @@ export const meetingSchema = new mongoose.Schema({
     type: Date,
   },
   lead: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "leads",
   },
   postSaleBooking: {
