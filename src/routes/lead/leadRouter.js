@@ -24,6 +24,7 @@ import {
   getLeadTeamLeaderGraph,
   getLeadsTeamLeaderReportingTo,
   leadUpdateStatus,
+  getLeadByStartEndDate,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -131,6 +132,7 @@ leadRouter.get(
   getAllLeadCountsFunnelForPreSaleTL
 );
 
+leadRouter.post("/lead-by-start-end-date", getLeadByStartEndDate);
 leadRouter.get(
   "/similar-leads2",
   // authenticateToken,
@@ -947,13 +949,14 @@ function getStatus1(lead) {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "Leads_tl_3.csv");
+  const csvFilePath = path.join(__dirname, "leads_import_12-12-24.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
     $or: [
       { designation: "desg-senior-closing-manager" },
       { designation: "desg-site-head" },
+      { designation: "desg-post-sales-head" },
     ],
   });
   const dataAnalyzers = await employeeModel.find({
@@ -985,15 +988,19 @@ leadRouter.post("/lead-updates", async (req, res) => {
           Project,
           Requirement,
           taggingstatus,
+          "Data Analyer": anayl,
         } = row;
         let startDate = parseDate(Leadreceivedon);
         let cycleStartDate = parseDate(leadAssignDate);
         let requirement = Requirement.replace(/\s+/g, "")
           .toUpperCase()
           ?.split(",");
-        let projects = projectsResp.find((proj) =>
-          proj.name.toLowerCase().includes(Project.split("")[0])
-        )._id;
+        let projs = [];
+        let projects = projectsResp.find((proj) => {
+          if (proj.name.toLowerCase().includes(Project.split("")[0])) {
+            projs.push(proj?._id);
+          }
+        });
 
         let newTeamleader =
           teamLeaders.find((tl) =>
@@ -1020,7 +1027,11 @@ leadRouter.post("/lead-updates", async (req, res) => {
         //   } catch (error) {}
         // }
 
-        let dataAnalyzer = dataAnalyzers[i]?._id ?? null;
+        let dataAnalyzer = dataAnalyzers.find((dt) =>
+          dt.firstName
+            ?.toLowerCase()
+            ?.includes(anayl?.split(" ")[0]?.toLowerCase())
+        )?._id;
 
         i = i >= 1 ? 0 : 1;
         const validTill = new Date(cycleStartDate);
@@ -1034,11 +1045,12 @@ leadRouter.post("/lead-updates", async (req, res) => {
           channelPartner,
           dataAnalyzer,
           requirement,
-          approvalStatus: taggingstatus,
+          approvalStatus: taggingstatus?.toLowerCase(),
           approvalDate: cycleStartDate,
+          approvalRemark: "approved",
           startDate,
           cycleStartDate,
-          projects,
+          project: projs,
           cycle: {
             nextTeamLeader: null,
             stage: "visit",
@@ -1049,7 +1061,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           },
         });
       }
-      await leadModel.insertMany(dataTuPush);
+      // await leadModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })
@@ -1199,7 +1211,7 @@ leadRouter.post("/visit-updates", async (req, res) => {
         //   },
         // });
       }
-      await siteVisitModel.insertMany(dataTuPush);
+      // await siteVisitModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })

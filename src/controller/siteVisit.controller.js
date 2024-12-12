@@ -245,11 +245,11 @@ export const searchSiteVisits = async (req, res, next) => {
       visitType = { visitType: "visit" };
     } else if (status == "revisit") {
       visitType = { visitType: "revisit" };
-    }else if(status=="virtual-meeting"){
+    } else if (status == "virtual-meeting") {
       visitType = { visitType: "virtual-meeting" };
     }
     let searchFilter = {
-      ...(visitType!=null? visitType:null),
+      ...(visitType != null ? visitType : null),
 
       $or: [
         { firstName: { $regex: query, $options: "i" } },
@@ -385,9 +385,7 @@ export const searchSiteVisits = async (req, res, next) => {
   }
 };
 
-
-export const getClosingManagerSiteVisitById= async(req,res,next)=>{
-
+export const getClosingManagerSiteVisitById = async (req, res, next) => {
   try {
     const id = req.params.id;
     if (!id) return res.send(errorRes(401, "Id required"));
@@ -405,12 +403,12 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
       visitType = { visitType: "visit" };
     } else if (status == "revisit") {
       visitType = { visitType: "revisit" };
-    }else if(status=="virtual-meeting"){
+    } else if (status == "virtual-meeting") {
       visitType = { visitType: "virtual-meeting" };
     }
 
     let searchFilter = {
-   ...(visitType!=null? visitType:null),
+      ...(visitType != null ? visitType : null),
       $or: [
         { firstName: new RegExp(query, "i") },
         { lastName: new RegExp(query, "i") },
@@ -425,14 +423,13 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
               },
             }
           : null,
-      ]
-      .filter(Boolean),
+      ].filter(Boolean),
       closingManager: id,
     };
     const resp = await siteVisitModel
       .find(searchFilter)
       .sort({ date: -1 })
-      
+
       .skip(skip)
       .limit(limit)
       .populate({
@@ -498,10 +495,7 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
             populate: [{ path: "designation" }],
           },
         ],
-      },)
-      ;
-
-
+      });
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
     // const registrationDone = await siteVisitModel.countDocuments({
@@ -518,7 +512,8 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
     return res.send(
       successRes(200, "get site visit leads", {
         page,
-        limit,totalItems,
+        limit,
+        totalItems,
         totalPages,
         data: resp,
       })
@@ -526,10 +521,7 @@ export const getClosingManagerSiteVisitById= async(req,res,next)=>{
   } catch (error) {
     return next(error);
   }
-
-
 };
-
 
 export const addSiteVisits = async (req, res) => {
   const body = req.body;
