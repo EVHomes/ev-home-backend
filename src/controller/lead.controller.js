@@ -4422,3 +4422,291 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
     next(error);
   }
 }
+
+export const getLeadByStartEndDate = async (req, res) => {
+  const { startDate, endDate, teamLeader, status, project } = req.body;
+
+  try {
+    if (!startDate || !endDate)
+      return res.send(errorRes(401, "start & end date required"));
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Status filter
+    let statusToFind = {};
+    if (status === "visit-pending") {
+      statusToFind = { visitStatus: "pending" };
+    } else if (status === "revisit-pending") {
+      statusToFind = { revisitStatus: "pending" };
+    } else if (status === "visited") {
+      statusToFind = { visitStatus: { $ne: "pending" } };
+    } else if (status === "revisited") {
+      statusToFind = { revisitStatus: { $ne: "pending" } };
+    } else if (status === "booking-done") {
+      statusToFind = { bookingStatus: "booked" };
+    } else if (status === "pending") {
+      statusToFind = {
+        bookingStatus: { $ne: "booked" },
+        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+      };
+    } else if (status === "tagging-over" || status === "followup") {
+      statusToFind = { stage: "tagging-over" };
+    }
+
+    // Project filter
+    let projectFilter = {};
+    if (project) {
+      projectFilter = { project: { $in: project } };
+    }
+
+    // Team leader filter
+    let teamLeaderFilter = {};
+    if (teamLeader) {
+      teamLeaderFilter = { teamLeader }; // Adjust field name if necessary
+    }
+
+    const resp = await leadModel
+      .find({
+        ...teamLeaderFilter,
+        ...statusToFind,
+        ...projectFilter,
+        startDate: { $gte: start, $lt: end }, // Adjust date field to match your schema
+      })
+      .sort({ startDate: -1 })
+      .populate({
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      })
+      .populate({
+        path: "project",
+        select: "name",
+      })
+      .populate({
+        path: "teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "dataAnalyzer",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "preSalesExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "approvalHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "updateHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "callHistory.caller",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      })
+      .populate({
+        path: "visitRef",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "revisitRef",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "attendedBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataEntryBy",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "closingTeam",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "bookingRef",
+        populate: [
+          { path: "project", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      });
+    console.log("pass 2");
+    console.log("leng" + resp.length);
+
+    return res.send(
+      successRes(200, "leads", {
+        totalItems: resp.length,
+        data: resp,
+      })
+    );
+  } catch (error) {
+    res.send(error);
+  }
+};

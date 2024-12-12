@@ -38,18 +38,18 @@ router.get("/", async (req, res) => {
   );
   return res.type("html").send(htmlContent);
 });
-router.post("/email", async (req, res, next) => {
-  try {
-    const resp = await sendEmail(
-      "aktarul.evgroup@gmail.com",
-      "test email sent for app otp",
-      "0000"
-    );
-    res.send(resp);
-  } catch (error) {
-    next(error);
-  }
-});
+// router.post("/email", async (req, res, next) => {
+//   try {
+//     const resp = await sendEmail(
+//       "aktarul.evgroup@gmail.com",
+//       "test email sent for app otp",
+//       "0000"
+//     );
+//     res.send(resp);
+//   } catch (error) {
+//     next(error);
+//   }
+// });
 router.post("/hashPassword", async (req, res, next) => {
   const { password } = req.body;
   try {
