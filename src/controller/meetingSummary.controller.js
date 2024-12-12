@@ -7,30 +7,168 @@ import { errorRes, successRes } from "../model/response.js";
 export const getMeetingSummary = async (req, res) => {
   try {
     const respMe = await meetingModel.find().populate({
-      path: "customer",
-      select: "-password",
-      populate: [
-        {
-          path: "closingManager",
-          select: "-password -refreshToken",
-          populate: [
-            { path: "designation" },
-            { path: "department" },
-            { path: "division" },
-            {
-              path: "reportingTo",
-              select: "-password -refreshToken",
-              populate: [
-                { path: "designation" },
-                { path: "department" },
-                { path: "division" },
-              ],
-            },
-          ],
-        },
-      ],
-    });
+      path: "project",
+      select: "name",
+    })
+      .populate({
+        path: "place",
+        select: "",
+      })
 
+      .populate({
+        path: "customer",
+        select: "-password",
+        populate: [
+          { path: "projects", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+
+      .populate({
+        path: "meetingWith",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      })
+      .populate({
+        path: "postSaleBooking",
+        populate: [
+          { path: "project", select: "name" },
+          {
+            path: "closingManager",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "postSaleExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+        ],
+      })
+      .populate({
+        path: "lead",
+        populate: [
+          {
+            path: "channelPartner",
+            select: "-password -refreshToken",
+          },
+          {
+            path: "project",
+            select: "name",
+          },
+          {
+            path: "teamLeader",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "cycle.teamLeader",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "dataAnalyzer",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "preSalesExecutive",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "approvalHistory.employee",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "updateHistory.employee",
+            select: "firstName lastName",
+            populate: [
+              { path: "designation" },
+              {
+                path: "reportingTo",
+                select: "firstName lastName",
+                populate: [{ path: "designation" }],
+              },
+            ],
+          },
+          {
+            path: "callHistory.caller",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      });
     return res.send(
       successRes(200, "Get Meeting Summary", {
         data: respMe,
@@ -81,7 +219,7 @@ export const addMeetingSummary = async (req, res) => {
 
     const newMeeting = await meetingModel.create({
       ...body,
-      customer:customerResp._id
+      customer: customerResp._id
     });
     const respPayment = await meetingModel
       .findById(newMeeting._id)
@@ -123,7 +261,7 @@ export const addMeetingSummary = async (req, res) => {
 
           {
             path: "reportingTo",
-            select:"firstName lastName",
+            select: "firstName lastName",
             populate: [{ path: "designation" }],
           },
         ],
