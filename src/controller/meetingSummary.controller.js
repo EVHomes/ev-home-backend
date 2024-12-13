@@ -184,7 +184,6 @@ export const getClientMeetingById= async(req,res)=>{
     const id=req.params.id;
     if(!id) return res.send(errorRes(401,"ID is required"));
     let query = req.query.query || "";
-    const isNumberQuery = !isNaN(query);
 
     let searchFilter = {
   
