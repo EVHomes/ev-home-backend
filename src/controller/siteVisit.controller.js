@@ -3,8 +3,9 @@ import { errorRes, successRes } from "../model/response.js";
 import axios from "axios";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
-import { generateOTP } from "../utils/helper.js";
+import { encryptPassword, generateOTP } from "../utils/helper.js";
 import leadModel from "../model/lead.model.js";
+import clientModel from "../model/client.model.js";
 Date.prototype.addDays = function (days) {
   const date = new Date(this.valueOf());
   date.setDate(date.getDate() + days);
@@ -562,8 +563,20 @@ export const addSiteVisits = async (req, res) => {
       ...body,
       virtualMeetingDoc: virtualMeetingDoc,
     });
-
+    const hashPassword = await encryptPassword(phoneNumber.toString());
+    const newClient = await clientModel.create({
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      projects,
+      address,
+      closingManager,
+      choiceApt,
+      password:hashPassword,
+    });
     await newSiteVisit.save();
+    await newClient.save();
     //  if (!id) return res.send(errorRes(403, "id is required"));
     const populateNewSiteVisit = await siteVisitModel
       .findById(newSiteVisit._id)
