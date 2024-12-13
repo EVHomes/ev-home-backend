@@ -405,10 +405,13 @@ export const getClosingManagerSiteVisitById = async (req, res, next) => {
       visitType = { visitType: "revisit" };
     } else if (status == "virtual-meeting") {
       visitType = { visitType: "virtual-meeting" };
+    } else if (status == "walk-in") {
+      visitType = { source: "Walk-in" };
     }
 
     let searchFilter = {
       ...(visitType != null ? visitType : null),
+      closingManager: { $eq: id },
       $or: [
         { firstName: new RegExp(query, "i") },
         { lastName: new RegExp(query, "i") },
@@ -424,7 +427,6 @@ export const getClosingManagerSiteVisitById = async (req, res, next) => {
             }
           : null,
       ].filter(Boolean),
-      closingManager: id,
     };
     const resp = await siteVisitModel
       .find(searchFilter)

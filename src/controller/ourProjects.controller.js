@@ -225,6 +225,36 @@ export const searchProjects = async (req, res, next) => {
     return next(error);
   }
 };
+export const updateFlatDetails = async (req, res, next) => {
+  const { projectId, flatNo, updates } = req.body;
+
+  try {
+    if (!projectId) return res.send(errorRes(401, "project id required"));
+    if (!flatNo) return res.send(errorRes(401, "flatNo required"));
+    if (!updates) return res.send(errorRes(401, "data required"));
+
+    // Construct the dynamic $set query
+    const updateFields = {};
+    for (const key in updates) {
+      updateFields[`flatList.$.${key}`] = updates[key];
+    }
+
+    // Perform the update
+    const resp = await ourProjectModel.updateOne(
+      { _id: projectId, "flatList.flatNo": flatNo }, // Match project and specific flat
+      { $set: updateFields } // Dynamically update fields
+    );
+
+    console.log("Flat updated successfully!");
+    return res.send(successRes(200, "updated Flat Info"), {
+      data: resp,
+    });
+  } catch (err) {
+    console.error("Error updating flat:", err);
+    return res.send(errorRes(500, "Server error"));
+  }
+};
+
 const flatList = [
   {
     type: "Shanti Parva",
