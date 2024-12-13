@@ -312,9 +312,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
     if (status === "visit") {
-      statusToFind = { visitStatus: { $ne: "pending" } };
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "revisit") {
-      statusToFind = { revisitStatus: { $ne: "pending" } };
+      statusToFind = {
+        revisitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "booking") {
       statusToFind = { bookingStatus: { $ne: "pending" } };
     } else if (status === "followup") {
@@ -323,16 +329,24 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       statusToFind = {
         visitStatus: { $ne: "pending" },
         visitStatus: "pending",
+        leadType: { $ne: "walk-in" },
       };
     } else if (status === "revisit-pending") {
       statusToFind = {
         visitStatus: { $ne: "pending" },
         revisitStatus: "pending",
+        leadType: { $ne: "walk-in" },
       };
     } else if (status === "visit-done") {
-      statusToFind = { visitStatus: { $ne: "pending" } };
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "revisit-done") {
-      statusToFind = { revisitStatus: { $ne: "pending" } };
+      statusToFind = {
+        revisitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "booking-done") {
       statusToFind = { bookingStatus: "booked" };
     } else if (status === "pending") {
@@ -343,6 +357,16 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     } else if (status === "tagging-over") {
       statusToFind = {
         stage: "tagging-over",
+      };
+    } else if (status === "followup") {
+      statusToFind = {
+        stage: "tagging-over",
+      };
+    } else if (status === "visit2") {
+      statusToFind = {
+        bookingStatus: { $ne: "booked" },
+        leadType: { $eq: "walk-in" },
+        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
       };
     }
     let skip = (page - 1) * limit;
