@@ -545,6 +545,7 @@ export const addSiteVisits = async (req, res) => {
     lead,
     visitType,
     virtualMeetingDoc,
+    location,
   } = body;
 
   try {
@@ -565,12 +566,6 @@ export const addSiteVisits = async (req, res) => {
       ...body,
       virtualMeetingDoc: virtualMeetingDoc,
     });
-    const startDate = new Date();
-    const validTill = new Date(startDate);
-    const validTillbefore = new Date(startDate);
-
-    validTillbefore.setDate(validTillbefore.getDate() + 15);
-    validTill.setDate(validTill.getDate() + 30);
 
     await newSiteVisit.save();
 
@@ -580,11 +575,11 @@ export const addSiteVisits = async (req, res) => {
       lastName,
       email,
       phoneNumber,
-      projects,
-      address,
+      projects: location,
+      address: residence,
       closingManager,
       choiceApt,
-      password:hashPassword,
+      password: hashPassword,
     });
     await newClient.save();
     //  if (!id) return res.send(errorRes(403, "id is required"));
@@ -678,7 +673,7 @@ export const addSiteVisits = async (req, res) => {
           foundLead.revisitStatus = "revisited";
           foundLead.stage = "booking";
           foundLead.revisitRef = populateNewSiteVisit._id;
-          foundLead.cycle.validTill = new Date().addMonths(5);
+          foundLead.cycle.validTill = new Date().addDays(180);
 
           await foundLead.save();
         }
@@ -730,6 +725,12 @@ export const addSiteVisits = async (req, res) => {
         }
       }
     }
+    const startDate = new Date();
+    const validTill = new Date(startDate);
+    const validTillbefore = new Date(startDate);
+
+    validTillbefore.setDate(validTillbefore.getDate() + 15);
+    validTill.setDate(validTill.getDate() + 30);
 
     if (source?.toLowerCase() === "walk-in") {
       await leadModel.create({
