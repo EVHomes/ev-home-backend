@@ -26,13 +26,11 @@ export const siteVisitSchema = new mongoose.Schema(
       {
         type: String,
         ref: "ourProjects",
-        required: true,
       },
     ],
     choiceApt: [
       {
         type: String,
-        required: true,
       },
     ],
     source: {

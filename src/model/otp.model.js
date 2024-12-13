@@ -6,13 +6,13 @@ export const otpSchema = new mongoose.Schema(
     docId: { type: String, required: true },
     email: {
       type: String,
-      required: true,
+      default: null,
     },
     phoneNumber: {
       type: String,
       default: null,
     },
-    type: { type: String, required: true },
+    type: { type: String, default: null },
     message: { type: String, default: "otp" },
     createdAt: { type: Date, default: Date.now, expires: 300 },
   },

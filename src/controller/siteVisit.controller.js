@@ -5,6 +5,8 @@ import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
 import { generateOTP } from "../utils/helper.js";
 import leadModel from "../model/lead.model.js";
+import { sendNotificationWithImage } from "./oneSignal.controller.js";
+import oneSignalModel from "../model/oneSignal.model.js";
 Date.prototype.addDays = function (days) {
   const date = new Date(this.valueOf());
   date.setDate(date.getDate() + days);
@@ -533,14 +535,12 @@ export const addSiteVisits = async (req, res) => {
     email,
     phoneNumber,
     residence,
-    address,
     projects,
     choiceApt,
     source,
     closingManager,
     closingTeam,
     teamLeader,
-    team,
     lead,
     visitType,
     virtualMeetingDoc,
@@ -564,80 +564,67 @@ export const addSiteVisits = async (req, res) => {
       ...body,
       virtualMeetingDoc: virtualMeetingDoc,
     });
+    const startDate = new Date();
+    const validTill = new Date(startDate);
+    const validTillbefore = new Date(startDate);
+
+    validTillbefore.setDate(validTillbefore.getDate() + 15);
+    validTill.setDate(validTill.getDate() + 30);
 
     await newSiteVisit.save();
+
     //  if (!id) return res.send(errorRes(403, "id is required"));
     const populateNewSiteVisit = await siteVisitModel
-      .findById(newSiteVisit._id)
+      .findById(newSiteVisit?._id)
+      .populate({
+        path: "projects",
+        select: "name",
+      })
       .populate({
         path: "closingManager",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "attendedBy",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "dataEntryBy",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       })
       .populate({
         path: "closingTeam",
-        select: "-password -refreshToken",
+        select: "firstName lastName",
         populate: [
           { path: "designation" },
-          { path: "department" },
-          { path: "division" },
           {
             path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
           },
         ],
       });
@@ -730,12 +717,65 @@ export const addSiteVisits = async (req, res) => {
       }
     }
 
+    if (source?.toLowerCase() === "walk-in") {
+      await leadModel.create({
+        leadType: source?.toLowerCase(),
+        firstName: firstName,
+        address: residence,
+        email: email,
+        lastName: lastName,
+        project: projects,
+        requirement: choiceApt,
+        phoneNumber: phoneNumber,
+        teamLeader: closingManager,
+        visitRef: newSiteVisit?._id,
+        visitStatus: visitType,
+        stage: "revisit",
+        cycle: {
+          nextTeamLeader: null,
+          stage: "revisit",
+          currentOrder: 1,
+          teamLeader: closingManager,
+          startDate: startDate,
+          validTill: validTill,
+        },
+        cycleHistory: [
+          {
+            nextTeamLeader: null,
+            stage: "visit",
+            currentOrder: 1,
+            teamLeader: closingManager,
+            startDate: startDate,
+            validTill: validTillbefore,
+          },
+        ],
+      });
+      const foundTLPlayerId = await oneSignalModel.findOne({
+        docId: closingManager,
+        // role: teamLeaderResp?.role,
+      });
+
+      if (foundTLPlayerId) {
+        // console.log(foundTLPlayerId);
+
+        await sendNotificationWithImage({
+          playerIds: [foundTLPlayerId.playerId],
+          title: "You've Got a new walk-in Lead!",
+          message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+          imageUrl:
+            "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+        });
+        // console.log("pass sent notification");
+      }
+    }
+
     return res.send(
       successRes(200, `Client added successfully: ${firstName} ${lastName}`, {
         data: populateNewSiteVisit,
       })
     );
   } catch (error) {
+    // console.log(error);
     return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };

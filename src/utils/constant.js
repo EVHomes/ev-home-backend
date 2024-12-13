@@ -113,6 +113,18 @@ export const leadPopulateOptions = [
     ],
   },
   {
+    path: "cycleHistory.teamLeader",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
     path: "callHistory.caller",
     select: "firstName lastName",
     populate: [{ path: "designation" }],
