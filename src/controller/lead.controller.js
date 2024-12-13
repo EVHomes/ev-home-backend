@@ -488,8 +488,18 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
         },
       ],
     });
-    const visit2Count = await siteVisitModel.countDocuments({
-      closingManager: { $eq: teamLeaderId },
+    const visit2Count = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      visitStatus: { $ne: "pending" },
+      leadType: { $eq: "walk-in" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
 
     const bookingCount = await leadModel.countDocuments({
