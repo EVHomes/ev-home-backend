@@ -466,6 +466,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       visitStatus: { $ne: "pending" },
+      leadType: { $ne: "walk-in" },
       $or: [
         {
           stage: { $ne: "tagging-over" },
