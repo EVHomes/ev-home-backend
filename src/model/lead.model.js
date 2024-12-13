@@ -152,7 +152,7 @@ export const leadSchema = new mongoose.Schema(
     phoneNumber: { type: Number, default: null },
     altPhoneNumber: { type: Number, default: null },
     remark: { type: String, default: null },
-    leadType: { type: String, default: null },
+    leadType: { type: String, default: "cp" },
     stage: { type: String, default: "approval" },
     startDate: {
       type: Date,

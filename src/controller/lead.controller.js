@@ -893,6 +893,7 @@ export const addLead = async (req, res, next) => {
     requirement,
     project,
     interestedStatus,
+    leadType,
   } = body;
   // console.log("p2");
 
@@ -987,7 +988,10 @@ export const addLead = async (req, res, next) => {
     // console.log("p8");
 
     // Condition 3: If no existing lead exists, create a new one
-    const newLead = await leadModel.create({ ...body });
+    const newLead = await leadModel.create({
+      ...body,
+      leadType: leadType?.toLowerCase() ?? "cp",
+    });
     // console.log("p9");
 
     const dataAnalyser = await employeeModel
