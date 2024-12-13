@@ -180,7 +180,7 @@ leadRouter.get("/lead-pdf-self", async (req, res) => {
 
     const leads = await leadModel
       .find({
-        startDate: { $gte: startOfYesterday, $lt: endOfYesterday },
+        "cycle.startDate": { $gte: startOfYesterday, $lt: endOfYesterday },
       })
       .populate({
         path: "channelPartner",

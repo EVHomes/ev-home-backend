@@ -203,6 +203,7 @@ export const registerChannelPartner = async (req, res, next) => {
     }
 
     const hashPassword = await encryptPassword(password);
+    
     const newCpId =
       firmName?.replace(/\s+/g, "-").toLowerCase() +
       "-" +
