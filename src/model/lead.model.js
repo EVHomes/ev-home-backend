@@ -29,9 +29,12 @@ const cycle = {
     default: null,
   },
 };
-const cycleSchema = new mongoose.Schema({
-  ...cycle,
-});
+const cycleSchema = new mongoose.Schema(
+  {
+    ...cycle,
+  },
+  { timestamps: true }
+);
 
 const approvalSchema = new mongoose.Schema({
   employee: {

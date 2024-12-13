@@ -56,9 +56,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
     if (status === "visit") {
-      statusToFind = { visitStatus: { $ne: "pending" } };
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "revisit") {
-      statusToFind = { revisitStatus: { $ne: "pending" } };
+      statusToFind = {
+        revisitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "booking") {
       statusToFind = { bookingStatus: { $ne: "pending" } };
     } else if (status === "followup") {
@@ -67,16 +73,24 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = {
         visitStatus: { $ne: "pending" },
         visitStatus: "pending",
+        leadType: { $ne: "walk-in" },
       };
     } else if (status === "revisit-pending") {
       statusToFind = {
         visitStatus: { $ne: "pending" },
         revisitStatus: "pending",
+        leadType: { $ne: "walk-in" },
       };
     } else if (status === "visit-done") {
-      statusToFind = { visitStatus: { $ne: "pending" } };
+      statusToFind = {
+        visitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "revisit-done") {
-      statusToFind = { revisitStatus: { $ne: "pending" } };
+      statusToFind = {
+        revisitStatus: { $ne: "pending" },
+        leadType: { $ne: "walk-in" },
+      };
     } else if (status === "booking-done") {
       statusToFind = { bookingStatus: "booked" };
     } else if (status === "pending") {
@@ -91,6 +105,12 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     } else if (status === "followup") {
       statusToFind = {
         stage: "tagging-over",
+      };
+    } else if (status === "visit2") {
+      statusToFind = {
+        bookingStatus: { $ne: "booked" },
+        leadType: { $eq: "walk-in" },
+        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
       };
     }
     let skip = (page - 1) * limit;
@@ -183,6 +203,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       visitStatus: { $ne: "pending" },
+      leadType: { $ne: "walk-in" },
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -205,9 +226,22 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         },
       ],
     });
-    const visit2Count = await siteVisitModel.countDocuments({
-      closingManager: { $eq: teamLeaderId },
-      source: "Walk-in",
+    // const visit2Count = await siteVisitModel.countDocuments({
+    //   closingManager: { $eq: teamLeaderId },
+    //   source: "Walk-in",
+    // });
+    const visit2Count = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      visitStatus: { $ne: "pending" },
+      leadType: { $eq: "walk-in" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
     });
 
     const bookingCount = await leadModel.countDocuments({
@@ -516,7 +550,7 @@ export const leadUpdateStatus = async (req, res, next) => {
       foundLead.revisitStatus = "revisited";
       foundLead.stage = "booking";
       foundLead.revisitRef = revisitRef;
-      foundLead.cycle.validTill = new Date().addMonths(5);
+      foundLead.cycle.validTill = new Date().addDays(180);
 
       await foundLead.save();
     }
