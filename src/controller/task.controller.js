@@ -1,6 +1,7 @@
 import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import taskModel from "../model/task.model.js";
+import { taskPopulateOptions } from "../utils/constant.js";
 import { sendNotificationWithImage } from "./oneSignal.controller.js";
 
 export const getTask = async (req, res, next) => {
@@ -10,120 +11,8 @@ export const getTask = async (req, res, next) => {
 
     const resp = await taskModel
       .find({ assignTo: id })
-      .populate({
-        path: "lead",
-        populate: [
-          {
-            path: "channelPartner",
-            select: "-password -refreshToken",
-          },
-          {
-            path: "project",
-            select: "name",
-          },
-          {
-            path: "teamLeader",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "cycle.teamLeader",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "dataAnalyzer",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "preSalesExecutive",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "approvalHistory.employee",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "updateHistory.employee",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "callHistory.caller",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "assignBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "assignTo",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      });
+      .populate(taskPopulateOptions);
+
     return res.send(
       successRes(200, "get task", {
         data: resp,
@@ -167,10 +56,13 @@ export const assignTask = async (req, res, next) => {
           "https://images.ctfassets.net/rz1oowkt5gyp/1IgVe0tV9yDjWtp68dAZJq/36ca564d33306d407dabe39c33322dd9/TaskManagement-hero.png",
       });
     }
+    const resp2 = await taskModel
+      .findById(resp._id)
+      .populate(taskPopulateOptions);
 
     return res.send(
       successRes(200, "Task Assigned", {
-        data: resp,
+        data: resp2,
       })
     );
   } catch (error) {
@@ -185,10 +77,12 @@ export const updateTask = async (req, res, next) => {
   try {
     if (!taskId) return res.send(errorRes(401, "taskId required"));
 
-    const resp = await taskModel.findByIdAndUpdate(taskId, {
-      completed: status === "completed" ? true : false,
-      completedDate: new Date(),
-    });
+    const resp = await taskModel
+      .findByIdAndUpdate(taskId, {
+        completed: status === "completed" ? true : false,
+        completedDate: new Date(),
+      })
+      .populate(taskPopulateOptions);
 
     return res.send(
       successRes(200, "get task", {
