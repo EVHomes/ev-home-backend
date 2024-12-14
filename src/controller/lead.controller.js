@@ -625,24 +625,91 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
         teamLeader: { $eq: teamLeaderId },
       })) || 0;
 
-    const bookingCount =
-      (await leadModel.countDocuments({
-        teamLeader: { $eq: teamLeaderId },
-        bookingStatus: { $ne: "pending" },
-      })) || 0;
+    // const bookingCount =
+    //   (await leadModel.countDocuments({
+    //     teamLeader: { $eq: teamLeaderId },
+    //     bookingStatus: { $ne: "pending" },
+    //   })) || 0;
 
-    const visitCount =
-      (await leadModel.countDocuments({
-        teamLeader: { $eq: teamLeaderId },
-        visitStatus: { $ne: "pending" },
-      })) || 0;
+    // const visitCount =
+    //   (await leadModel.countDocuments({
+    //     teamLeader: { $eq: teamLeaderId },
+    //     visitStatus: { $ne: "pending" },
+    //   })) || 0;
 
-    const revisitCount =
-      (await leadModel.countDocuments({
-        teamLeader: { $eq: teamLeaderId },
+    // const revisitCount =
+    //   (await leadModel.countDocuments({
+    //     teamLeader: { $eq: teamLeaderId },
 
-        revisitStatus: { $ne: "pending" },
-      })) || 0;
+    //     revisitStatus: { $ne: "pending" },
+    //   })) || 0;
+
+    /* --new graphs -- */
+    const visitCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      visitStatus: { $ne: "pending" },
+      leadType: { $ne: "walk-in" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
+    });
+
+    const revisitCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      revisitStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
+    });
+    const visit2Count = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      visitStatus: { $ne: "pending" },
+      leadType: { $eq: "walk-in" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
+    });
+
+    const bookingCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      bookingStatus: { $ne: "pending" },
+      $or: [
+        {
+          stage: { $ne: "tagging-over" },
+        },
+        {
+          stage: { $ne: "approval" },
+        },
+      ],
+    });
+
+    const pendingCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      bookingStatus: { $ne: "booked" },
+      $or: [
+        {
+          visitStatus: "pending",
+        },
+        {
+          revisitStatus: "pending",
+        },
+      ],
+    });
 
     // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
     // const visitToBookingCount =
@@ -659,6 +726,8 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
           bookingCount,
           visitCount,
           revisitCount,
+          visit2Count,
+          pendingCount,
           // leadToVisitCount,
           // visitToBookingCount,
           // revisitToBookingCount,
