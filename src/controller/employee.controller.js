@@ -6,7 +6,7 @@ import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import { forgotPasswordTemplete } from "../templates/html_template.js";
 import { sendEmail } from "../utils/brevo.js";
-import { errorMessage } from "../utils/constant.js";
+import { employeePopulateOptions, errorMessage } from "../utils/constant.js";
 import {
   comparePassword,
   createJwtToken,
@@ -52,18 +52,7 @@ export const getEmployees = async (req, res, next) => {
     const respCP = await employeeModel
       .find()
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -99,18 +88,7 @@ export const getVisitEntryAllowedStaff = async (req, res, next) => {
         status: "active",
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -132,18 +110,7 @@ export const getTeamLeaderCSM = async (req, res, next) => {
         status: "active",
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get TeamLeaders", {
@@ -176,18 +143,7 @@ export const getSalesManagers = async (req, res, next) => {
         ],
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -218,18 +174,7 @@ export const getSeniorClosingManagers = async (req, res, next) => {
         status: { $ne: "inactive" },
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -248,18 +193,7 @@ export const getPostSaleExecutives = async (req, res, next) => {
         designation: "desg-post-sales-executive",
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -282,18 +216,7 @@ export const getEmployeeByDesignation = async (req, res, next) => {
         status: "active",
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -317,18 +240,7 @@ export const getTeamLeaders = async (req, res, next) => {
         ],
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -352,18 +264,7 @@ export const getDataAnalyzers = async (req, res, next) => {
         ],
       })
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Employees", {
@@ -416,18 +317,8 @@ export const getEmployeeById = async (req, res, next) => {
     const respEmployee = await employeeModel
       .findById(id)
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
+
     //if not found
     if (!respEmployee) {
       return res.send(errorRes(404, errorMessage.EMP_NOT_FOUND));
@@ -454,7 +345,8 @@ export const editEmployeeById = async (req, res, next) => {
     // return res.send(errorRes(404, `test success`));
     const respEmployee = await employeeModel
       .findById(id)
-      .select("-password -refreshToken");
+      .select("-password -refreshToken")
+      .populate(employeePopulateOptions);
 
     //if not found
     if (!respEmployee) {
@@ -607,18 +499,7 @@ export const loginEmployee = async (req, res, next) => {
       .findOne({
         email: email,
       })
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     // .lean();
 
@@ -793,18 +674,7 @@ export const resetPasswordEmployee = async (req, res, next) => {
     const employeeDb = await employeeModel
       .findById(otpDbResp.docId)
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     if (!employeeDb) {
       return res.send(errorRes(404, "No Employee found with given email"));
@@ -863,7 +733,8 @@ export const searchEmployee = async (req, res, next) => {
       .find(searchFilter)
       .skip(skip)
       .limit(limit)
-      .select("-password -refreshToken");
+      .select("-password -refreshToken")
+      .populate(employeePopulateOptions);
 
     // Count the total items matching the filter
     const totalItems = await employeeModel.countDocuments(searchFilter);

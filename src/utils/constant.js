@@ -31,6 +31,46 @@ export const errorMessage = {
   EMP_LOGIN_SUCCESS: "Welcome back! You have logged in successfully.",
 };
 
+export const employeePopulateOptions = [
+  {
+    path: "designation",
+  },
+  {
+    path: "department",
+  },
+  {
+    path: "division",
+  },
+  {
+    path: "reportingTo",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      { path: "department" },
+      { path: "division" },
+    ],
+  },
+];
+export const clientPopulateOptions = [
+  {
+    path: "projects",
+    select: "name",
+  },
+  {
+    path: "projects",
+    select: "name",
+  },
+  {
+    path: "closingManager",
+    select: "-password -refreshToken",
+    populate: [
+      { path: "designation" },
+      { path: "department" },
+      { path: "division" },
+    ],
+  },
+];
+
 export const leadPopulateOptions = [
   {
     path: "channelPartner",
@@ -264,6 +304,373 @@ export const leadPopulateOptions = [
             populate: [{ path: "designation" }],
           },
         ],
+      },
+    ],
+  },
+];
+
+export const meetingPopulateOptions = [
+  {
+    path: "project",
+    select: "name",
+  },
+  {
+    path: "place",
+  },
+  {
+    path: "customer",
+    select: "-password",
+    populate: [
+      { path: "projects", select: "name" },
+      {
+        path: "closingManager",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "meetingWith",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "postSaleBooking",
+    populate: [
+      { path: "project", select: "name" },
+      {
+        path: "closingManager",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "postSaleExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    path: "lead",
+    populate: [
+      {
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      },
+      {
+        path: "project",
+        select: "name",
+      },
+      {
+        path: "teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "dataAnalyzer",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "preSalesExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "approvalHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "updateHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "callHistory.caller",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+];
+
+export const paymentPopulateOptions = [
+  {
+    path: "projects",
+    select: "name",
+  },
+];
+
+export const postSalePopulateOptions = [
+  { path: "project", select: "name" },
+  {
+    path: "closingManager",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "postSaleExecutive",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+];
+
+export const siteVisitPopulateOptions = [
+  { path: "projects", select: "name" },
+  {
+    path: "closingManager",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "attendedBy",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "dataEntryBy",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "closingTeam",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+];
+
+export const taskPopulateOptions = [
+  {
+    path: "lead",
+    populate: [
+      {
+        path: "channelPartner",
+        select: "-password -refreshToken",
+      },
+      {
+        path: "project",
+        select: "name",
+      },
+      {
+        path: "teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "cycle.teamLeader",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "dataAnalyzer",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "preSalesExecutive",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "approvalHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "updateHistory.employee",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "callHistory.caller",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "assignBy",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "assignTo",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
       },
     ],
   },

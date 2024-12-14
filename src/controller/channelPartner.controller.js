@@ -14,14 +14,10 @@ export const getChannelPartners = async (req, res, next) => {
   try {
     const respCP = await cpModel.find().select("-password -refreshToken");
     return res.send(
-      successRes(200,  "Get Channel Partners ", {
+      successRes(200, "Get Channel Partners ", {
         data: respCP,
-      }),
-      
-
+      })
     );
-    
-   
   } catch (error) {
     return next(error);
   }
@@ -203,7 +199,7 @@ export const registerChannelPartner = async (req, res, next) => {
     }
 
     const hashPassword = await encryptPassword(password);
-    
+
     const newCpId =
       firmName?.replace(/\s+/g, "-").toLowerCase() +
       "-" +

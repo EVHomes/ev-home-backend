@@ -8,6 +8,7 @@ import leadModel from "../model/lead.model.js";
 import { sendNotificationWithImage } from "./oneSignal.controller.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import clientModel from "../model/client.model.js";
+import { siteVisitPopulateOptions } from "../utils/constant.js";
 Date.prototype.addDays = function (days) {
   const date = new Date(this.valueOf());
   date.setDate(date.getDate() + days);
@@ -18,96 +19,7 @@ export const getSiteVisits = async (req, res) => {
   try {
     const respSite = await siteVisitModel
       .find()
-      .populate({
-        path: "closingManager",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "attendedBy",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "dataEntryBy",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "closingTeam",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      });
-    // .populate({
-    //   path: "teamLeaderTeam",
-    //   select: "-password -refreshToken",
-    //   populate: [
-    //     { path: "designation" },
-    //     { path: "department" },
-    //     { path: "division" },
-    //     {
-    //       path: "reportingTo",
-    //       select: "-password -refreshToken",
-    //       populate: [
-    //         { path: "designation" },
-    //         { path: "department" },
-    //         { path: "division" },
-    //       ],
-    //     },
-    //   ],
-    // });
+      .populate(siteVisitPopulateOptions);
 
     return res.send(
       successRes(200, "Get Site Visit", {
@@ -126,96 +38,8 @@ export const getSiteVisitsById = async (req, res) => {
 
     const respSite = await siteVisitModel
       .findById(id)
-      .populate({
-        path: "closingManager",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "attendedBy",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "dataEntryBy",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "closingTeam",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      });
-    // .populate({
-    //   path: "teamLeaderTeam",
-    //   select: "-password -refreshToken",
-    //   populate: [
-    //     { path: "designation" },
-    //     { path: "department" },
-    //     { path: "division" },
-    //     {
-    //       path: "reportingTo",
-    //       select: "-password -refreshToken",
-    //       populate: [
-    //         { path: "designation" },
-    //         { path: "department" },
-    //         { path: "division" },
-    //       ],
-    //     },
-    //   ],
-    // });
+      .populate(siteVisitPopulateOptions);
+
     if (!respSite)
       return res.send(
         successRes(404, `Department not found with id:${id}`, {
@@ -273,23 +97,6 @@ export const searchSiteVisits = async (req, res, next) => {
         // { teamLeader: { $regex: query, $options: "i" } },
       ].filter(Boolean), // Remove any null values
     };
-    //     const queryParts = query.split(" ").filter(Boolean);
-
-    // let searchFilter = {
-    //   $or: [
-    //     ...queryParts.map(part => ({
-    //       $or: [
-    //         { firstName: { $regex: part, $options: "i" } },
-    //         { lastName: { $regex: part, $options: "i" } }
-    //       ]
-    //     })),
-    //     isNumberQuery ? { $expr: { $regexMatch: { input: { $toString: "$phoneNumber" }, regex: query } } } : null,
-    //     { email: { $regex: query, $options: "i" } },
-    //     { source: { $regex: query, $options: "i" } },
-    //     // { closingManager: { $regex: query, $options: "i" } },
-    //     // { teamLeader: { $regex: query, $options: "i" } },
-    //   ].filter(Boolean), // Remove any null values
-    // };
 
     // Perform the search with pagination
     const respSite = await siteVisitModel
@@ -297,76 +104,7 @@ export const searchSiteVisits = async (req, res, next) => {
       .skip(skip)
       .limit(limit)
       .sort({ date: -1 })
-      .populate({
-        path: "projects",
-        select: "name",
-      })
-      .populate({
-        path: "closingManager",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "attendedBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "dataEntryBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "closingTeam",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      });
-    // .populate({
-    //   path: "teamLeaderTeam",
-    //   select: "-password -refreshToken",
-    //   populate: [
-    //     { path: "designation" },
-    //     { path: "department" },
-    //     { path: "division" },
-    //     {
-    //       path: "reportingTo",
-    //       select: "-password -refreshToken",
-    //       populate: [
-    //         { path: "designation" },
-    //         { path: "department" },
-    //         { path: "division" },
-    //       ],
-    //     },
-    //   ],
-    // });
+      .populate(siteVisitPopulateOptions);
 
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter);
@@ -437,70 +175,8 @@ export const getClosingManagerSiteVisitById = async (req, res, next) => {
 
       .skip(skip)
       .limit(limit)
-      .populate({
-        path: "projects",
-        select: "name",
-      })
-      .populate({
-        path: "closingManager",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "attendedBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "dataEntryBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "closingTeam",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "dataEntryBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      });
+      .populate(siteVisitPopulateOptions);
+
     // Count the total items matching the filter
     const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
     // const registrationDone = await siteVisitModel.countDocuments({
@@ -585,58 +261,7 @@ export const addSiteVisits = async (req, res) => {
     //  if (!id) return res.send(errorRes(403, "id is required"));
     const populateNewSiteVisit = await siteVisitModel
       .findById(newSiteVisit?._id)
-      .populate({
-        path: "projects",
-        select: "name",
-      })
-      .populate({
-        path: "closingManager",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "attendedBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "dataEntryBy",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "closingTeam",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      });
+      .populate(siteVisitPopulateOptions);
 
     if (lead != null) {
       const foundLead = await leadModel.findById(lead);
@@ -961,31 +586,14 @@ export const updateSiteVisits = async (req, res) => {
         },
         { new: true }
       )
-      .populate({
-        path: "closingManager",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-          {
-            path: "reportingTo",
-            select: "-password -refreshToken",
-            populate: [
-              { path: "designation" },
-              { path: "department" },
-              { path: "division" },
-            ],
-          },
-        ],
-      });
+      .populate(siteVisitPopulateOptions);
 
     if (!updatedSite)
       return res.send(errorRes(404, `Site not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Site updated successfully: ${firstName} ${lastName}`, {
-        updatedSite,
+        data: updatedSite,
       })
     );
   } catch (error) {
@@ -1006,7 +614,7 @@ export const deleteSiteVisits = async (req, res) => {
 
     return res.send(
       successRes(200, `Site deleted successfully with ID: ${id}`, {
-        deletedSite,
+        data: deletedSite,
       })
     );
   } catch (error) {

@@ -10,11 +10,12 @@ import {
   encryptPassword,
   generateOTP,
 } from "../utils/helper.js";
+import { clientPopulateOptions } from "../utils/constant.js";
 
 //GET BY ALL
 export const getClients = async (req, res) => {
   try {
-    const respClient = await clientModel.find();
+    const respClient = await clientModel.find().populate(clientPopulateOptions);
 
     return res.send(
       successRes(200, "Get Clients", {
@@ -51,7 +52,8 @@ export const searchClients = async (req, res, next) => {
       .find(searchFilter)
       .skip(skip)
       .limit(limit)
-      .select("-password -refreshToken");
+      .select("-password -refreshToken")
+      .populate(clientPopulateOptions);
 
     // Count the total items matching the filter
     const totalItems = await clientModel.countDocuments(searchFilter);
@@ -78,7 +80,9 @@ export const getClientById = async (req, res) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respClient = await clientModel.findOne({ _id: id });
+    const respClient = await clientModel
+      .findById(id)
+      .populate(clientPopulateOptions);
 
     if (!respClient)
       return res.send(
@@ -187,19 +191,8 @@ export const loginClient = async (req, res, next) => {
       .findOne({
         email: email,
       })
-      .populate({
-        path: "projects",
-        select: "name",
-      })
-      .populate({
-        path: "closingManager",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(clientPopulateOptions);
+
     if (!clientDb) {
       return res.send(errorRes(400, "Client not found with given email"));
     }
@@ -260,19 +253,7 @@ export const loginPhone = async (req, res, next) => {
     }
     const clientDb = await clientModel
       .findOne({ phoneNumber: phoneNumber })
-      .populate({
-        path: "projects",
-        select: "name",
-      })
-      .populate({
-        path: "closingManager",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(clientPopulateOptions);
 
     if (!clientDb) {
       return res.send(
@@ -330,7 +311,9 @@ export const newPasswordClient = async (req, res, next) => {
       return res.send(errorRes(403, "Old and new passwords are required"));
     }
 
-    const respClient = await clientModel.findById(id);
+    const respClient = await clientModel
+      .findById(id)
+      .populate(clientPopulateOptions);
 
     if (!respClient) {
       return res.send(errorRes(404, `Client not found with id: ${id}`));
@@ -498,19 +481,21 @@ export const updateClient = async (req, res) => {
     if (!address) return res.send(errorRes(403, "Address is required"));
 
     // Find the client by ID
-    const updatedClient = await clientModel.findByIdAndUpdate(
-      id,
-      {
-        firstName,
-        lastName,
-        email,
-        gender,
-        phoneNumber,
-        address,
-        password,
-      },
-      { new: true }
-    );
+    const updatedClient = await clientModel
+      .findByIdAndUpdate(
+        id,
+        {
+          firstName,
+          lastName,
+          email,
+          gender,
+          phoneNumber,
+          address,
+          password,
+        },
+        { new: true }
+      )
+      .populate(clientPopulateOptions);
 
     if (!updatedClient)
       return res.senderrorRes(
@@ -520,7 +505,7 @@ export const updateClient = async (req, res) => {
 
     return res.send(
       successRes(200, `Client updated successfully: ${firstName} ${lastName}`, {
-        updatedClient,
+        data: updatedClient,
       })
     );
   } catch (error) {

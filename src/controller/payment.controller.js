@@ -1,12 +1,12 @@
 import paymentModel from "../model/payment.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { paymentPopulateOptions } from "../utils/constant.js";
 
 export const getPayment = async (req, res) => {
   try {
-    const respPayment = await paymentModel.find().populate({
-      path: "projects",
-      select: "name",
-    });
+    const respPayment = await paymentModel
+      .find()
+      .populate(paymentPopulateOptions);
 
     return res.send(
       successRes(200, "Get Payment", {
@@ -58,10 +58,9 @@ export const addPayment = async (req, res) => {
       cgst: cgst,
     });
     await newPayment.save();
-    const respP = await paymentModel.findById(newPayment._id).populate({
-      path: "projects",
-      select: "name",
-    });
+    const respP = await paymentModel
+      .findById(newPayment._id)
+      .populate(paymentPopulateOptions);
 
     return res.send(
       successRes(200, `payment added successfully: ${customerName}`, {
@@ -72,15 +71,13 @@ export const addPayment = async (req, res) => {
     return res.send(errorRes(500, error));
   }
 };
+
 export const getPaymentbyFlat = async (req, res) => {
   try {
     const flatNo = req.query.flatNo;
     const respPayment = await paymentModel
       .findOne({ flatNo: flatNo })
-      .populate({
-        path: "projects",
-        select: "name",
-      });
+      .populate(paymentPopulateOptions);
 
     return res.send(
       successRes(200, "Get Payment", {
