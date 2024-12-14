@@ -130,17 +130,17 @@ export const getSalesManagers = async (req, res, next) => {
           {
             designation: "desg-senior-sales-manager",
           },
-
           {
             designation: "desg-sales-executive",
           },
           {
             designation: "desg-sales-manager",
           },
-          // {
-          //   designation: "desg-floor-manager",
-          // },
+          {
+            designation: "desg-pre-sales-executive",
+          },
         ],
+        status: "active",
       })
       .select("-password -refreshToken")
       .populate(employeePopulateOptions);
@@ -171,7 +171,7 @@ export const getSeniorClosingManagers = async (req, res, next) => {
             designation: "desg-post-sales-head",
           },
         ],
-        status: { $ne: "inactive" },
+        status: "active",
       })
       .select("-password -refreshToken")
       .populate(employeePopulateOptions);
@@ -191,6 +191,7 @@ export const getPostSaleExecutives = async (req, res, next) => {
     const respCP = await employeeModel
       .find({
         designation: "desg-post-sales-executive",
+        status: "active",
       })
       .select("-password -refreshToken")
       .populate(employeePopulateOptions);
@@ -287,18 +288,7 @@ export const getPreSalesExecutive = async (req, res, next) => {
     const respPreSaleEx = await employeeModel
       .find(searchFilter)
       .select("-password -refreshToken")
-      .populate("designation")
-      .populate("department")
-      .populate("division")
-      .populate({
-        path: "reportingTo",
-        select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
-      });
+      .populate(employeePopulateOptions);
 
     return res.send(
       successRes(200, "get Pre Sales Executive", {
