@@ -11,6 +11,16 @@ import {
   sendNotificationWithInfo,
 } from "./oneSignal.controller.js";
 import { startOfWeek, addDays, format, startOfYear, endOfYear } from "date-fns";
+import { fileURLToPath } from "url";
+
+import fs from "fs";
+import csv from "csv-parser";
+import path from "path";
+import moment from "moment-timezone";
+import PDFDocument from "pdfkit";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 Date.prototype.addDays = function (days) {
   const date = new Date(this.valueOf());
   date.setDate(date.getDate() + days);
@@ -3268,3 +3278,366 @@ export const getLeadByStartEndDate = async (req, res) => {
     res.send(error);
   }
 };
+
+export const generateInternalLeadPdf = async (req, res) => {
+  try {
+    const timeZone = "Asia/Kolkata";
+
+    // Get yesterday's date range in local timezone
+    const startOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .startOf("day")
+      .toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
+    console.log(startOfYesterday);
+    console.log(endOfYesterday);
+
+    console.log(
+      moment("2024-12-10T20:39:57.938+00:00")
+        .tz(timeZone)
+        .format("DD-MM-YYYY HH:mm")
+    );
+    console.log(
+      moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm")
+    );
+
+    console.log(moment(endOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
+
+    const leads = await leadModel
+      .find({
+        "cycle.startDate": { $gte: startOfYesterday, $lt: endOfYesterday },
+      })
+      .populate(leadPopulateOptions);
+
+    if (!leads.length) {
+      return res.status(404).json({ message: "No leads found for yesterday" });
+    }
+
+    // Create PDF document
+    const doc = new PDFDocument({ size: "A4", margin: 40 });
+    const pdfPath = path.join(__dirname, "leads-yesterday.pdf");
+    const pdfStream = fs.createWriteStream(pdfPath);
+    doc.pipe(pdfStream);
+    // Add title
+    doc
+      .fontSize(20)
+      .text(
+        `Internal Assigned Leads Report - ${moment(startOfYesterday)
+          .tz(timeZone)
+          .format("DD-MM-YYYY")}`,
+        {
+          align: "center",
+          underline: true,
+        }
+      )
+      .moveDown();
+
+    let i = 1;
+    leads.forEach((lead, index) => {
+      if (doc.y > 700) {
+        doc.fontSize(10).text(`Page ${i}`, 40, 780, {
+          align: "right",
+        });
+        i++;
+
+        doc.addPage();
+      }
+      // Draw card boundary
+      doc.rect(40, doc.y, 510, 150).stroke().moveDown(0.5);
+
+      const cardY = doc.y + 5;
+
+      // Add lead details within the card
+      doc
+        .fontSize(12)
+        .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
+          align: "left",
+        })
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
+        .text(
+          `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
+          50,
+          cardY + 30
+        )
+        .text(
+          `Alt Phone: ${
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
+          }`,
+          50,
+          cardY + 45
+        )
+
+        .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
+        .text(
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
+          50,
+          cardY + 75
+        )
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
+
+        .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
+        .text(
+          `Data Analyzer: ${
+            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
+            "N/A"
+          }`,
+          300,
+          cardY + 30
+        )
+        .text(
+          `Team Leader: ${
+            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
+            "N/A"
+          }`,
+          300,
+          cardY + 45
+        )
+
+        .text(
+          `Channel Partner: ${lead.channelPartner?.firmName || "N/A"}`,
+          300,
+          cardY + 60
+        )
+        // .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 60)
+        .text(
+          `Assigned Date: ${
+            lead.cycle?.startDate
+              ? moment(lead.cycle.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 75
+        )
+        .text(
+          `Deadline: ${
+            lead.cycle?.validTill
+              ? moment(lead.cycle.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 90
+        );
+
+      // Add some spacing between cards
+      doc.moveDown(4);
+    });
+
+    doc.end();
+
+    pdfStream.on("finish", () => {
+      res.download(pdfPath, "leads-yesterday.pdf", (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          res.status(500).send("Error downloading file.");
+        }
+        fs.unlinkSync(pdfPath);
+      });
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const generateChannelPartnerLeadPdf = async (req, res) => {
+  try {
+    const timeZone = "Asia/Kolkata";
+
+    // Get yesterday's date range in local timezone
+    const startOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .startOf("day")
+      .toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
+
+    const leads = await leadModel
+      .find({
+        "cycle.startDate": { $gte: startOfYesterday, $lt: endOfYesterday },
+      })
+      .populate(leadPopulateOptions);
+
+    if (!leads.length) {
+      return res.status(404).json({ message: "No leads found for yesterday" });
+    }
+
+    // Create PDF document
+    const doc = new PDFDocument({ size: "A4", margin: 40 });
+    const pdfPath = path.join(__dirname, "leads-yesterday.pdf");
+    const pdfStream = fs.createWriteStream(pdfPath);
+    doc.pipe(pdfStream);
+
+    // Add title
+    doc
+      .fontSize(20)
+      .text(
+        `Channel Partner Leads Report - ${moment(startOfYesterday)
+          .tz(timeZone)
+          .format("DD-MM-YYYY")}`,
+        {
+          align: "center",
+          underline: true,
+        }
+      )
+      .moveDown();
+    let i = 1;
+    // Iterate through leads and add as card-style layout
+    leads.forEach((lead, index) => {
+      if (doc.y > 700) {
+        doc.fontSize(10).text(`Page ${i}`, 40, 780, {
+          align: "right",
+        });
+        i++;
+
+        doc.addPage(); // Add new page if content exceeds height
+      }
+
+      // Draw card boundary
+      doc.rect(40, doc.y, 510, 150).stroke().moveDown(0.5);
+
+      const cardY = doc.y + 5;
+
+      // Add lead details within the card
+      doc
+        .fontSize(12)
+        .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
+          align: "left",
+        })
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
+        .text(
+          `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
+          50,
+          cardY + 30
+        )
+        .text(
+          `Alt Phone: ${
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
+          }`,
+          50,
+          cardY + 45
+        )
+
+        .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
+        .text(
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
+          50,
+          cardY + 75
+        )
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
+
+        .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
+        .text(
+          `Data Analyzer: ${
+            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
+            "N/A"
+          }`,
+          300,
+          cardY + 30
+        )
+        .text(
+          `Team Leader: ${
+            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
+            "N/A"
+          }`,
+          300,
+          cardY + 45
+        )
+
+        .text(
+          `Channel Partner: ${lead.channelPartner?.firmName || "N/A"}`,
+          300,
+          cardY + 60
+        )
+        // .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 60)
+        .text(
+          `Tagging Date: ${
+            lead.startDate
+              ? moment(lead.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 75
+        )
+        .text(
+          `Valid Till: ${
+            lead.validTill
+              ? moment(lead.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
+              : "N/A"
+          }`,
+          300,
+          cardY + 90
+        );
+
+      // Add some spacing between cards
+      doc.moveDown(4);
+    });
+
+    doc.end();
+
+    pdfStream.on("finish", () => {
+      res.download(pdfPath, "leads-yesterday.pdf", (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          res.status(500).send("Error downloading file.");
+        }
+        fs.unlinkSync(pdfPath);
+      });
+    });
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+function getStatus1(lead) {
+  if (lead.stage == "visit") {
+    return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+  } else if (lead.stage == "revisit") {
+    return `${lead.stage ?? ""} ${lead.revisitStatus ?? ""}`;
+  } else if (lead.stage == "booking") {
+    return `${lead.stage ?? ""} ${lead.bookingStatus ?? ""}`;
+  }
+
+  return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+}
