@@ -39,6 +39,7 @@ import leadModel from "../../model/lead.model.js";
 import moment from "moment-timezone";
 import PDFDocument from "pdfkit";
 import siteVisitModel from "../../model/siteVisit.model.js";
+import { leadPopulateOptions } from "../../utils/constant.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -182,229 +183,7 @@ leadRouter.get("/lead-pdf-self", async (req, res) => {
       .find({
         "cycle.startDate": { $gte: startOfYesterday, $lt: endOfYesterday },
       })
-      .populate({
-        path: "channelPartner",
-        select: "-password -refreshToken",
-      })
-      .populate({
-        path: "project",
-        select: "name",
-      })
-      .populate({
-        path: "teamLeader",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "cycle.teamLeader",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "dataAnalyzer",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "preSalesExecutive",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "approvalHistory.employee",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "updateHistory.employee",
-        select: "firstName lastName",
-        populate: [
-          { path: "designation" },
-          {
-            path: "reportingTo",
-            select: "firstName lastName",
-            populate: [{ path: "designation" }],
-          },
-        ],
-      })
-      .populate({
-        path: "callHistory.caller",
-        select: "firstName lastName",
-        populate: [{ path: "designation" }],
-      })
-      .populate({
-        path: "visitRef",
-        populate: [
-          { path: "projects", select: "name" },
-          {
-            path: "closingManager",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "attendedBy",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "dataEntryBy",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "closingTeam",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "revisitRef",
-        populate: [
-          { path: "projects", select: "name" },
-          {
-            path: "closingManager",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "attendedBy",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "dataEntryBy",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "closingTeam",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-        ],
-      })
-      .populate({
-        path: "bookingRef",
-        populate: [
-          { path: "project", select: "name" },
-          {
-            path: "closingManager",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-          {
-            path: "postSaleExecutive",
-            select: "firstName lastName",
-            populate: [
-              { path: "designation" },
-              {
-                path: "reportingTo",
-                select: "firstName lastName",
-                populate: [{ path: "designation" }],
-              },
-            ],
-          },
-        ],
-      });
+      .populate(leadPopulateOptions);
 
     if (!leads.length) {
       return res.status(404).json({ message: "No leads found for yesterday" });
@@ -429,12 +208,16 @@ leadRouter.get("/lead-pdf-self", async (req, res) => {
       )
       .moveDown();
 
-    // Iterate through leads and add as card-style layout
+    let i = 1;
     leads.forEach((lead, index) => {
       if (doc.y > 700) {
-        doc.addPage(); // Add new page if content exceeds height
-      }
+        doc.fontSize(10).text(`Page ${i}`, 40, 780, {
+          align: "right",
+        });
+        i++;
 
+        doc.addPage();
+      }
       // Draw card boundary
       doc.rect(40, doc.y, 510, 150).stroke().moveDown(0.5);
 
@@ -814,10 +597,15 @@ leadRouter.get("/lead-pdf-cp", async (req, res) => {
         }
       )
       .moveDown();
-
+    let i = 1;
     // Iterate through leads and add as card-style layout
     leads.forEach((lead, index) => {
       if (doc.y > 700) {
+        doc.fontSize(10).text(`Page ${i}`, 40, 780, {
+          align: "right",
+        });
+        i++;
+
         doc.addPage(); // Add new page if content exceeds height
       }
 
@@ -945,6 +733,19 @@ function getStatus1(lead) {
 
   return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
 }
+
+const addPageNumbers = (doc) => {
+  const pageCount = doc.bufferedPageRange().count;
+  for (let i = 0; i < pageCount; i++) {
+    doc.switchToPage(i);
+    doc
+      .fontSize(10)
+      .fillColor("gray")
+      .text(`Page ${i + 1} of ${pageCount}`, 0, doc.page.height - 50, {
+        align: "center",
+      });
+  }
+};
 
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
