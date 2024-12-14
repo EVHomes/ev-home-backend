@@ -173,6 +173,7 @@ export const leadPopulateOptions = [
     path: "visitRef",
     populate: [
       { path: "projects", select: "name" },
+      { path: "location", select: "name" },
       {
         path: "closingManager",
         select: "firstName lastName",
@@ -227,6 +228,7 @@ export const leadPopulateOptions = [
     path: "revisitRef",
     populate: [
       { path: "projects", select: "name" },
+      { path: "location", select: "name" },
       {
         path: "closingManager",
         select: "firstName lastName",

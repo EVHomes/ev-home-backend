@@ -621,3 +621,202 @@ export const deleteSiteVisits = async (req, res) => {
     return res.send(errorRes(500, `Server error: ${error?.message}`));
   }
 };
+
+export const addSiteVisitsManual = async (data) => {
+  const body = data;
+  const {
+    firstName,
+    lastName,
+    email,
+    phoneNumber,
+    residence,
+    projects,
+    choiceApt,
+    source,
+    closingManager,
+    closingTeam,
+    teamLeader,
+    lead,
+    visitType,
+    virtualMeetingDoc,
+    location,
+  } = body;
+
+  try {
+    console.log("pass 1");
+    const newSiteVisit = await siteVisitModel.create({
+      ...body,
+    });
+
+    await newSiteVisit.save();
+
+    const hashPassword = await encryptPassword(phoneNumber.toString());
+    const newClient = await clientModel.create({
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      projects: location,
+      address: residence,
+      closingManager,
+      choiceApt,
+      password: hashPassword,
+    });
+    await newClient.save();
+    //  if (!id) return res.send(errorRes(403, "id is required"));
+    const populateNewSiteVisit = await siteVisitModel
+      .findById(newSiteVisit?._id)
+      .populate(siteVisitPopulateOptions);
+
+    // if (lead != null) {
+    //   const foundLead = await leadModel.findById(lead);
+
+    //   if (foundLead) {
+    //     // return res.send(errorRes(404, "no lead found with id"));
+    //     // if (visitType === "booked") {
+    //     //   foundLead.bookingStatus = "booked";
+    //     //   foundLead.bookingRef = bookingRef;
+    //     //   await foundLead.save();
+    //     // }
+
+    //     if (visitType === "visited") {
+    //       foundLead.visitStatus = "visited";
+    //       foundLead.stage = "revisit";
+    //       foundLead.visitRef = populateNewSiteVisit._id;
+    //       foundLead.cycle.stage = "revisit";
+    //       foundLead.cycle.validTill = new Date().addDays(30);
+    //       await foundLead.save();
+    //     }
+
+    //     if (visitType === "virtual-meeting") {
+    //       foundLead.visitStatus = "virtual-meeting";
+    //       foundLead.stage = "revisit";
+    //       foundLead.visitRef = populateNewSiteVisit._id;
+    //       foundLead.cycle.stage = "revisit";
+    //       foundLead.cycle.validTill = new Date().addDays(30);
+    //       foundLead.virtualMeetingDoc = virtualMeetingDoc;
+
+    //       await foundLead.save();
+    //     }
+
+    //     if (visitType === "revisited") {
+    //       foundLead.revisitStatus = "revisited";
+    //       foundLead.stage = "booking";
+    //       foundLead.revisitRef = populateNewSiteVisit._id;
+    //       foundLead.cycle.validTill = new Date().addDays(180);
+
+    //       await foundLead.save();
+    //     }
+    //     if (visitType === "called") {
+    //       foundLead.contactedStatus = "contacted";
+    //       // foundLead.revisitRef = populateNewSiteVisit._id;
+    //       await foundLead.save();
+    //     }
+    //   }
+    // } else {
+    //   const foundLead = await leadModel.findOne({
+    //     phoneNumber: phoneNumber,
+    //     approvalStatus: { $ne: "pending" },
+    //   });
+    //   if (foundLead) {
+    //     if (visitType === "visited") {
+    //       foundLead.visitStatus = "visited";
+    //       foundLead.stage = "revisit";
+    //       foundLead.visitRef = populateNewSiteVisit._id;
+    //       foundLead.cycle.stage = "revisit";
+    //       foundLead.cycle.validTill = new Date().addDays(30);
+
+    //       await foundLead.save();
+    //     }
+
+    //     if (visitType === "virtual-meeting") {
+    //       foundLead.visitStatus = "virtual-meeting";
+    //       foundLead.stage = "revisit";
+    //       foundLead.visitRef = populateNewSiteVisit._id;
+    //       foundLead.cycle.stage = "revisit";
+    //       foundLead.cycle.validTill = new Date().addDays(30);
+    //       foundLead.virtualMeetingDoc = virtualMeetingDoc;
+
+    //       await foundLead.save();
+    //     }
+
+    //     if (visitType === "revisited") {
+    //       foundLead.revisitStatus = "revisited";
+    //       foundLead.stage = "booking";
+    //       foundLead.revisitRef = populateNewSiteVisit._id;
+    //       foundLead.cycle.validTill = new Date().addMonths(5);
+
+    //       await foundLead.save();
+    //     }
+    //     if (visitType === "called") {
+    //       foundLead.contactedStatus = "contacted";
+    //       // foundLead.revisitRef = revisitRef;
+    //       await foundLead.save();
+    //     }
+    //   }
+    // }
+    const startDate = Date(body.date);
+    const validTill = new Date(startDate);
+    const validTillbefore = new Date(startDate);
+
+    validTillbefore.setDate(validTillbefore.getDate() + 15);
+    validTill.setDate(validTill.getDate() + 30);
+
+    if (source?.toLowerCase() === "walk-in") {
+      await leadModel.create({
+        leadType: source?.toLowerCase(),
+        firstName: firstName,
+        address: residence,
+        email: email,
+        lastName: lastName,
+        project: projects,
+        requirement: choiceApt,
+        phoneNumber: phoneNumber,
+        teamLeader: closingManager,
+        visitRef: newSiteVisit?._id,
+        visitStatus: visitType,
+        stage: "revisit",
+        cycle: {
+          nextTeamLeader: null,
+          stage: "revisit",
+          currentOrder: 1,
+          teamLeader: closingManager,
+          startDate: startDate,
+          validTill: validTill,
+        },
+        cycleHistory: [
+          {
+            nextTeamLeader: null,
+            stage: "visit",
+            currentOrder: 1,
+            teamLeader: closingManager,
+            startDate: startDate,
+            validTill: validTillbefore,
+          },
+        ],
+      });
+      const foundTLPlayerId = await oneSignalModel.findOne({
+        docId: closingManager,
+        // role: teamLeaderResp?.role,
+      });
+
+      if (foundTLPlayerId) {
+        // console.log(foundTLPlayerId);
+
+        await sendNotificationWithImage({
+          playerIds: [foundTLPlayerId.playerId],
+          title: "You've Got a new walk-in Lead!",
+          message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+          imageUrl:
+            "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+        });
+        // console.log("pass sent notification");
+      }
+    }
+
+    return "ok";
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+};
