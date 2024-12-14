@@ -509,6 +509,7 @@ export const postSalePopulateOptions = [
 
 export const siteVisitPopulateOptions = [
   { path: "projects", select: "name" },
+  { path: "location", select: "name" },
   {
     path: "closingManager",
     select: "firstName lastName",
