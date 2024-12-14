@@ -845,6 +845,7 @@ export const searchLeads = async (req, res, next) => {
         approvalStatus: { $regex: approvalStatus, $options: "i" },
       }),
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
+      leadType: { $ne: "walk-in" },
     };
 
     // Execute the search with the refined filter
@@ -854,28 +855,37 @@ export const searchLeads = async (req, res, next) => {
       .limit(limit)
       .sort({ startDate: -1 })
       .populate(leadPopulateOptions);
+
     // Count the total items matching the filter
     // const totalItems = await leadModel.countDocuments(searchFilter);
+
     // Count the total items matching the filter
     const totalItems = await leadModel.countDocuments({
       stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
     });
     // const totalItems = await leadModel.countDocuments(searchFilter);
     const rejectedCount = await leadModel.countDocuments({
       $and: [
         { approvalStatus: "rejected" },
         { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
       ],
     });
 
     const pendingCount = await leadModel.countDocuments({
-      $and: [{ approvalStatus: "pending" }, { stage: { $ne: "tagging-over" } }],
+      $and: [
+        { approvalStatus: "pending" },
+        { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
+      ],
     });
 
     const approvedCount = await leadModel.countDocuments({
       $and: [
         { approvalStatus: "approved" },
         { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
       ],
     });
 
