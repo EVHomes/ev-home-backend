@@ -3720,3 +3720,82 @@ function getStatus1(lead) {
 
   return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
 }
+
+export const triggerCycleChange = async (req, res, next) => {
+  try {
+    const currentDate = new Date();
+
+    const allCycleExpiredLeads = await leadModel.find({
+      "cycle.validTill": { $lt: currentDate },
+    });
+
+    if (allCycleExpiredLeads.length > 0) {
+      const teamLeaders = await employeeModel
+        .find({
+          $or: [
+            { designation: "desg-site-head" },
+            { designation: "desg-senior-closing-manager" },
+            { designation: "desg-post-sales-head" },
+          ],
+          status: "active",
+        })
+        .sort({ createdAt: 1 })
+        .select("_id");
+
+      console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
+
+      const bulkOperations = allCycleExpiredLeads.map((entry) => {
+        const lastIndex = teamLeaders.findIndex(
+          (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
+        );
+        const totalTeamLeader = teamLeaders.length + 1;
+        const cCycle = entry.cycle;
+        if (lastIndex != -1) {
+          //visit condtions
+          const startDate = new Date(); // Current date
+          const validTill = new Date(startDate);
+
+          if (cCycle.stage === "visit") {
+            // visit condi
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setDate(validTill.getDate() + 15);
+              cCycle.currentOrder = 1;
+              cCycle.teamLeader = teamLeaders[lastIndex]?._id;
+              cCycle.startDate = startDate;
+              cCycle.validTill = validTill;
+
+              // entry.cycleHistory.addToSet()
+            }
+          } else if (cCycle.stage === "revisit") {
+            // revisit condi
+          }
+        }
+
+        console.log(
+          "lastIndex:",
+          lastIndex,
+          "order: ",
+          entry?.cycle?.currentOrder
+        ); // Debug log for each entry
+        entry.lastTlIndex = lastIndex;
+        return entry;
+      });
+
+      return res.send(
+        successRes(200, "cycle chang 2e", {
+          data: bulkOperations,
+          totalItem: bulkOperations?.length,
+        })
+      );
+    }
+
+    return res.send(
+      successRes(200, "cycle change", {
+        data: allCycleExpiredLeads,
+        totalItem: allCycleExpiredLeads?.length,
+      })
+    );
+  } catch (error) {
+    return res.send(error);
+  }
+};
