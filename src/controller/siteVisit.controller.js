@@ -534,55 +534,13 @@ export const updateSiteVisits = async (req, res) => {
     if (!id) return res.send(errorRes(403, "ID is required"));
     if (!body) return res.send(errorRes(403, "Data is required"));
 
-    const {
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      residence,
-      projects,
-      choiceApt,
-      source,
-      closingManager,
-      closingTeam,
-      teamLeader,
-      team,
-    } = body;
-
     if (!body) return res.send(errorRes(403, "Data is required"));
-    if (!firstName) return res.send(errorRes(403, "First name is required"));
-    if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!residence) return res.send(errorRes(403, "Residence is required"));
-    if (!email) return res.send(errorRes(403, "Email is required"));
-    if (!projects) return res.send(errorRes(403, "Project is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
-    if (!source) return res.send(errorRes(403, "Source is required"));
-    if (!closingManager)
-      return res.send(errorRes(403, "Closing Manager is required"));
-    if (!closingTeam)
-      return res.send(errorRes(403, "Closing Team is required"));
-    if (!choiceApt)
-      return res.send(errorRes(403, "Choice of Apartment is required"));
-    if (!teamLeader) return res.send(errorRes(403, "Team Leader is required"));
-    if (!team) return res.send(errorRes(403, "Team is required"));
 
     const updatedSite = await siteVisitModel
       .findByIdAndUpdate(
         id,
         {
-          firstName,
-          lastName,
-          email,
-          phoneNumber,
-          residence,
-          projects,
-          choiceApt,
-          source,
-          closingManager,
-          closingTeam,
-          teamLeader,
-          team,
+          ...body,
         },
         { new: true }
       )
@@ -592,7 +550,7 @@ export const updateSiteVisits = async (req, res) => {
       return res.send(errorRes(404, `Site not found with ID: ${id}`));
 
     return res.send(
-      successRes(200, `Site updated successfully: ${firstName} ${lastName}`, {
+      successRes(200, `Site Visit updated successfully`, {
         data: updatedSite,
       })
     );
