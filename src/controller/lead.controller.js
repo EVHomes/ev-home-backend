@@ -61,7 +61,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let status = req.query.status?.toLowerCase();
 
     const isNumberQuery = !isNaN(query);
-
+    const filterDate = new Date("2024-12-10");
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
@@ -127,7 +127,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
       teamLeader: teamLeaderId,
-
+      startDate: { $gte: filterDate },
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
@@ -315,6 +315,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
 
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
+    const filterDate = new Date("2024-12-10");
 
     const isNumberQuery = !isNaN(query);
 
@@ -383,6 +384,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
       teamLeader: teamLeaderId,
+      startDate: { $gte: filterDate },
 
       $or: [
         // {
@@ -3763,8 +3765,8 @@ export const triggerCycleChange = async (req, res, next) => {
               cCycle.teamLeader = teamLeaders[lastIndex]?._id;
               cCycle.startDate = startDate;
               cCycle.validTill = validTill;
-
               // entry.cycleHistory.addToSet()
+            } else {
             }
           } else if (cCycle.stage === "revisit") {
             // revisit condi
