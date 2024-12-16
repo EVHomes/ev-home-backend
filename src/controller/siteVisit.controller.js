@@ -713,64 +713,64 @@ export const addSiteVisitsManual = async (data) => {
     //     }
     //   }
     // }
-    const startDate = Date(body.date);
+    const startDate = new Date(body.date);
     const validTill = new Date(startDate);
     const validTillbefore = new Date(startDate);
 
     validTillbefore.setDate(validTillbefore.getDate() + 15);
     validTill.setDate(validTill.getDate() + 30);
 
-    if (source?.toLowerCase() === "walk-in") {
-      await leadModel.create({
-        leadType: source?.toLowerCase(),
-        firstName: firstName,
-        address: residence,
-        email: email,
-        lastName: lastName,
-        project: projects,
-        requirement: choiceApt,
-        phoneNumber: phoneNumber,
-        teamLeader: closingManager,
-        visitRef: newSiteVisit?._id,
-        visitStatus: visitType,
-        stage: "revisit",
-        cycle: {
-          nextTeamLeader: null,
-          stage: "revisit",
-          currentOrder: 1,
-          teamLeader: closingManager,
-          startDate: startDate,
-          validTill: validTill,
-        },
-        cycleHistory: [
-          {
-            nextTeamLeader: null,
-            stage: "visit",
-            currentOrder: 1,
-            teamLeader: closingManager,
-            startDate: startDate,
-            validTill: validTillbefore,
-          },
-        ],
-      });
-      const foundTLPlayerId = await oneSignalModel.findOne({
-        docId: closingManager,
-        // role: teamLeaderResp?.role,
-      });
+    // if (source?.toLowerCase() === "walk-in") {
+    //   await leadModel.create({
+    //     leadType: source?.toLowerCase(),
+    //     firstName: firstName,
+    //     address: residence,
+    //     email: email,
+    //     lastName: lastName,
+    //     project: projects,
+    //     requirement: choiceApt,
+    //     phoneNumber: phoneNumber,
+    //     teamLeader: closingManager,
+    //     visitRef: newSiteVisit?._id,
+    //     visitStatus: visitType,
+    //     stage: "revisit",
+    //     cycle: {
+    //       nextTeamLeader: null,
+    //       stage: "revisit",
+    //       currentOrder: 1,
+    //       teamLeader: closingManager,
+    //       startDate: startDate,
+    //       validTill: validTill,
+    //     },
+    //     cycleHistory: [
+    //       {
+    //         nextTeamLeader: null,
+    //         stage: "visit",
+    //         currentOrder: 1,
+    //         teamLeader: closingManager,
+    //         startDate: startDate,
+    //         validTill: validTillbefore,
+    //       },
+    //     ],
+    //   });
+    //   const foundTLPlayerId = await oneSignalModel.findOne({
+    //     docId: closingManager,
+    //     // role: teamLeaderResp?.role,
+    //   });
 
-      if (foundTLPlayerId) {
-        // console.log(foundTLPlayerId);
+    //   if (foundTLPlayerId) {
+    //     // console.log(foundTLPlayerId);
 
-        await sendNotificationWithImage({
-          playerIds: [foundTLPlayerId.playerId],
-          title: "You've Got a new walk-in Lead!",
-          message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
-          imageUrl:
-            "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
-        });
-        // console.log("pass sent notification");
-      }
-    }
+    //     await sendNotificationWithImage({
+    //       playerIds: [foundTLPlayerId.playerId],
+    //       title: "You've Got a new walk-in Lead!",
+    //       message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+    //       imageUrl:
+    //         "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+    //     });
+    //     // console.log("pass sent notification");
+    //   }
+    // }
 
     return "ok";
   } catch (error) {
