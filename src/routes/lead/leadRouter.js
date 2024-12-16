@@ -157,7 +157,6 @@ const parseDate = (dateString) => {
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
 leadRouter.get("/lead-trigger-cycle-change", triggerCycleChange);
-
 // leadRouter.post("/lead-updates", async (req, res) => {
 //   const results = [];
 //   const dataTuPush = [];
