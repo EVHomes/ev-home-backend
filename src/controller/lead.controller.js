@@ -903,6 +903,7 @@ export const searchLeads = async (req, res, next) => {
     let query = req.query.query || "";
     let approvalStatus = req.query.approvalStatus?.toLowerCase();
     let stage = req.query.stage?.toLowerCase();
+    let channelPartner = req.query.channelPartner?.toLowerCase();
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
@@ -945,6 +946,7 @@ export const searchLeads = async (req, res, next) => {
       ...(approvalStatus && {
         approvalStatus: { $regex: approvalStatus, $options: "i" },
       }),
+      ...(channelPartner ? { channelPartner: channelPartner } : {}),
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
       leadType: { $ne: "walk-in" },
     };

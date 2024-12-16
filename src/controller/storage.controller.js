@@ -83,7 +83,12 @@ export const uploadMultiple = async (req, res) => {
     });
 
     await respDb.save();
-    uplaodedFiles.push({ filename: uniqueFileName, token, downloadUrl });
+    uplaodedFiles.push({
+      ...file,
+      filename: uniqueFileName,
+      token,
+      downloadUrl,
+    });
     return { filename: uniqueFileName, token, downloadUrl };
   });
 
