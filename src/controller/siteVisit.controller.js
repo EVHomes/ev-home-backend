@@ -223,7 +223,7 @@ export const addSiteVisits = async (req, res) => {
     virtualMeetingDoc,
     location,
   } = body;
-
+  // console.log(body);
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
@@ -237,9 +237,11 @@ export const addSiteVisits = async (req, res) => {
     if (!choiceApt)
       return res.send(errorRes(403, "Choice of Apartment is required"));
 
-    // console.log(body);
+    console.log(body);
+    body.date = null;
     const newSiteVisit = await siteVisitModel.create({
       ...body,
+      // date: new Date(),
       virtualMeetingDoc: virtualMeetingDoc,
     });
 
