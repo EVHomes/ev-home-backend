@@ -1085,53 +1085,53 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       .populate(leadPopulateOptions);
 
     // Count the total items matching the filter
-    // const totalItems = await leadModel.countDocuments(searchFilter);
-
-    // Count the total items matching the filter
     const totalItems = await leadModel.countDocuments({
       stage: { $ne: "tagging-over" },
       leadType: { $ne: "walk-in" },
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
     });
-    // const totalItems = await leadModel.countDocuments(searchFilter);
+
+    // Count the rejected leads
     const rejectedCount = await leadModel.countDocuments({
-      $and: [
-        { approvalStatus: "rejected" },
-        { stage: { $ne: "tagging-over" } },
-        { leadType: { $ne: "walk-in" } },
-        { channelPartner: id },
-        { startDate: { $gte: sixMonthsAgo } },
-      ],
+      approvalStatus: "rejected",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
     });
 
+    // Count the pending leads
     const pendingCount = await leadModel.countDocuments({
-      $and: [
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+      $or: [
         { approvalStatus: "pending" },
-        { stage: { $ne: "tagging-over" } },
-        { leadType: { $ne: "walk-in" } },
-        { channelPartner: id },
-        { startDate: { $gte: sixMonthsAgo } },
+        { visitStatus: "pending" },
+        { revisitStatus: "pending" },
+        { bookingStatus: "pending" },
       ],
     });
 
+    // Count the approved leads
     const approvedCount = await leadModel.countDocuments({
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
       $and: [
         { approvalStatus: "approved" },
-        { stage: { $ne: "tagging-over" } },
-        { leadType: { $ne: "walk-in" } },
-        { channelPartner: id },
-        { startDate: { $gte: sixMonthsAgo } },
+        { visitStatus: "approved" },
+        { revisitStatus: "approved" },
+        { bookingStatus: "approved" },
       ],
     });
-
-    // const assignedCount = await leadModel.countDocuments({
-    //   $and: [{ preSalesExecutive: { $ne: null } }],
-    // });
 
     // Calculate the total number of pages
     const totalPages = Math.ceil(totalItems / limit);
-    // cons;
+
     return res.send(
       successRes(200, "get leads", {
         page,
@@ -1140,7 +1140,6 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         totalItems,
         pendingCount,
         approvedCount,
-        // assignedCount,
         rejectedCount,
         data: respCP,
       })
@@ -1149,7 +1148,6 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     return next(error);
   }
 };
-
 export const getLeadById = async (req, res, next) => {
   const id = req.params.id;
   try {
