@@ -1017,6 +1017,139 @@ export const searchLeads = async (req, res, next) => {
   }
 };
 
+export const searchLeadsChannelPartner = async (req, res, next) => {
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(401, "id required"));
+
+    let query = req.query.query || "";
+    let approvalStatus = req.query.approvalStatus?.toLowerCase();
+    let stage = req.query.stage?.toLowerCase();
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let orFilters = [
+      { firstName: { $regex: query, $options: "i" } },
+      { lastName: { $regex: query, $options: "i" } },
+    ];
+
+    if (isNumberQuery) {
+      orFilters.push(
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$phoneNumber" },
+              regex: query,
+            },
+          },
+        },
+        {
+          $expr: {
+            $regexMatch: {
+              input: { $toString: "$altPhoneNumber" },
+              regex: query,
+            },
+          },
+        }
+      );
+    }
+
+    orFilters.push(
+      { email: { $regex: query, $options: "i" } },
+      { address: { $regex: query, $options: "i" } },
+      { interestedStatus: { $regex: query, $options: "i" } }
+    );
+
+    let searchFilter = {
+      $or: orFilters,
+      ...(approvalStatus && {
+        approvalStatus: { $regex: approvalStatus, $options: "i" },
+      }),
+      ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
+      leadType: { $ne: "walk-in" },
+      startDate: { $gte: sixMonthsAgo },
+      channelPartner: id,
+    };
+
+    // Execute the search with the refined filter
+    const respCP = await leadModel
+      .find(searchFilter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ startDate: 1 })
+      .populate(leadPopulateOptions);
+
+    // Count the total items matching the filter
+    // const totalItems = await leadModel.countDocuments(searchFilter);
+
+    // Count the total items matching the filter
+    const totalItems = await leadModel.countDocuments({
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+    });
+    // const totalItems = await leadModel.countDocuments(searchFilter);
+    const rejectedCount = await leadModel.countDocuments({
+      $and: [
+        { approvalStatus: "rejected" },
+        { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
+        { channelPartner: id },
+        { startDate: { $gte: sixMonthsAgo } },
+      ],
+    });
+
+    const pendingCount = await leadModel.countDocuments({
+      $and: [
+        { approvalStatus: "pending" },
+        { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
+        { channelPartner: id },
+        { startDate: { $gte: sixMonthsAgo } },
+      ],
+    });
+
+    const approvedCount = await leadModel.countDocuments({
+      $and: [
+        { approvalStatus: "approved" },
+        { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
+        { channelPartner: id },
+        { startDate: { $gte: sixMonthsAgo } },
+      ],
+    });
+
+    // const assignedCount = await leadModel.countDocuments({
+    //   $and: [{ preSalesExecutive: { $ne: null } }],
+    // });
+
+    // Calculate the total number of pages
+    const totalPages = Math.ceil(totalItems / limit);
+    // cons;
+    return res.send(
+      successRes(200, "get leads", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        pendingCount,
+        approvedCount,
+        // assignedCount,
+        rejectedCount,
+        data: respCP,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getLeadById = async (req, res, next) => {
   const id = req.params.id;
   try {
@@ -3758,78 +3891,407 @@ function getStatus1(lead) {
 export const triggerCycleChange = async (req, res, next) => {
   try {
     const currentDate = new Date();
+    const filterDate = new Date("2024-11-21");
 
+    // Fetch all leads whose cycles have expired
     const allCycleExpiredLeads = await leadModel.find({
       "cycle.validTill": { $lt: currentDate },
+      startDate: { $gte: filterDate },
     });
 
     if (allCycleExpiredLeads.length > 0) {
-      const teamLeaders = await employeeModel
-        .find({
-          $or: [
-            { designation: "desg-site-head" },
-            { designation: "desg-senior-closing-manager" },
-            { designation: "desg-post-sales-head" },
-          ],
-          status: "active",
-        })
-        .sort({ createdAt: 1 })
-        .select("_id");
+      // Fetch active team leaders sorted by createdAt
+      const teamLeaders = [
+        { _id: "ev15-deepak-karki" },
+        { _id: "ev69-vicky-mane" },
+        { _id: "ev70-jaspreet-arora" },
+        { _id: "ev54-ranjna-gupta" },
+      ];
+      // const teamLeaders = await employeeModel
+      //   .find({
+      //     $or: [
+      //       { designation: "desg-site-head" },
+      //       { designation: "desg-senior-closing-manager" },
+      //       { designation: "desg-post-sales-head" },
+      //     ],
+      //     status: "active",
+      //   })
+      //   .sort({ createdAt: 1 })
+      //   .select("_id");
 
-      console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
+      console.log("Team Leaders:", teamLeaders); // Debug log
 
-      const bulkOperations = allCycleExpiredLeads.map((entry) => {
+      // Prepare bulk operations
+      const bulkOperations = [];
+
+      allCycleExpiredLeads.map((entry) => {
         const lastIndex = teamLeaders.findIndex(
           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
         );
-        const totalTeamLeader = teamLeaders.length + 1;
-        const cCycle = entry.cycle;
-        if (lastIndex != -1) {
-          //visit condtions
-          const startDate = new Date(); // Current date
-          const validTill = new Date(startDate);
+        const totalTeamLeader = teamLeaders.length;
+        const cCycle = { ...entry.cycle }; // Clone cycle object
 
+        const previousCycle = { ...cCycle }; // For cycle history
+        const startDate = new Date(entry.cycle.validTill); // Current date
+        const validTill = new Date(startDate);
+
+        if (lastIndex !== -1) {
+          // Logic for visit stage
           if (cCycle.stage === "visit") {
-            // visit condi
             if (cCycle.currentOrder >= totalTeamLeader) {
-              validTill.setDate(validTill.getDate() + 15);
+              validTill.setDate(validTill.getDate() + 180);
               cCycle.currentOrder = 1;
-              cCycle.teamLeader = teamLeaders[lastIndex]?._id;
-              cCycle.startDate = startDate;
-              cCycle.validTill = validTill;
-              // entry.cycleHistory.addToSet()
+              cCycle.lastIndex = lastIndex;
+              cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+              // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
             } else {
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              // cCycle.oldTeamLeader = cCycle.teamLeader;
+              // cCycle.lastIndex = lastIndex;
+              // cCycle.nextIndex = lastIndex + 1;
+
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 15);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 7);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 5);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 2);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 15);
+              }
             }
           } else if (cCycle.stage === "revisit") {
-            // revisit condi
-          }
-        }
+            // Logic for revisit stage
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setDate(validTill.getDate() + 180);
+              cCycle.currentOrder = 1;
+              cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+              cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
+              cCycle.lastIndex = lastIndex;
+            } else {
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
+              cCycle.lastIndex = lastIndex;
+              cCycle.nextIndex = lastIndex + 1;
 
-        console.log(
-          "lastIndex:",
-          lastIndex,
-          "order: ",
-          entry?.cycle?.currentOrder
-        ); // Debug log for each entry
-        entry.lastTlIndex = lastIndex;
-        return entry;
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 30);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 15);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 7);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 5);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 30);
+              }
+            }
+          }
+
+          cCycle.startDate = startDate;
+          cCycle.validTill = validTill;
+
+          // Add bulk update operation
+          bulkOperations.push({
+            updateOne: {
+              filter: { _id: entry._id },
+              update: {
+                teamLeader: cCycle.teamLeader,
+                $set: { cycle: cCycle },
+                $push: { cycleHistory: previousCycle }, // Add previous cycle to history
+              },
+            },
+          });
+        }
       });
 
-      return res.send(
-        successRes(200, "cycle chang 2e", {
-          data: bulkOperations,
-          totalItem: bulkOperations?.length,
-        })
-      );
+      // Execute bulk update
+      if (bulkOperations.length > 0) {
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        // console.log("Bulk Update Result:", bulkResult);
+
+        return res.send(
+          successRes(200, "Cycles updated successfully", {
+            matchedCount: bulkResult.matchedCount,
+            modifiedCount: bulkResult.modifiedCount,
+            total: bulkOperations?.length,
+            data: bulkOperations,
+          })
+        );
+      }
     }
 
+    // If no leads need cycle changes
     return res.send(
-      successRes(200, "cycle change", {
-        data: allCycleExpiredLeads,
-        totalItem: allCycleExpiredLeads?.length,
+      successRes(200, "No cycle changes needed", {
+        data: [],
+        totalItem: 0,
       })
     );
   } catch (error) {
-    return res.send(error);
+    console.error("Error updating cycles:", error);
+    return res.status(500).send({ message: "Internal Server Error", error });
   }
 };
+
+// export const triggerCycleChange = async (req, res, next) => {
+//   try {
+//     const currentDate = new Date();
+//     const filterDate = new Date("2024-11-24");
+
+//     // Fetch all leads whose cycles have expired
+//     const allCycleExpiredLeads = await leadModel.find({
+//       "cycle.validTill": { $lt: currentDate },
+//       startDate: { $gte: filterDate },
+//     });
+
+//     if (allCycleExpiredLeads.length > 0) {
+//       // Fetch active team leaders sorted by createdAt
+//       const teamLeaders = await employeeModel
+//         .find({
+//           $or: [
+//             { designation: "desg-site-head" },
+//             { designation: "desg-senior-closing-manager" },
+//             { designation: "desg-post-sales-head" },
+//           ],
+//           status: "active",
+//         })
+//         .sort({ createdAt: 1 })
+//         .select("_id");
+
+//       console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
+
+//       const bulkOperations = allCycleExpiredLeads.map((entry) => {
+//         const lastIndex = teamLeaders.findIndex(
+//           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
+//         );
+//         const totalTeamLeader = teamLeaders.length;
+//         const cCycle = entry.cycle;
+
+//         // If the last team leader index is found
+//         if (lastIndex !== -1) {
+//           const startDate = new Date(entry.cycle.startDate); // Current date
+//           const oldStart = new Date(entry.cycle.startDate);
+//           const validTill = new Date(startDate);
+//           const previousCycle = { ...cCycle };
+
+//           if (cCycle.stage === "visit") {
+//             // Handle 'visit' stage logic
+//             if (cCycle.currentOrder >= totalTeamLeader) {
+//               validTill.setDate(oldStart.getDate() + 180);
+//               cCycle.currentOrder = 1;
+//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to the first team leader
+//             } else {
+//               // Updated ELSE logic: Set validTill based on currentOrder
+//               cCycle.currentOrder += 1;
+//               cCycle.teamLeader =
+//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+
+//               switch (cCycle.currentOrder) {
+//                 case 1:
+//                   validTill.setDate(validTill.getDate() + 15);
+//                   break;
+//                 case 2:
+//                   validTill.setDate(validTill.getDate() + 7);
+//                   break;
+//                 case 3:
+//                   validTill.setDate(validTill.getDate() + 5);
+//                   break;
+//                 case 4:
+//                   validTill.setDate(validTill.getDate() + 2);
+//                   break;
+//                 default:
+//                   validTill.setDate(oldStart.getDate() + 180);
+//                   break;
+//               }
+//             }
+
+//             cCycle.startDate = startDate;
+//             cCycle.validTill = validTill;
+
+//             // Push previous cycle data into cycleHistory
+//             entry.cycleHistory = entry.cycleHistory || [];
+//             entry.cycleHistory.push(previousCycle);
+//           } else if (cCycle.stage === "revisit") {
+//             // Handle 'revisit' stage logic here
+//             // You can add similar logic for revisits
+//             // Handle 'visit' stage logic
+//             if (cCycle.currentOrder >= totalTeamLeader) {
+//               validTill.setDate(oldStart.getDate() + 180);
+//               cCycle.currentOrder = 1;
+//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to the first team leader
+//             } else {
+//               // Updated ELSE logic: Set validTill based on currentOrder
+//               cCycle.currentOrder += 1;
+//               cCycle.teamLeader =
+//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+
+//               switch (cCycle.currentOrder) {
+//                 case 1:
+//                   validTill.setDate(validTill.getDate() + 30);
+//                   break;
+//                 case 2:
+//                   validTill.setDate(validTill.getDate() + 15);
+//                   break;
+//                 case 3:
+//                   validTill.setDate(validTill.getDate() + 7);
+//                   break;
+//                 case 4:
+//                   validTill.setDate(validTill.getDate() + 5);
+//                   break;
+//                 default:
+//                   validTill.setDate(oldStart.getDate() + 180);
+//                   break;
+//               }
+//             }
+
+//             cCycle.startDate = startDate;
+//             cCycle.validTill = validTill;
+
+//             // Push previous cycle data into cycleHistory
+//             entry.cycleHistory = entry.cycleHistory || [];
+//             entry.cycleHistory.push(previousCycle);
+//           }
+//         }
+
+//         console.log(
+//           "lastIndex:",
+//           lastIndex,
+//           "order: ",
+//           entry?.cycle?.currentOrder
+//         ); // Debug log for each entry
+//         entry.lastTlIndex = lastIndex;
+//         return entry;
+//       });
+
+//       return res.send(
+//         successRes(200, "cycle changed", {
+//           totalItem: bulkOperations?.length,
+//           data: bulkOperations,
+//         })
+//       );
+//     }
+
+//     // If no leads need cycle changes
+//     return res.send(
+//       successRes(200, "cycle change", {
+//         data: allCycleExpiredLeads,
+//         totalItem: allCycleExpiredLeads?.length,
+//       })
+//     );
+//   } catch (error) {
+//     return res.send(error);
+//   }
+// };
+
+// export const triggerCycleChange = async (req, res, next) => {
+//   try {
+//     const currentDate = new Date();
+
+//     const allCycleExpiredLeads = await leadModel.find({
+//       "cycle.validTill": { $lt: currentDate },
+//     });
+
+//     if (allCycleExpiredLeads.length > 0) {
+//       const teamLeaders = await employeeModel
+//         .find({
+//           $or: [
+//             { designation: "desg-site-head" },
+//             { designation: "desg-senior-closing-manager" },
+//             { designation: "desg-post-sales-head" },
+//           ],
+//           status: "active",
+//         })
+//         .sort({ createdAt: 1 })
+//         .select("_id");
+
+//       console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
+
+//       const bulkOperations = allCycleExpiredLeads.map((entry) => {
+//         const lastIndex = teamLeaders.findIndex(
+//           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
+//         );
+//         const totalTeamLeader = teamLeaders.length + 1;
+//         const cCycle = entry.cycle;
+//         if (lastIndex != -1) {
+//           //visit condtions
+//           const startDate = new Date(); // Current date
+//           const validTill = new Date(startDate);
+
+//           if (cCycle.stage === "visit") {
+//             // visit condi
+//             if (cCycle.currentOrder >= totalTeamLeader) {
+//               validTill.setDate(validTill.getDate() + 15);
+//               cCycle.currentOrder = 1;
+//               cCycle.teamLeader = teamLeaders[lastIndex]?._id;
+//               cCycle.startDate = startDate;
+//               cCycle.validTill = validTill;
+//               // entry.cycleHistory.addToSet()
+//             } else {
+//             }
+//           } else if (cCycle.stage === "revisit") {
+//             // revisit condi
+//           }
+//         }
+
+//         console.log(
+//           "lastIndex:",
+//           lastIndex,
+//           "order: ",
+//           entry?.cycle?.currentOrder
+//         ); // Debug log for each entry
+//         entry.lastTlIndex = lastIndex;
+//         return entry;
+//       });
+
+//       return res.send(
+//         successRes(200, "cycle chang 2e", {
+//           data: bulkOperations,
+//           totalItem: bulkOperations?.length,
+//         })
+//       );
+//     }
+
+//     return res.send(
+//       successRes(200, "cycle change", {
+//         data: allCycleExpiredLeads,
+//         totalItem: allCycleExpiredLeads?.length,
+//       })
+//     );
+//   } catch (error) {
+//     return res.send(error);
+//   }
+// };
+
+// const timeZone = "Asia/Kolkata";
+
+// // Get yesterday's date range in local timezone
+// const startOfYesterday = moment()
+//   // .tz(timeZone)
+//   // .subtract(1, "day")
+//   // .startOf("day")
+//   .toDate();
+
+// console.log(startOfYesterday);
+// console.log(new Date().toISOString());
+// console.log(new Date());
+// console.log(moment(new Date()).tz(timeZone).format("DD-MM-YYYY HH:mm"));
+// console.log(
+//   moment("2024-12-17T11:38:53.096842").tz(timeZone).format("DD-MM-YYYY HH:mm")
+// );
