@@ -22,7 +22,7 @@ ourProjectRouter.post(
 );
 ourProjectRouter.post(
   "/ourProjects-update/:id",
-  authenticateToken,
+  // authenticateToken,
   updateProjects
 );
 ourProjectRouter.post(
