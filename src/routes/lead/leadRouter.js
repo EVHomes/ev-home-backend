@@ -27,6 +27,7 @@ import {
   getLeadByStartEndDate,
   generateInternalLeadPdf,
   generateChannelPartnerLeadPdf,
+  triggerCycleChange,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -155,323 +156,365 @@ const parseDate = (dateString) => {
 
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
-function parseUnitNumber(unit) {
-  // Split the unit string into floor and number based on the length of the unit
-  const floor = Math.floor(unit / 100);
+leadRouter.get("/lead-trigger-cycle-change", triggerCycleChange);
+// leadRouter.post("/lead-updates", async (req, res) => {
+//   const results = [];
+//   const dataTuPush = [];
+//   const csvFilePath = path.join(__dirname, "leads_import_12-12-24.csv");
 
-  const number = unit % 100; // Extract unit number by taking the remainder
-  return { floor, number,};
-}
+//   const cpResp = await cpModel.find();
+//   const teamLeaders = await employeeModel.find({
+//     $or: [
+//       { designation: "desg-senior-closing-manager" },
+//       { designation: "desg-site-head" },
+//       { designation: "desg-post-sales-head" },
+//     ],
+//   });
+//   const dataAnalyzers = await employeeModel.find({
+//     designation: "desg-data-analyzer",
+//   });
 
-leadRouter.post("/lead-updates", async (req, res) => {
-  const results = [];
-  const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "marina_flatlist.csv");
+//   const projectsResp = await ourProjectModel.find({});
 
-  if (!fs.existsSync(csvFilePath)) {
-    return res.status(400).send("CSV file not found");
-  }
-  let i = 0;
+//   if (!fs.existsSync(csvFilePath)) {
+//     return res.status(400).send("CSV file not found");
+//   }
+//   let i = 0;
 
-  fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on("data", (data) => {
-      results.push(data);
-    })
-    .on("end", async () => {
-      for (const row of results) {
-        const {
-          flatNo1,
-          configuration,
-          occupied,
-          carpetArea,
-          "Salable are": sellableCarpetArea,
-          inc,
-        } = row;
-        const paresd = parseUnitNumber(parseInt(flatNo1));
-        // let startDate = parseDate(Leadreceivedon);
-        // let cycleStartDate = parseDate(leadAssignDate);
-        // let requirement = Requirement.replace(/\s+/g, "")
-        //   .toUpperCase()
-        //   ?.split(",");
-        // let projs = [];
-        // let projects = projectsResp.find((proj) => {
-        //   if (proj.name.toLowerCase().includes(Project.split("")[0])) {
-        //     projs.push(proj?._id);
-        //   }
-        // });
+//   fs.createReadStream(csvFilePath)
+//     .pipe(csv())
+//     .on("data", (data) => {
+//       results.push(data);
+//     })
+//     .on("end", async () => {
+//       for (const row of results) {
+//         const {
+//           Leadreceivedon,
+//           Name: firstName,
+//           Surname: lastName,
+//           Number: phoneNumber,
+//           Cp,
+//           TeamLeaderDate: leadAssignDate,
+//           Teamleader,
+//           Project,
+//           Requirement,
+//           taggingstatus,
+//           "Data Analyer": anayl,
+//         } = row;
+//         let startDate = parseDate(Leadreceivedon);
+//         let cycleStartDate = parseDate(leadAssignDate);
+//         let requirement = Requirement.replace(/\s+/g, "")
+//           .toUpperCase()
+//           ?.split(",");
+//         let projs = [];
+//         let projects = projectsResp.find((proj) => {
+//           if (proj.name.toLowerCase().includes(Project.split("")[0])) {
+//             projs.push(proj?._id);
+//           }
+//         });
 
-        // let newTeamleader =
-        //   teamLeaders.find((tl) =>
-        //     tl.firstName
-        //       .toLowerCase()
-        //       .includes(Teamleader.split(" ")[0].toLowerCase())
-        //   )?._id ?? null;
+//         let newTeamleader =
+//           teamLeaders.find((tl) =>
+//             tl.firstName
+//               .toLowerCase()
+//               .includes(Teamleader.split(" ")[0].toLowerCase())
+//           )?._id ?? null;
 
-        // let channelPartner =
-        //   cpResp.find((cp) =>
-        //     cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
-        //   )?._id ?? null;
+//         let channelPartner =
+//           cpResp.find((cp) =>
+//             cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
+//           )?._id ?? null;
 
-        // // if (Cp != "") {
-        // //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
-        // //   try {
-        // //     const newCp = await cpModel.create({
-        // //       _id: newCpId,
-        // //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
-        // //       firmName: Cp.toLowerCase(),
-        // //       password: "Evhomecp",
-        // //     });
-        // //     channelPartner = newCp._id;
-        // //   } catch (error) {}
-        // // }
+//         // if (Cp != "") {
+//         //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
+//         //   try {
+//         //     const newCp = await cpModel.create({
+//         //       _id: newCpId,
+//         //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
+//         //       firmName: Cp.toLowerCase(),
+//         //       password: "Evhomecp",
+//         //     });
+//         //     channelPartner = newCp._id;
+//         //   } catch (error) {}
+//         // }
 
-        // let dataAnalyzer = dataAnalyzers.find((dt) =>
-        //   dt.firstName
-        //     ?.toLowerCase()
-        //     ?.includes(anayl?.split(" ")[0]?.toLowerCase())
-        // )?._id;
+//         let dataAnalyzer = dataAnalyzers.find((dt) =>
+//           dt.firstName
+//             ?.toLowerCase()
+//             ?.includes(anayl?.split(" ")[0]?.toLowerCase())
+//         )?._id;
 
-        // i = i >= 1 ? 0 : 1;
-        // const validTill = new Date(cycleStartDate);
-        // validTill.setDate(validTill.getDate() + 15);
-        // i++;
-        dataTuPush.push({
-          type:"",
-          flatNo:flatNo1,
-          floor:paresd.floor,
-          number:paresd.number,
-          configuration:configuration.replace(/\s+/g, "").toUpperCase(),
-          occupied: occupied === "Sold" ? true:false,
-          carpetArea:parseInt(carpetArea),
-           sellableCarpetArea:parseInt(sellableCarpetArea),
-           allInclusiveValue:parseFloat(inc),
+//         i = i >= 1 ? 0 : 1;
+//         const validTill = new Date(cycleStartDate);
+//         validTill.setDate(validTill.getDate() + 15);
+//         // i++;
+//         dataTuPush.push({
+//           firstName,
+//           lastName,
+//           phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
+//           teamLeader: newTeamleader,
+//           channelPartner,
+//           dataAnalyzer,
+//           requirement,
+//           approvalStatus: taggingstatus?.toLowerCase(),
+//           approvalDate: cycleStartDate,
+//           approvalRemark: "approved",
+//           startDate,
+//           cycleStartDate,
+//           project: projs,
+//           cycle: {
+//             nextTeamLeader: null,
+//             stage: "visit",
+//             currentOrder: 1,
+//             teamLeader: newTeamleader,
+//             startDate: cycleStartDate,
+//             validTill: validTill,
+//           },
+//         });
+//       }
+//       // await leadModel.insertMany(dataTuPush);
+//       // Send the results only after processing is done
+//       return res.send(dataTuPush);
+//     })
+//     .on("error", (err) => {
+//       return res.status(500).send({ error: err.message });
+//     });
+// });
 
-          // firstName,
-          // lastName,
-          // phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
-          // teamLeader: newTeamleader,
-          // channelPartner,
-          // dataAnalyzer,
-          // requirement,
-          // approvalStatus: taggingstatus?.toLowerCase(),
-          // approvalDate: cycleStartDate,
-          // approvalRemark: "approved",
-          // startDate,
-          // cycleStartDate,
-          // project: projs,
-          // cycle: {
-          //   nextTeamLeader: null,
-          //   stage: "visit",
-          //   currentOrder: 1,
-          //   teamLeader: newTeamleader,
-          //   startDate: cycleStartDate,
-          //   validTill: validTill,
-          // },
-        });
-      }
-      // await leadModel.insertMany(dataTuPush);
-      // Send the results only after processing is done
-      return res.send(dataTuPush);
-    })
-    .on("error", (err) => {
-      return res.status(500).send({ error: err.message });
-    });
-});
+// leadRouter.post("/visit-updates", async (req, res) => {
+//   const results = [];
+//   const dataTuPush = [];
+//   const csvFilePath = path.join(__dirname, "visit-import.csv");
 
-leadRouter.post("/visit-updates", async (req, res) => {
-  const results = [];
-  const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "visit-import.csv");
+//   const cpResp = await cpModel.find();
+//   const teamLeaders = await employeeModel.find({
+//     $or: [
+//       {
+//         designation: "desg-site-head",
+//       },
+//       {
+//         designation: "desg-senior-closing-manager",
+//       },
+//       //added as per request bcz of harshal desg changed
+//       {
+//         designation: "desg-post-sales-head",
+//       },
+//     ],
+//   });
+//   const salesmanager = await employeeModel.find({
+//     $or: [
+//       {
+//         designation: "desg-senior-sales-manager",
+//       },
+//       {
+//         designation: "desg-sales-executive",
+//       },
+//       {
+//         designation: "desg-sales-manager",
+//       },
+//       {
+//         designation: "desg-pre-sales-executive",
+//       },
+//     ],
+//   });
 
-  const cpResp = await cpModel.find();
-  const teamLeaders = await employeeModel.find({
-    $or: [
-      {
-        designation: "desg-site-head",
-      },
-      {
-        designation: "desg-senior-closing-manager",
-      },
-      //added as per request bcz of harshal desg changed
-      {
-        designation: "desg-post-sales-head",
-      },
-    ],
-  });
-  const salesmanager = await employeeModel.find({
-    $or: [
-      {
-        designation: "desg-senior-sales-manager",
-      },
-      {
-        designation: "desg-sales-executive",
-      },
-      {
-        designation: "desg-sales-manager",
-      },
-      {
-        designation: "desg-pre-sales-executive",
-      },
-    ],
-  });
+//   const projectsResp = await ourProjectModel.find({});
 
-  const projectsResp = await ourProjectModel.find({});
+//   if (!fs.existsSync(csvFilePath)) {
+//     return res.status(400).send("CSV file not found");
+//   }
+//   let i = 0;
 
-  if (!fs.existsSync(csvFilePath)) {
-    return res.status(400).send("CSV file not found");
-  }
-  let i = 0;
+//   fs.createReadStream(csvFilePath)
+//     .pipe(csv())
+//     .on("data", (data) => {
+//       results.push(data);
+//     })
+//     .on("end", async () => {
+//       for (const row of results) {
+//         const {
+//           date_1: Date,
+//           date_2,
+//           "First Name": firstName,
+//           "Last Name": lastName,
+//           Phone: phoneNumber,
+//           Email: email,
+//           Residence: address,
+//           Project,
+//           "Choice of Apartment": Requirement,
+//           Source1: cp,
+//           Source1: source,
+//           "Customer Feedback": feedback,
+//           "Visit Type": vistType,
+//           "ATTENDED BY": attendedBy,
+//           TEAM: team,
+//           TEAM: teamleader,
+//         } = row;
+//         let projs = [];
 
-  fs.createReadStream(csvFilePath)
-    .pipe(csv())
-    .on("data", (data) => {
-      results.push(data);
-    })
-    .on("end", async () => {
-      for (const row of results) {
-        const {
-          date_1: Date,
-          date_2,
-          "First Name": firstName,
-          "Last Name": lastName,
-          Phone: phoneNumber,
-          Email: email,
-          Residence: address,
-          Project,
-          "Choice of Apartment": Requirement,
-          Source1: cp,
-          Source1: source,
-          "Customer Feedback": feedback,
-          "Visit Type": vistType,
-          "ATTENDED BY": attendedBy,
-          TEAM: team,
-          TEAM: teamleader,
-        } = row;
-        let projs = [];
+//         let projects = Project.split(",").map((pro) => {
+//           const projs = projectsResp.find((proj) =>
+//             proj.name.toLowerCase().includes(pro.split("")[0])
+//           )?._id;
+//           if (projs) {
+//             return projs;
+//           }
+//         });
 
-        let projects = Project.split(",").map((pro) => {
-          const projs = projectsResp.find((proj) =>
-            proj.name.toLowerCase().includes(pro.split("")[0])
-          )?._id;
-          if (projs) {
-            return projs;
-          }
-        });
+//         let newTeamleader =
+//           teamLeaders.find((tl) =>
+//             tl.firstName
+//               .toLowerCase()
+//               .includes(teamleader.split(" ")[0].toLowerCase())
+//           )?._id ?? null;
+//         let test = [];
+//         const test2 = attendedBy?.replace(/\s+/g, "").toLowerCase().split(",");
+//         console.log(test2);
+//         test2.map((ele, i) => {
+//           let attendedBy1 =
+//             salesmanager.find(
+//               (tl) =>
+//                 tl.firstName.toLowerCase().includes(ele.toLowerCase()) ||
+//                 tl.lastName.toLowerCase().includes(ele.toLowerCase())
+//             )?._id ?? null;
+//           test.push(attendedBy1);
+//         });
 
-        let newTeamleader =
-          teamLeaders.find((tl) =>
-            tl.firstName
-              .toLowerCase()
-              .includes(teamleader.split(" ")[0].toLowerCase())
-          )?._id ?? null;
-        let test = [];
-        const test2 = attendedBy?.replace(/\s+/g, "").toLowerCase().split(",");
-        console.log(test2);
-        test2.map((ele, i) => {
-          let attendedBy1 =
-            salesmanager.find(
-              (tl) =>
-                tl.firstName.toLowerCase().includes(ele.toLowerCase()) ||
-                tl.lastName.toLowerCase().includes(ele.toLowerCase())
-            )?._id ?? null;
-          test.push(attendedBy1);
-        });
+//         dataTuPush.push({
+//           date: parseDate(Date),
+//           firstName,
+//           lastName,
+//           phoneNumber,
+//           email,
+//           residence: address,
+//           projects: projects,
+//           choiceApt: Requirement?.replace(/\s+/g, "").toUpperCase().split(","),
+//           cp,
+//           source,
+//           visitType: vistType,
+//           closingTeam: test,
+//           closingManager: newTeamleader,
+//           location:
+//             vistType === "virtual-meeting"
+//               ? "project-ev-9-square-vashi-sector-9"
+//               : "project-ev-10-marina-bay-vashi-sector-10",
+//           verified: true,
+//           source: cp,
+//         });
+//         // let startDate = parseDate(Leadreceivedon);
+//         // let cycleStartDate = parseDate(leadAssignDate);
+//         // let requirement = Requirement.replace(/\s+/g, "")
+//         //   .toUpperCase()
+//         //   ?.split(",");
 
-        dataTuPush.push({
-          date: parseDate(Date),
-          firstName,
-          lastName,
-          phoneNumber,
-          email,
-          residence: address,
-          projects: projects,
-          choiceApt: Requirement?.replace(/\s+/g, "").toUpperCase().split(","),
-          cp,
-          source,
-          visitType: vistType,
-          closingTeam: test,
-          closingManager: newTeamleader,
-          location:
-            vistType === "virtual-meeting"
-              ? "project-ev-9-square-vashi-sector-9"
-              : "project-ev-10-marina-bay-vashi-sector-10",
-          verified: true,
-          source: cp,
-        });
-        // let startDate = parseDate(Leadreceivedon);
-        // let cycleStartDate = parseDate(leadAssignDate);
-        // let requirement = Requirement.replace(/\s+/g, "")
-        //   .toUpperCase()
-        //   ?.split(",");
+//         // let newTeamleader =
+//         //   teamLeaders.find((tl) =>
+//         //     tl.firstName
+//         //       .toLowerCase()
+//         //       .includes(Teamleader.split(" ")[0].toLowerCase())
+//         //   )?._id ?? null;
 
-        // let newTeamleader =
-        //   teamLeaders.find((tl) =>
-        //     tl.firstName
-        //       .toLowerCase()
-        //       .includes(Teamleader.split(" ")[0].toLowerCase())
-        //   )?._id ?? null;
+//         // let channelPartner =
+//         //   cpResp.find((cp) =>
+//         //     cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
+//         //   )?._id ?? null;
 
-        // let channelPartner =
-        //   cpResp.find((cp) =>
-        //     cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
-        //   )?._id ?? null;
+//         // // if (Cp != "") {
+//         // //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
+//         // //   try {
+//         // //     const newCp = await cpModel.create({
+//         // //       _id: newCpId,
+//         // //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
+//         // //       firmName: Cp.toLowerCase(),
+//         // //       password: "Evhomecp",
+//         // //     });
+//         // //     channelPartner = newCp._id;
+//         // //   } catch (error) {}
+//         // // }
 
-        // // if (Cp != "") {
-        // //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
-        // //   try {
-        // //     const newCp = await cpModel.create({
-        // //       _id: newCpId,
-        // //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
-        // //       firmName: Cp.toLowerCase(),
-        // //       password: "Evhomecp",
-        // //     });
-        // //     channelPartner = newCp._id;
-        // //   } catch (error) {}
-        // // }
+//         // let dataAnalyzer = dataAnalyzers[i]?._id ?? null;
 
-        // let dataAnalyzer = dataAnalyzers[i]?._id ?? null;
+//         // i = i >= 1 ? 0 : 1;
+//         // const validTill = new Date(cycleStartDate);
+//         // validTill.setDate(validTill.getDate() + 15);
+//         // // i++;
+//         // dataTuPush.push({
+//         //   firstName,
+//         //   lastName,
+//         //   phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
+//         //   teamLeader: newTeamleader,
+//         //   channelPartner,
+//         //   dataAnalyzer,
+//         //   requirement,
+//         //   approvalStatus: taggingstatus,
+//         //   approvalDate: cycleStartDate,
+//         //   startDate,
+//         //   cycleStartDate,
+//         //   projects,
+//         //   cycle: {
+//         //     nextTeamLeader: null,
+//         //     stage: "visit",
+//         //     currentOrder: 1,
+//         //     teamLeader: newTeamleader,
+//         //     startDate: cycleStartDate,
+//         //     validTill: validTill,
+//         //   },
+//         // });
+//       }
+//       const allVisits = await siteVisitModel.find({ source: "walk-in" });
+//       const foundLeads = await leadModel.find({
+//         visitRef: { $in: allVisits.map((ele) => ele._id) },
+//       });
+//       console.log(foundLeads.length);
 
-        // i = i >= 1 ? 0 : 1;
-        // const validTill = new Date(cycleStartDate);
-        // validTill.setDate(validTill.getDate() + 15);
-        // // i++;
-        // dataTuPush.push({
-        //   firstName,
-        //   lastName,
-        //   phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
-        //   teamLeader: newTeamleader,
-        //   channelPartner,
-        //   dataAnalyzer,
-        //   requirement,
-        //   approvalStatus: taggingstatus,
-        //   approvalDate: cycleStartDate,
-        //   startDate,
-        //   cycleStartDate,
-        //   projects,
-        //   cycle: {
-        //     nextTeamLeader: null,
-        //     stage: "visit",
-        //     currentOrder: 1,
-        //     teamLeader: newTeamleader,
-        //     startDate: cycleStartDate,
-        //     validTill: validTill,
-        //   },
-        // });
-      }
-      Promise.all(
-        dataTuPush.map(async (dt) => {
-          await addSiteVisitsManual(dt);
-        })
-      );
-      // await siteVisitModel.insertMany(dataTuPush);
-      // Send the results only after processing is done
-      return res.send(dataTuPush);
-    })
-    .on("error", (err) => {
-      return res.status(500).send({ error: err.message });
-    });
-});
+//       // const newdata = await Promise.all(
+//       //   foundLeads.map(async (oka) => {
+//       //     const found = allVisits.find(
+//       //       (ok) => ok?._id?.toString() === oka.visitRef?.toString()
+//       //     );
+//       //     const startDate = new Date(found.date); // Current date
+//       //     const daysToAdd = 30;
+
+//       //     // Properly calculate validTill
+//       //     const validTill = new Date(startDate);
+//       //     validTill.setDate(validTill.getDate() + daysToAdd);
+
+//       //     oka.cycle = {
+//       //       ...oka.cycle,
+//       //       startDate: startDate,
+//       //       validTill: validTill,
+//       //     };
+//       //     await oka.save();
+//       //     return oka;
+//       //   })
+//       //   // allVisits.map(async (vis) => {
+//       //   //   const found = dataTuPush.find((ok) => ok.firstName === vis.firstName);
+//       //   //   vis.date = found.date;
+//       //   //   // await vis.save();
+//       //   //   return vis;
+//       //   // })
+//       // );
+//       // const datas = await Promise.all(
+//       //   dataTuPush.map(async (dta) => {
+//       //     dta.id =
+//       //       allVisits.find((d) => d.firstName === dta.firstName)?._id || null;
+//       //     return dta;
+//       //   })
+//       // );
+
+//       // Promise.all(
+//       //   dataTuPush.map(async (dt) => {
+//       //     await addSiteVisitsManual(dt);
+//       //   })
+//       // );
+//       // await siteVisitModel.insertMany(dataTuPush);
+//       // Send the results only after processing is done
+//       // return res.send(newdata);
+//     })
+//     .on("error", (err) => {
+//       return res.status(500).send({ error: err.message });
+//     });
+// });
 
 leadRouter.get("/ok", (req, res) => {
   // Online Javascript Editor for free

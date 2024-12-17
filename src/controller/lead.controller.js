@@ -61,7 +61,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let status = req.query.status?.toLowerCase();
 
     const isNumberQuery = !isNaN(query);
-
+    const filterDate = new Date("2024-12-10");
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
@@ -127,7 +127,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
       teamLeader: teamLeaderId,
-
+      startDate: { $gte: filterDate },
       $or: [
         { firstName: { $regex: query, $options: "i" } },
         { lastName: { $regex: query, $options: "i" } },
@@ -170,11 +170,14 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     // Count the total items matching the filter
     const totalItems = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
     });
 
     const contactedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       contactedStatus: { $ne: "pending" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -188,6 +191,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const followUpCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       followupStatus: { $ne: "pending" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -201,6 +206,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const assignedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       preSalesExecutive: { $ne: null },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -212,6 +219,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     });
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
+
       visitStatus: { $ne: "pending" },
       leadType: { $ne: "walk-in" },
       $or: [
@@ -226,6 +235,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     const revisitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
+
       revisitStatus: { $ne: "pending" },
       $or: [
         {
@@ -256,6 +267,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
+
       bookingStatus: { $ne: "pending" },
       $or: [
         {
@@ -269,6 +282,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     const pendingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
+
       bookingStatus: { $ne: "booked" },
       $or: [
         {
@@ -315,6 +330,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
 
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
+    const filterDate = new Date("2024-12-10");
 
     const isNumberQuery = !isNaN(query);
 
@@ -383,6 +399,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
       teamLeader: teamLeaderId,
+      startDate: { $gte: filterDate },
 
       $or: [
         // {
@@ -433,11 +450,14 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     // Count the total items matching the filter
     const totalItems = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
     });
 
     const contactedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       contactedStatus: { $ne: "pending" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -451,6 +471,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const followUpCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       followupStatus: { $ne: "pending" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -464,6 +486,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const assignedCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       preSalesExecutive: { $ne: null },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -477,6 +501,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       teamLeader: { $eq: teamLeaderId },
       visitStatus: { $ne: "pending" },
       leadType: { $ne: "walk-in" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -490,6 +516,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const revisitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       revisitStatus: { $ne: "pending" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -516,6 +544,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       bookingStatus: { $ne: "pending" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           stage: { $ne: "tagging-over" },
@@ -529,6 +559,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const pendingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       bookingStatus: { $ne: "booked" },
+      startDate: { $gte: filterDate },
+
       $or: [
         {
           visitStatus: "pending",
@@ -871,6 +903,7 @@ export const searchLeads = async (req, res, next) => {
     let query = req.query.query || "";
     let approvalStatus = req.query.approvalStatus?.toLowerCase();
     let stage = req.query.stage?.toLowerCase();
+    let channelPartner = req.query.channelPartner?.toLowerCase();
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
@@ -913,6 +946,7 @@ export const searchLeads = async (req, res, next) => {
       ...(approvalStatus && {
         approvalStatus: { $regex: approvalStatus, $options: "i" },
       }),
+      ...(channelPartner ? { channelPartner: channelPartner } : {}),
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
       leadType: { $ne: "walk-in" },
     };
@@ -3720,3 +3754,82 @@ function getStatus1(lead) {
 
   return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
 }
+
+export const triggerCycleChange = async (req, res, next) => {
+  try {
+    const currentDate = new Date();
+
+    const allCycleExpiredLeads = await leadModel.find({
+      "cycle.validTill": { $lt: currentDate },
+    });
+
+    if (allCycleExpiredLeads.length > 0) {
+      const teamLeaders = await employeeModel
+        .find({
+          $or: [
+            { designation: "desg-site-head" },
+            { designation: "desg-senior-closing-manager" },
+            { designation: "desg-post-sales-head" },
+          ],
+          status: "active",
+        })
+        .sort({ createdAt: 1 })
+        .select("_id");
+
+      console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
+
+      const bulkOperations = allCycleExpiredLeads.map((entry) => {
+        const lastIndex = teamLeaders.findIndex(
+          (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
+        );
+        const totalTeamLeader = teamLeaders.length + 1;
+        const cCycle = entry.cycle;
+        if (lastIndex != -1) {
+          //visit condtions
+          const startDate = new Date(); // Current date
+          const validTill = new Date(startDate);
+
+          if (cCycle.stage === "visit") {
+            // visit condi
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setDate(validTill.getDate() + 15);
+              cCycle.currentOrder = 1;
+              cCycle.teamLeader = teamLeaders[lastIndex]?._id;
+              cCycle.startDate = startDate;
+              cCycle.validTill = validTill;
+              // entry.cycleHistory.addToSet()
+            } else {
+            }
+          } else if (cCycle.stage === "revisit") {
+            // revisit condi
+          }
+        }
+
+        console.log(
+          "lastIndex:",
+          lastIndex,
+          "order: ",
+          entry?.cycle?.currentOrder
+        ); // Debug log for each entry
+        entry.lastTlIndex = lastIndex;
+        return entry;
+      });
+
+      return res.send(
+        successRes(200, "cycle chang 2e", {
+          data: bulkOperations,
+          totalItem: bulkOperations?.length,
+        })
+      );
+    }
+
+    return res.send(
+      successRes(200, "cycle change", {
+        data: allCycleExpiredLeads,
+        totalItem: allCycleExpiredLeads?.length,
+      })
+    );
+  } catch (error) {
+    return res.send(error);
+  }
+};
