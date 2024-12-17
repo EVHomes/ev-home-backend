@@ -4278,3 +4278,20 @@ export const triggerCycleChange = async (req, res, next) => {
 //     return res.send(error);
 //   }
 // };
+
+// const timeZone = "Asia/Kolkata";
+
+// // Get yesterday's date range in local timezone
+// const startOfYesterday = moment()
+//   // .tz(timeZone)
+//   // .subtract(1, "day")
+//   // .startOf("day")
+//   .toDate();
+
+// console.log(startOfYesterday);
+// console.log(new Date().toISOString());
+// console.log(new Date());
+// console.log(moment(new Date()).tz(timeZone).format("DD-MM-YYYY HH:mm"));
+// console.log(
+//   moment("2024-12-17T11:38:53.096842").tz(timeZone).format("DD-MM-YYYY HH:mm")
+// );

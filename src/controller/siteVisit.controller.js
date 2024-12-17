@@ -237,8 +237,9 @@ export const addSiteVisits = async (req, res) => {
     if (!choiceApt)
       return res.send(errorRes(403, "Choice of Apartment is required"));
 
-    console.log(body);
-    body.date = null;
+    // console.log(body.date);
+    // console.log(new Date().toISOString());
+    // body.date = null;
     const newSiteVisit = await siteVisitModel.create({
       ...body,
       // date: new Date(),

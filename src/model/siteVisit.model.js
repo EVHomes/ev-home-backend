@@ -10,7 +10,6 @@ export const siteVisitSchema = new mongoose.Schema(
     gender: { type: String, default: "male" },
     phoneNumber: { type: Number, required: true, default: 0 },
     date: { type: Date, default: Date.now },
-
     countryCode: { type: String, default: "+91" },
     email: {
       type: String,
