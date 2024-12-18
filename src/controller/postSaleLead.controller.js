@@ -2,6 +2,7 @@ import postSaleLeadModel from "../model/postSaleLead.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import { startOfWeek, addDays, format } from "date-fns";
 import { postSalePopulateOptions } from "../utils/constant.js";
+import TargetModel from "../model/target.model.js";
 
 export const getPostSaleLeads = async (req, res, next) => {
   try {
@@ -202,12 +203,12 @@ export const addPostSaleLead = async (req, res, next) => {
     phoneNumber,
   } = body;
   try {
-    console.log("pass 0");
-    if (!body) return res.send(errorRes(401, "No Data Provided"));
-    console.log(body);
-    if (body.applicants == null || body.applicants?.length <= 0)
+    if (!body) {
+      return res.send(errorRes(401, "No Data Provided"));
+    }
+    if (body.applicants == null || body.applicants?.length <= 0) {
       return res.send(errorRes(401, "Aplicant cant be empty"));
-    console.log("pass apps");
+    }
 
     // const resp = await postSaleLeadModel.find();
     const resp = await postSaleLeadModel.create({
@@ -217,6 +218,26 @@ export const addPostSaleLead = async (req, res, next) => {
     const newLead = await postSaleLeadModel
       .findById(resp._id)
       .populate(postSalePopulateOptions);
+
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
+    const findTarget = await TargetModel.findOne({
+      staffId: newLead.closingManager,
+      month: currentMonth,
+      year: currentYear,
+    });
+
+    if (findTarget != null) {
+      findTarget.achieved += 1;
+      findTarget.extraAchieved = Math.max(
+        0,
+        findTarget.achieved - findTarget.target
+      );
+
+      await findTarget.save();
+    }
 
     return res.send(
       successRes(200, "add post sale leads", {
