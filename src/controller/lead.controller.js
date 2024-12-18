@@ -1023,7 +1023,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     if (!id) return res.send(errorRes(401, "id required"));
 
     let query = req.query.query || "";
-    let approvalStatus = req.query.approvalStatus?.toLowerCase();
+    let status = req.query.approvalStatus?.toLowerCase();
     let stage = req.query.stage?.toLowerCase();
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
@@ -1032,6 +1032,32 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
 
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
+    let statusToFind = null;
+
+    if (status === "approved") {
+      statusToFind = {
+        approvalStatus: { $eq: "approved" },
+      };
+    }  else if (status === "rejected") {
+      statusToFind = {
+        approvalStatus: { $eq: "rejected" },
+      };
+    }else if (status === "pending") {
+      statusToFind = {
+        $or: [
+          {
+            approvalStatus: { $eq: "pending" },
+          },
+          {
+            visitStatus: { $eq: "pending" },
+          },
+          { revisitStatus: { $eq: "pending" } },
+          {
+            bookingStatus: { $ne: "booked" },
+          },
+        ],
+      };
+    }
 
     let orFilters = [
       { firstName: { $regex: query, $options: "i" } },
@@ -1066,10 +1092,21 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     );
 
     let searchFilter = {
+      ...(statusToFind != null ? statusToFind : null),
       $or: orFilters,
-      ...(approvalStatus && {
-        approvalStatus: { $regex: approvalStatus, $options: "i" },
-      }),
+      // ...(approvalStatus && {
+      //   approvalStatus: { $regex: approvalStatus, $options: "i" },
+      // }),
+
+      // $or:orFilters,
+      // ...(revisitStatus&&{
+      //   revisitStatus: { $regex: revisitStatus, $options: "i" },
+      // }),
+      // $or:orFilters,
+      // ...(bookingStatus&&{
+      //   bookingStatus: { $regex: bookingStatus, $options: "i" },
+      // }),
+
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
       leadType: { $ne: "walk-in" },
       startDate: { $gte: sixMonthsAgo },
@@ -1106,12 +1143,15 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     });
 
     const pendingCount = await leadModel.countDocuments({
-      $and: [
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+      $or: [
         { approvalStatus: "pending" },
-        { stage: { $ne: "tagging-over" } },
-        { leadType: { $ne: "walk-in" } },
-        { channelPartner: id },
-        { startDate: { $gte: sixMonthsAgo } },
+        { visitStatus: "pending" },
+        { revisitStatus: "pending" },
+        { bookingStatus: {$ne:"booked"} },
       ],
     });
 
@@ -1149,6 +1189,13 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     return next(error);
   }
 };
+
+
+
+
+
+
+
 
 export const getLeadById = async (req, res, next) => {
   const id = req.params.id;
@@ -2730,6 +2777,149 @@ export async function getLeadCountsByChannelPartner(req, res, next) {
     next(error);
   }
 }
+
+
+export async function getLeadCountsByChannelPartnerById(req, res, next) {
+  try {
+    const teamLeaderId = req.params.id;
+    const { interval = "monthly", year, startDate, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+
+    // Validate teamLeaderId parameter
+    if (!teamLeaderId) {
+      return res.status(400).json({ message: "Team leader ID is required" });
+    }
+
+    // Validate year parameter only if it's provided
+    let selectedYear = currentYear;
+    if (year) {
+      selectedYear = parseInt(year, 10);
+      if (isNaN(selectedYear)) {
+        return res.status(400).json({ message: "Invalid year parameter" });
+      }
+    }
+
+    // Calculate the start of the current week (Monday)
+    const currentDate = new Date();
+    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const endOfCurrentWeek = addDays(startOfCurrentWeek, 7); // Limit to current week (Mon-Sun)
+
+    let matchStage = {
+      channelPartner: teamLeaderId, // Match by team leader ID
+    };
+
+    if (interval === "weekly") {
+      matchStage.startDate = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
+      };
+    } else if (interval === "monthly") {
+      if (startDate && endDate) {
+        matchStage.startDate = {
+          $gte: new Date(startDate),
+          $lt: new Date(endDate),
+        };
+      } else {
+        matchStage.startDate = {
+          $gte: new Date(`${selectedYear}-01-01`),
+          $lt: new Date(`${selectedYear + 1}-01-01`),
+        };
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid interval parameter" });
+    }
+
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          dayOfWeek: { $dayOfWeek: "$startDate" },
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$startDate" } },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          month: { $month: "$startDate" },
+          year: { $year: "$startDate" },
+        },
+        count: { $sum: 1 },
+      };
+    }
+
+    const leadCounts = await leadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      { $sort: { "_id.date": 1, "_id.month": 1, "_id.dayOfWeek": 1 } },
+    ]);
+
+    // Prepare a full weekly structure with zero counts for missing days
+    const dayMap = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    let weekData = Array.from({ length: 7 }, (_, i) => {
+      const date = addDays(startOfCurrentWeek, i);
+      return {
+        date: format(date, "yyyy-MM-dd"),
+        day: dayMap[(i + 1) % 7], // Adjust for MongoDB's $dayOfWeek (1 = Sunday)
+        count: 0,
+      };
+    });
+
+    // Populate `weekData` with actual counts where available
+    leadCounts.forEach((item) => {
+      const foundDay = weekData.find((day) => day.date === item._id.date);
+      if (foundDay) foundDay.count = item.count;
+    });
+
+    if (interval === "weekly") {
+      return res.json(weekData); // Only send weekly data with all days accounted for
+    }
+
+    // Monthly data output
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const formattedMonthlyData = leadCounts.map((item) => ({
+      year: item._id.year,
+      month: monthNames[item._id.month - 1], // Use month number to get month name
+      count: item.count,
+    }));
+
+    return res.send(
+      successRes(200, "ok", {
+        data: formattedMonthlyData,
+      })
+    );
+  } catch (error) {
+    console.error("Error getting lead counts by team leader:", error);
+    next(error);
+  }
+}
+
+
+
+
+
 
 //for pre sale team leader
 export async function getLeadCountsByTeamLeader(req, res, next) {
