@@ -1,6 +1,7 @@
 import express from "express";
 import attendanceModel from "../../model/attendance.model.js";
 import { errorRes, successRes } from "../../model/response.js";
+import { attendancePopulateOption } from "../../utils/constant.js";
 
 const attendanceRouter = express.Router();
 
@@ -266,4 +267,23 @@ attendanceRouter.post("/update-timeline", async (req, res) => {
   }
 });
 
+attendanceRouter.get("/attendance/:id", async (req, res) => {
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(40, "id is required"));
+
+    const resp = await attendanceModel
+      .find({ userId: id })
+      .sort({ createdAt: -1 });
+    // .populate(attendancePopulateOption);
+
+    return res.send(
+      successRes(200, "attendance", {
+        data: resp,
+      })
+    );
+  } catch (e) {
+    return res.send(errorRes(500, "Internal Server Error"));
+  }
+});
 export default attendanceRouter;
