@@ -29,6 +29,7 @@ import {
   generateChannelPartnerLeadPdf,
   triggerCycleChange,
   searchLeadsChannelPartner,
+  getLeadCountsByChannelPartnerById
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -127,6 +128,8 @@ leadRouter.get(
   getLeadCountsByTeamLeaders
 );
 leadRouter.get("/lead-count-channel-partners", getLeadCountsByChannelPartner);
+leadRouter.get("/lead-count-channel-partners-id/:id",getLeadCountsByChannelPartnerById);
+
 leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
 
 //pre sales team leader
