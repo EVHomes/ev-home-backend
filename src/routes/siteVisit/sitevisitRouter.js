@@ -8,7 +8,7 @@ import {
   searchSiteVisits,
   updateSiteVisits,
   verifySiteVisitOtp,
-  getClosingManagerSiteVisitById
+  getClosingManagerSiteVisitById,
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import path from "path";
@@ -17,6 +17,7 @@ import fs from "fs";
 import csv from "csv-parser";
 import employeeModel from "../../model/employee.model.js";
 import siteVisitModel from "../../model/siteVisit.model.js";
+import mongoose from "mongoose";
 // import jsonVisits from "./siteVisits_list.json" assert { type: "json" };
 
 const __filename = fileURLToPath(import.meta.url);
@@ -35,7 +36,10 @@ siteVisitRouter.post(
   // authenticateToken,
   addSiteVisits
 );
-siteVisitRouter.get("/site-visit-closing-manager/:id",getClosingManagerSiteVisitById);
+siteVisitRouter.get(
+  "/site-visit-closing-manager/:id",
+  getClosingManagerSiteVisitById
+);
 siteVisitRouter.post(
   "/site-visit-generate-otp",
   // authenticateToken,
