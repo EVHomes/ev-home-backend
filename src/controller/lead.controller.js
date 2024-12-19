@@ -902,6 +902,7 @@ export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let approvalStatus = req.query.approvalStatus?.toLowerCase();
+    // console.log(approvalStatus);
     let stage = req.query.stage?.toLowerCase();
     let channelPartner = req.query.channelPartner?.toLowerCase();
     let page = parseInt(req.query.page) || 1;
@@ -948,7 +949,7 @@ export const searchLeads = async (req, res, next) => {
       }),
       ...(channelPartner ? { channelPartner: channelPartner } : {}),
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
-      leadType: { $ne: "walk-in" },
+      ...(stage === "all" ? {} : { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
