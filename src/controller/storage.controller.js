@@ -20,9 +20,11 @@ export const uploadFile = async (req, res) => {
     //   console.log(`Uploaded file: ${req.file}`);
     //   console.log(req.file);
     //   console.log(`Token: ${token}`);
-    let downloadUrl = `${req.protocol}s://${req.get(
-      "host"
-    )}/${uniqueFileName}?token=${token}`;
+    let downloadUrl = `${req.protocol}s://${req.get("host")}`;
+    if (req.query.path) {
+      downloadUrl += `/${req.query.path}`;
+    }
+    downloadUrl += `/${uniqueFileName}?token=${token}`;
 
     if (downloadUrl.includes("api.")) {
       downloadUrl = downloadUrl.replace("api.", "cdn.");
@@ -68,9 +70,15 @@ export const uploadMultiple = async (req, res) => {
       { filename: file.filename },
       config.SECRET_STORAGE_KEY
     );
-    let downloadUrl = `${req.protocol}://${req.get(
-      "host"
-    )}/${uniqueFileName}?token=${token}`;
+    // let downloadUrl = `${req.protocol}://${req.get(
+    //   "host"
+    // )}/${uniqueFileName}?token=${token}`;
+
+    let downloadUrl = `${req.protocol}s://${req.get("host")}`;
+    if (req.query.path) {
+      downloadUrl += `/${req.query.path}`;
+    }
+    downloadUrl += `/${uniqueFileName}?token=${token}`;
 
     if (downloadUrl.includes("api.")) {
       downloadUrl = downloadUrl.replace("api.", "cdn.");
