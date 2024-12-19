@@ -1560,129 +1560,133 @@ leadRouter.get("/ok", (req, res) => {
   });
   res.send(ok);
 });
-// leadRouter.post("/lead-updates", async (req, res) => {
-//   const results = [];
-//   const dataTuPush = [];
-//   const csvFilePath = path.join(__dirname, "leads_import_12-12-24.csv");
+leadRouter.post("/lead-updates", async (req, res) => {
+  const results = [];
+  const dataTuPush = [];
+  const csvFilePath = path.join(__dirname, "leads_pavan_19-12-24.csv");
 
-//   const cpResp = await cpModel.find();
-//   const teamLeaders = await employeeModel.find({
-//     $or: [
-//       { designation: "desg-senior-closing-manager" },
-//       { designation: "desg-site-head" },
-//       { designation: "desg-post-sales-head" },
-//     ],
-//   });
-//   const dataAnalyzers = await employeeModel.find({
-//     designation: "desg-data-analyzer",
-//   });
+  const cpResp = await cpModel.find();
+  const teamLeaders = await employeeModel.find({
+    $or: [
+      { designation: "desg-senior-closing-manager" },
+      { designation: "desg-site-head" },
+      { designation: "desg-post-sales-head" },
+    ],
+  });
+  const dataAnalyzers = await employeeModel.find({
+    designation: "desg-data-analyzer",
+  });
 
-//   const projectsResp = await ourProjectModel.find({});
+  const projectsResp = await ourProjectModel.find({});
 
-//   if (!fs.existsSync(csvFilePath)) {
-//     return res.status(400).send("CSV file not found");
-//   }
-//   let i = 0;
+  if (!fs.existsSync(csvFilePath)) {
+    return res.status(400).send("CSV file not found");
+  }
+  let i = 0;
 
-//   fs.createReadStream(csvFilePath)
-//     .pipe(csv())
-//     .on("data", (data) => {
-//       results.push(data);
-//     })
-//     .on("end", async () => {
-//       for (const row of results) {
-//         const {
-//           Leadreceivedon,
-//           Name: firstName,
-//           Surname: lastName,
-//           Number: phoneNumber,
-//           Cp,
-//           TeamLeaderDate: leadAssignDate,
-//           Teamleader,
-//           Project,
-//           Requirement,
-//           taggingstatus,
-//           "Data Analyer": anayl,
-//         } = row;
-//         let startDate = parseDate(Leadreceivedon);
-//         let cycleStartDate = parseDate(leadAssignDate);
-//         let requirement = Requirement.replace(/\s+/g, "")
-//           .toUpperCase()
-//           ?.split(",");
-//         let projs = [];
-//         let projects = projectsResp.find((proj) => {
-//           if (proj.name.toLowerCase().includes(Project.split("")[0])) {
-//             projs.push(proj?._id);
-//           }
-//         });
+  fs.createReadStream(csvFilePath)
+    .pipe(csv())
+    .on("data", (data) => {
+      results.push(data);
+    })
+    .on("end", async () => {
+      for (const row of results) {
+        const {
+          Leadreceivedon,
+          Name: firstName,
+          Surname: lastName,
+          Number: phoneNumber,
+          Cp,
+          TeamLeaderDate: leadAssignDate,
+          Teamleader,
+          Project,
+          Requirement,
+          taggingstatus,
+          "Data Analyer": anayl,
+        } = row;
+        let startDate = parseDate(Leadreceivedon);
+        let cycleStartDate = parseDate(leadAssignDate);
+        let requirement = Requirement.replace(/\s+/g, "")
+          .toUpperCase()
+          ?.split(",");
+        let projs = [];
+        Project.split(",").map((ojk) => {
+          // console.log(ojk);
 
-//         let newTeamleader =
-//           teamLeaders.find((tl) =>
-//             tl.firstName
-//               .toLowerCase()
-//               .includes(Teamleader.split(" ")[0].toLowerCase())
-//           )?._id ?? null;
+          let projects = projectsResp.find((proj) => {
+            if (proj.name.toLowerCase().includes(ojk.split(" ")[0])) {
+              projs.push(proj?._id);
+            }
+          });
+        });
 
-//         let channelPartner =
-//           cpResp.find((cp) =>
-//             cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
-//           )?._id ?? null;
+        let newTeamleader =
+          teamLeaders.find((tl) =>
+            tl.firstName
+              .toLowerCase()
+              .includes(Teamleader.split(" ")[0].toLowerCase())
+          )?._id ?? null;
 
-//         // if (Cp != "") {
-//         //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
-//         //   try {
-//         //     const newCp = await cpModel.create({
-//         //       _id: newCpId,
-//         //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
-//         //       firmName: Cp.toLowerCase(),
-//         //       password: "Evhomecp",
-//         //     });
-//         //     channelPartner = newCp._id;
-//         //   } catch (error) {}
-//         // }
+        let channelPartner =
+          cpResp.find((cp) =>
+            cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
+          )?._id ?? null;
 
-//         let dataAnalyzer = dataAnalyzers.find((dt) =>
-//           dt.firstName
-//             ?.toLowerCase()
-//             ?.includes(anayl?.split(" ")[0]?.toLowerCase())
-//         )?._id;
+        // if (Cp != "") {
+        //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
+        //   try {
+        //     const newCp = await cpModel.create({
+        //       _id: newCpId,
+        //       email: Cp?.replace(/\s+/g, "").toLowerCase() + "@gmail.com",
+        //       firmName: Cp.toLowerCase(),
+        //       password: "Evhomecp",
+        //     });
+        //     channelPartner = newCp._id;
+        //   } catch (error) {}
+        // }
 
-//         i = i >= 1 ? 0 : 1;
-//         const validTill = new Date(cycleStartDate);
-//         validTill.setDate(validTill.getDate() + 15);
-//         // i++;
-//         dataTuPush.push({
-//           firstName,
-//           lastName,
-//           phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
-//           teamLeader: newTeamleader,
-//           channelPartner,
-//           dataAnalyzer,
-//           requirement,
-//           approvalStatus: taggingstatus?.toLowerCase(),
-//           approvalDate: cycleStartDate,
-//           approvalRemark: "approved",
-//           startDate,
-//           cycleStartDate,
-//           project: projs,
-//           cycle: {
-//             nextTeamLeader: null,
-//             stage: "visit",
-//             currentOrder: 1,
-//             teamLeader: newTeamleader,
-//             startDate: cycleStartDate,
-//             validTill: validTill,
-//           },
-//         });
-//       }
-//       // await leadModel.insertMany(dataTuPush);
-//       // Send the results only after processing is done
-//       return res.send(dataTuPush);
-//     })
-//     .on("error", (err) => {
-//       return res.status(500).send({ error: err.message });
-//     });
-// });
+        let dataAnalyzer = dataAnalyzers.find((dt) =>
+          dt.firstName
+            ?.toLowerCase()
+            ?.includes(anayl?.split(" ")[0]?.toLowerCase())
+        )?._id;
+
+        i = i >= 1 ? 0 : 1;
+        const validTill = new Date(cycleStartDate);
+        validTill.setDate(validTill.getDate() + 15);
+        // i++;
+        dataTuPush.push({
+          firstName,
+          lastName,
+          phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
+          teamLeader: newTeamleader,
+          channelPartner,
+          dataAnalyzer,
+          requirement,
+          approvalStatus: taggingstatus?.toLowerCase(),
+          approvalDate: cycleStartDate,
+          approvalRemark: "approved",
+          startDate,
+          cycleStartDate,
+          project: projs,
+          cycle: {
+            nextTeamLeader: null,
+            stage: "visit",
+            currentOrder: 1,
+            teamLeader: newTeamleader,
+            startDate: cycleStartDate,
+            validTill: validTill,
+          },
+        });
+      }
+      await leadModel.insertMany(dataTuPush);
+      // Send the results only after processing is done
+      return res.send(dataTuPush);
+    })
+    .on("error", (err) => {
+      return res.status(500).send({ error: err.message });
+    });
+});
 
 // leadRouter.post("/visit-updates", async (req, res) => {
 //   const results = [];
@@ -3295,19 +3299,19 @@ leadRouter.get("/ok", (req, res) => {
   function parseUnitNumber(unit) {
     // Split the unit string into floor and number based on the length of the unit
     const floor = Math.floor(unit / 100);
-  
+
     const number = unit % 100; // Extract unit number by taking the remainder
-    return { floor, number,};
+    return { floor, number };
   }
   const ok = list.map((ele) => {
     const parsed = parseUnitNumber(parseInt(ele.flatNo));
     ele.floor = parsed.floor;
     ele.number = parsed.number;
-    ele.sellableCarpetArea = Math.ceil(ele.sellableCarpetArea); 
+    ele.sellableCarpetArea = Math.ceil(ele.sellableCarpetArea);
     if (ele.number === 2 || ele.number === 9) {
       ele.configuration = "2BHK";
-    } else{
-      ele.configuration="3BHK"
+    } else {
+      ele.configuration = "3BHK";
     }
     ele.allInclusiveValue = 0;
     ele.type = "";
@@ -3315,11 +3319,5 @@ leadRouter.get("/ok", (req, res) => {
   });
   res.send(ok);
 });
-
-
-
-
-
-
 
 export default leadRouter;
