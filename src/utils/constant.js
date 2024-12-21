@@ -682,9 +682,11 @@ export const taskPopulateOptions = [
 export const attendancePopulateOption = [
   {
     path: "userId",
-    select: "firstName lastName",
+    select: "firstName lastName employeeId",
     populate: [
       { path: "designation" },
+      { path: "division" },
+      { path: "department" },
       {
         path: "reportingTo",
         select: "firstName lastName",
