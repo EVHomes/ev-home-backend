@@ -1168,6 +1168,29 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       ],
     });
 
+    const visitedCount = await leadModel.countDocuments({
+      visitStatus: "visited",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+    });
+
+    const revisitedCount = await leadModel.countDocuments({
+      revisitStatus: "revisited",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+    });
+
+    const bookedCount = await leadModel.countDocuments({
+      bookingStatus: "booked",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+    });
     // const assignedCount = await leadModel.countDocuments({
     //   $and: [{ preSalesExecutive: { $ne: null } }],
     // });
@@ -1183,6 +1206,9 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         totalItems,
         pendingCount,
         approvedCount,
+        visitedCount,
+        revisitedCount,
+        bookedCount,
         // assignedCount,
         rejectedCount,
         data: respCP,
