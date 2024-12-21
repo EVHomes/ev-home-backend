@@ -21,15 +21,42 @@ export const uploadsDir =
   config.STORAGE_ABSOLUTE_PATH ?? path.resolve(__dirname, "../../../uploads");
 // console.log(uploadsDir);
 // Multer setup for file uploads
+// Ensure directory exists or create it
+function ensureDirectoryExists(dirPath) {
+  import("fs").then((fs) => {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+  });
+}
+
+// Multer setup for file uploads with dynamic subdirectory
 export const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, uploadsDir);
+    // Check if a custom subdirectory path is provided in the query or headers
+    const subPath = req.query.path || req.headers["x-upload-path"] || ""; // Customize as needed
+    const finalPath = path.join(uploadsDir, subPath);
+
+    // Ensure the directory exists
+    ensureDirectoryExists(finalPath);
+
+    cb(null, finalPath);
   },
   filename: function (req, file, cb) {
     const uniqueName = `${uuidv4()}-${file.originalname}`;
     cb(null, uniqueName);
   },
 });
+
+// export const storage = multer.diskStorage({
+//   destination: function (req, file, cb) {
+//     cb(null, uploadsDir);
+//   },
+//   filename: function (req, file, cb) {
+//     const uniqueName = `${uuidv4()}-${file.originalname}`;
+//     cb(null, uniqueName);
+//   },
+// });
 
 export const upload = multer({
   storage,

@@ -651,10 +651,12 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
     if (!teamLeaderId) return res.send(errorRes(401, "id Required"));
+    const filterDate = new Date("2024-12-10");
 
     const leadCount =
       (await leadModel.countDocuments({
         teamLeader: { $eq: teamLeaderId },
+        startDate: { $gte: filterDate },
       })) || 0;
 
     // const bookingCount =
@@ -902,6 +904,7 @@ export const searchLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let approvalStatus = req.query.approvalStatus?.toLowerCase();
+    // console.log(approvalStatus);
     let stage = req.query.stage?.toLowerCase();
     let channelPartner = req.query.channelPartner?.toLowerCase();
     let page = parseInt(req.query.page) || 1;
@@ -948,7 +951,7 @@ export const searchLeads = async (req, res, next) => {
       }),
       ...(channelPartner ? { channelPartner: channelPartner } : {}),
       ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
-      leadType: { $ne: "walk-in" },
+      ...(stage === "all" ? {} : { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
@@ -1038,11 +1041,11 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       statusToFind = {
         approvalStatus: { $eq: "approved" },
       };
-    }  else if (status === "rejected") {
+    } else if (status === "rejected") {
       statusToFind = {
         approvalStatus: { $eq: "rejected" },
       };
-    }else if (status === "pending") {
+    } else if (status === "pending") {
       statusToFind = {
         $or: [
           {
@@ -1151,7 +1154,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         { approvalStatus: "pending" },
         { visitStatus: "pending" },
         { revisitStatus: "pending" },
-        { bookingStatus: {$ne:"booked"} },
+        { bookingStatus: { $ne: "booked" } },
       ],
     });
 
@@ -1215,13 +1218,6 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     return next(error);
   }
 };
-
-
-
-
-
-
-
 
 export const getLeadById = async (req, res, next) => {
   const id = req.params.id;
@@ -2804,7 +2800,6 @@ export async function getLeadCountsByChannelPartner(req, res, next) {
   }
 }
 
-
 export async function getLeadCountsByChannelPartnerById(req, res, next) {
   try {
     const teamLeaderId = req.params.id;
@@ -2941,11 +2936,6 @@ export async function getLeadCountsByChannelPartnerById(req, res, next) {
     next(error);
   }
 }
-
-
-
-
-
 
 //for pre sale team leader
 export async function getLeadCountsByTeamLeader(req, res, next) {
