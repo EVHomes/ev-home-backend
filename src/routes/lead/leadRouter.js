@@ -125,7 +125,7 @@ leadRouter.get(
 //for data analyser
 leadRouter.get("/lead-count", getLeadCounts);
 leadRouter.get("/lead-cp-sales-funnel/:id", getCpSalesFunnel);
-leadRouter.get("/lead-24-hr-list", get24hrLeadsNameList);
+leadRouter.get("/lead-24-hr-leads-list", get24hrLeadsNameList);
 
 leadRouter.get(
   "/lead-count-pre-sale-team-leader-for-data-analyser",
