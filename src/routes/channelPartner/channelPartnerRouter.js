@@ -3,6 +3,7 @@ import {
   deleteChannelPartnerById,
   editChannelPartnerById,
   forgotPasswordChannelPartner,
+  // generateOtpChannelPartner,
   getChannelPartnerById,
   getChannelPartners,
   loginChannelPartner,
@@ -46,20 +47,18 @@ cpRouter.post(
 
 cpRouter.post(
   "/channel-partner-edit/:id",
-  authenticateToken,
+  // authenticateToken,
   validateChannelPartnerFields,
   editChannelPartnerById
 );
 
 cpRouter.post(
   "/channel-partner-forgot-password",
-  validateChannelPartnerFields,
   forgotPasswordChannelPartner
 );
 
 cpRouter.post(
   "/channel-partner-reset-password",
-  validateChannelPartnerFields,
   resetPasswordChannelPartner
 );
 
@@ -70,32 +69,6 @@ cpRouter.delete(
   authenticateToken,
   deleteChannelPartnerById
 );
-
-cpRouter.post("/channel-partner-generate", async (req, res) => {
-  // const password = "Evhomecp";
-  try {
-    // const cps = await cpModel.find();
-    // await Promise.all(
-    //   cps.map(async (ele) => {
-    //     const hashPassword = await encryptPassword(password);
-
-    //     // ele.password = hashPassword;
-    //     await cpModel.findOneAndUpdate(
-    //       { _id: ele._id },
-    //       {
-    //         password: hashPassword,
-    //       }
-    //     );
-    //     // await ele.save();
-    //   })
-    // );
-    res.send({
-      password: "updated",
-    });
-  } catch (error) {
-    res.send(error);
-  }
-});
 
 // cpRouter.post("/channel-set-name-empty", async (req, res) => {
 //   try {
