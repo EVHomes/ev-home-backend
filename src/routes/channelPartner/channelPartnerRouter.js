@@ -14,6 +14,7 @@ import {
 import { validateChannelPartnerFields } from "../../middleware/channelPartner.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import cpModel from "../../model/channelPartner.model.js";
+import { encryptPassword } from "../../utils/helper.js";
 
 const cpRouter = Router();
 
@@ -69,6 +70,32 @@ cpRouter.delete(
   authenticateToken,
   deleteChannelPartnerById
 );
+
+cpRouter.post("/channel-partner-generate", async (req, res) => {
+  // const password = "Evhomecp";
+  try {
+    // const cps = await cpModel.find();
+    // await Promise.all(
+    //   cps.map(async (ele) => {
+    //     const hashPassword = await encryptPassword(password);
+
+    //     // ele.password = hashPassword;
+    //     await cpModel.findOneAndUpdate(
+    //       { _id: ele._id },
+    //       {
+    //         password: hashPassword,
+    //       }
+    //     );
+    //     // await ele.save();
+    //   })
+    // );
+    res.send({
+      password: "updated",
+    });
+  } catch (error) {
+    res.send(error);
+  }
+});
 
 // cpRouter.post("/channel-set-name-empty", async (req, res) => {
 //   try {

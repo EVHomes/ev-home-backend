@@ -81,6 +81,11 @@ export const attendanceSchema = new mongoose.Schema({
     type: Date,
     default: null,
   },
+  lastUpdatedTime: {
+    type: Date,
+    default: Date.now,
+  },
+
   timeline: [
     {
       event: {
