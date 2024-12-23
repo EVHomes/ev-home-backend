@@ -2,6 +2,16 @@ import express from "express";
 import attendanceModel from "../../model/attendance.model.js";
 import { errorRes, successRes } from "../../model/response.js";
 import { attendancePopulateOption } from "../../utils/constant.js";
+import XLSX from "xlsx";
+import moment from "moment-timezone";
+
+import { fileURLToPath } from "url";
+import fs from "fs";
+import csv from "csv-parser";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const attendanceRouter = express.Router();
 
@@ -284,6 +294,130 @@ attendanceRouter.get("/attendance/:id", async (req, res) => {
     );
   } catch (e) {
     return res.send(errorRes(500, "Internal Server Error"));
+  }
+});
+
+attendanceRouter.get("/export-attendance", async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1; // Months are 0-indexed
+    const currentYear = currentDate.getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate(); // Total days in the month
+    const timeZone = "Asia/Kolkata";
+
+    // Fetch attendance records for the current month with populated user details
+    const attendanceRecords = await attendanceModel
+      .find({
+        month: currentMonth,
+        year: currentYear,
+      })
+      .populate(attendancePopulateOption);
+
+    if (attendanceRecords.length === 0) {
+      return res.status(404).json({ message: "No attendance records found." });
+    }
+
+    // Organize attendance data by userId
+    const usersAttendance = {};
+    for (const record of attendanceRecords) {
+      const user = record.userId;
+
+      if (!user || !user._id) {
+        continue; // Skip records with missing user data
+      }
+
+      if (!usersAttendance[user._id]) {
+        usersAttendance[user._id] = {
+          user: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            designation: user.designation,
+            division: user.division,
+            department: user.department,
+            employeeId: user.employeeId,
+          },
+          days: Array(daysInMonth).fill("A"), // Default all days to "Absent"
+          present: 0,
+          absent: daysInMonth, // Default all days as absent initially
+        };
+      }
+
+      const dayIndex = record.day - 1; // Convert day to 0-indexed for the array
+      if (record.status === "completed" || record.status === "present") {
+        if (usersAttendance[user._id].days[dayIndex] === "A") {
+          usersAttendance[user._id].absent -= 1; // Reduce absent count
+        }
+        usersAttendance[user._id].days[dayIndex] = "P"; // Mark as present
+        usersAttendance[user._id].present += 1;
+      }
+    }
+
+    // Prepare header row for Excel
+    const headerRow = [
+      "ID",
+      "Employee ID",
+      "First Name",
+      "Last Name",
+      "Designation",
+      "Division",
+      "Department",
+    ];
+    for (let i = 1; i <= daysInMonth; i++) {
+      headerRow.push(`${i}`); // Dynamically create headers for total days in the month
+    }
+    headerRow.push("Total Present Days", "Total Absent Days", "Payable Days");
+
+    // Prepare data rows for Excel
+    const excelData = [headerRow];
+    Object.entries(usersAttendance).forEach(([userId, attendance], index) => {
+      const {
+        firstName,
+        lastName,
+        designation,
+        division,
+        department,
+        employeeId,
+        checkInTime,
+        checkOutTime,
+      } = attendance.user;
+      const row = [
+        index + 1, // ID
+        employeeId,
+        firstName,
+        lastName,
+        designation?.designation,
+        division?.division,
+        department?.department,
+        ...attendance.days,
+        attendance.present,
+        attendance.absent,
+        attendance.present,
+      ];
+      excelData.push(row);
+    });
+
+    // Create a workbook and add data
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Detailed Attendance");
+
+    // Generate Excel file
+    const filePath = path.join(__dirname, "detailed_attendance.xlsx");
+    XLSX.writeFile(workbook, filePath);
+
+    // Send file as a response
+    res.download(filePath, "detailed_attendance.xlsx", (err) => {
+      if (err) {
+        console.error("File download error:", err);
+        res.status(500).json({ message: "Failed to download file." });
+      } else {
+        // Delete file after download
+        fs.unlinkSync(filePath);
+      }
+    });
+  } catch (error) {
+    console.error("Error exporting detailed attendance:", error);
+    res.status(500).json({ message: "Server error." });
   }
 });
 export default attendanceRouter;
