@@ -3,6 +3,7 @@ import {
   deleteChannelPartnerById,
   editChannelPartnerById,
   forgotPasswordChannelPartner,
+  // generateOtpChannelPartner,
   getChannelPartnerById,
   getChannelPartners,
   loginChannelPartner,
@@ -14,6 +15,7 @@ import {
 import { validateChannelPartnerFields } from "../../middleware/channelPartner.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import cpModel from "../../model/channelPartner.model.js";
+import { encryptPassword } from "../../utils/helper.js";
 
 const cpRouter = Router();
 
@@ -45,20 +47,18 @@ cpRouter.post(
 
 cpRouter.post(
   "/channel-partner-edit/:id",
-  authenticateToken,
+  // authenticateToken,
   validateChannelPartnerFields,
   editChannelPartnerById
 );
 
 cpRouter.post(
   "/channel-partner-forgot-password",
-  validateChannelPartnerFields,
   forgotPasswordChannelPartner
 );
 
 cpRouter.post(
   "/channel-partner-reset-password",
-  validateChannelPartnerFields,
   resetPasswordChannelPartner
 );
 
