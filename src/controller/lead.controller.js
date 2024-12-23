@@ -1311,6 +1311,25 @@ export const addLead = async (req, res, next) => {
     // console.log("p5");
     // Condition 1: Check if the same CP is trying to create the same lead within 91 days
     if (channelPartner) {
+      const timeZone = "Asia/Kolkata";
+
+      // Get yesterday's date range in local timezone
+      const startOfToday = moment().tz(timeZone).startOf("day").toDate();
+      const endOfToday = moment().tz(timeZone).endOf("day").toDate();
+
+      const todayLeadsCount = await leadModel.countDocuments({
+        startDate: { $gte: startOfToday, $lt: endOfToday },
+      });
+
+      if (todayLeadsCount >= 0) {
+        return res.send(
+          errorRes(
+            409,
+            `You cannot create the same lead with phone number ${phoneNumber} within 91 days.`
+          )
+        );
+      }
+
       const existingLeadForCP = await leadModel.findOne({
         phoneNumber: phoneNumber,
         channelPartner: channelPartner,
