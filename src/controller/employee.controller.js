@@ -471,9 +471,7 @@ export const registerEmployee = async (req, res, next) => {
     );
   } catch (error) {
     if (error.code === 11000) {
-      return res.send(
-        errorRes(400, `${error.keyValue.employeeId} already exists.`)
-      );
+      return res.send(errorRes(400, `${error.keyValue._id} already exists.`));
     }
 
     return next(error);
