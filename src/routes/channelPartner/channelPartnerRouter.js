@@ -15,6 +15,7 @@ import {
 import { validateChannelPartnerFields } from "../../middleware/channelPartner.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import cpModel from "../../model/channelPartner.model.js";
+import { encryptPassword } from "../../utils/helper.js";
 
 const cpRouter = Router();
 
@@ -69,7 +70,6 @@ cpRouter.delete(
   deleteChannelPartnerById
 );
 
-// cpRouter.post("/channel-partner-otp",generateOtpChannelPartner);
 // cpRouter.post("/channel-set-name-empty", async (req, res) => {
 //   try {
 //     // Update all documents where firstName or lastName is null
