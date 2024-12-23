@@ -26,6 +26,7 @@ import taskRouter from "./task/taskRouter.js";
 import notifyRouter from "./notification/notificationRouter.js";
 import attendanceRouter from "./attendance/attendanceRouter.js";
 import chatRouter from "./chat/chatRouter.js";
+import upcomingRouter from "./upcomingprojects/upcomingprojectsRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -85,5 +86,6 @@ router.use(taskRouter);
 router.use(notifyRouter);
 router.use(attendanceRouter);
 router.use(chatRouter);
+router.use(upcomingRouter);
 
 export default router;
