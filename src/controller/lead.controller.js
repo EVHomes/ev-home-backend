@@ -4346,12 +4346,15 @@ export const get24hrLeadsNameList = async (req, res, next) => {
       });
     // itreseted, not intrested
     const newList = list.map(
-      (ele) => `${ele.channelPartner.firmName} jsut shared a Lead`
+      (ele) => `${ele.channelPartner.firmName} just shared a Lead`
     );
-    return res.send({
-      data: newList,
-    });
+    return res.send(
+      successRes(200, "got", {
+        data: newList,
+      })
+    );
   } catch (error) {
+    console.log(error);
     return res.send(errorRes(error));
   }
 };
