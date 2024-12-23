@@ -26,7 +26,7 @@ import taskRouter from "./task/taskRouter.js";
 import notifyRouter from "./notification/notificationRouter.js";
 import attendanceRouter from "./attendance/attendanceRouter.js";
 import chatRouter from "./chat/chatRouter.js";
-import whatsnewModel from "../model/whats_new_model.js";
+import upcomingRouter from "./upcomingprojects/upcomingprojectsRouter.js";
 import whatsnewrouterRouter from "./whatsnew/whatsnewRouter.js";
 
 const router = Router();
@@ -87,6 +87,7 @@ router.use(taskRouter);
 router.use(notifyRouter);
 router.use(attendanceRouter);
 router.use(chatRouter);
+router.use(upcomingRouter);
 router.use(whatsnewrouterRouter);
 
 export default router;
