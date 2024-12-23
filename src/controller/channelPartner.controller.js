@@ -1,8 +1,10 @@
 import config from "../config/config.js";
 import { validateRegisterCPFields } from "../middleware/channelPartner.middleware.js";
-import cpModel from "../model/channelPartner.model.js";
+import cpModel, { channelPartnerSchema } from "../model/channelPartner.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { forgotPasswordTemplete } from "../templates/html_template.js";
+import { sendEmail } from "../utils/brevo.js";
 import {
   comparePassword,
   createJwtToken,
@@ -397,27 +399,80 @@ export const reAuthChannelPartner = async (req, res, next) => {
   }
 };
 
+// export const forgotPasswordChannelPartner = async (req, res, next) => {
+//   const body = req.body;
+//   const { email } = body;
+//   try {
+//     if (!body) return res.send(errorRes(403, "data is required"));
+//     if (!email) return res.send(errorRes(403, "email is required"));
+
+//     const oldOtp = await otpModel.findOne({ email: email }).lean();
+
+//     if (oldOtp) {
+//       return res.send(successRes(200, `otp re-sent to ${email}`, oldOtp));
+//     }
+
+//     const channelPartnerDb = await cpModel
+//       .findOne({
+//         email: email,
+//       })
+//       .lean();
+
+//     if (!channelPartnerDb) {
+//       return res.send(errorRes(404, `Account not with ${email}`));
+//     }
+
+//     const newOtp = generateOTP(4);
+//     const newOtpModel = new otpModel({
+//       otp: newOtp,
+//       docId: channelPartnerDb._id,
+//       email: email,
+//       type: "channel-partner",
+//       message: "forgot passsword",
+//     });
+
+//     const savedOtp = await newOtpModel.save();
+
+//     return res.send(successRes(200, `otp sent to ${email}`, savedOtp._doc));
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
+
 export const forgotPasswordChannelPartner = async (req, res, next) => {
   const body = req.body;
   const { email } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     if (!email) return res.send(errorRes(403, "email is required"));
-
-    const oldOtp = await otpModel.findOne({ email: email }).lean();
-
-    if (oldOtp) {
-      return res.send(successRes(200, `otp re-sent to ${email}`, oldOtp));
-    }
-
-    const channelPartnerDb = await cpModel
-      .findOne({
+    const channelPartnerDb = await cpModel.findOne({
         email: email,
       })
       .lean();
 
     if (!channelPartnerDb) {
-      return res.send(errorRes(404, `Account not with ${email}`));
+      return res.send(
+        errorRes(400, `No channel partner found with given email: ${email}`)
+      );
+    }
+
+    const oldOtp = await otpModel.findOne({ email: email }).lean();
+
+    if (oldOtp) {
+      await sendEmail(
+        email,
+        "Reset Password",
+        forgotPasswordTemplete(
+          `${channelPartnerDb.firstName} ${channelPartnerDb.lastName}`,
+          oldOtp.otp,
+          "https://evhomes.tech/"
+        )
+      );
+      return res.send(
+        successRes(200, `Your OTP has been re-sent to ${email}`, {
+          data: oldOtp,
+        })
+      );
     }
 
     const newOtp = generateOTP(4);
@@ -425,20 +480,89 @@ export const forgotPasswordChannelPartner = async (req, res, next) => {
       otp: newOtp,
       docId: channelPartnerDb._id,
       email: email,
-      type: "channel-partner",
+      type: "channel partner",
       message: "forgot passsword",
     });
 
     const savedOtp = await newOtpModel.save();
 
-    return res.send(successRes(200, `otp sent to ${email}`, savedOtp._doc));
+    await sendEmail(
+      email,
+      "Reset Password",
+      forgotPasswordTemplete(
+        `${channelPartnerDb.firstName} ${channelPartnerDb.lastName}`,
+        savedOtp.otp,
+        "https://evhomes.tech/"
+      )
+    );
+
+    return res.send(
+      successRes(200, `Your OTP has been sent to ${email}`, {
+        data: savedOtp._doc,
+      })
+    );
   } catch (error) {
     return next(error);
   }
 };
 
+// export const resetPasswordChannelPartner = async (req, res, next) => {
+//   const body = req.filteredBody;
+//   const { otp, email, password } = body;
+//   try {
+//     if (!body) return res.send(errorRes(403, "data is required"));
+//     if (!otp) return res.send(errorRes(403, "otp is required"));
+//     if (!email) return res.send(errorRes(403, "email is required"));
+//     if (!password) return res.send(errorRes(403, "password is required"));
+
+//     const otpDbResp = await otpModel.findOne({
+//       email: email,
+//     });
+
+//     if (!otpDbResp) {
+//       return res.send(errorRes(404, "Invalid Otp"));
+//     }
+//     if (otpDbResp.otp != otp) {
+//       return res.send(errorRes(401, "Otp didn't matched"));
+//     }
+//     const channelPartnerDb = await cpModel.findById(otpDbResp.docId);
+//     if (!channelPartnerDb) {
+//       return res.send(
+//         errorRes(404, "No Channel Partner found with given email")
+//       );
+//     }
+//     const hashPassword = await encryptPassword(password);
+
+//     await channelPartnerDb.updateOne(
+//       {
+//         password: hashPassword,
+//       },
+//       { new: true }
+//     );
+
+//     // const updatedPassChannelPartner = await cpModel.updateOne(
+//     //   {
+//     //     _id: channelPartnerDb._id,
+//     //   },
+//     //   {
+//     //     password: hashPassword,
+//     //   }
+//     // );
+//     await otpDbResp.deleteOne();
+//     // await otpModel.deleteOne({ _id: otpDbResp._id });
+
+//     return res.send(
+//       successRes(200, `Reset password sucessfully for: ${otpDbResp.email}`, {
+//         status: channelPartnerDb.acknowledged,
+//       })
+//     );
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
+
 export const resetPasswordChannelPartner = async (req, res, next) => {
-  const body = req.filteredBody;
+  const body = req.body;
   const { otp, email, password } = body;
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
@@ -456,24 +580,24 @@ export const resetPasswordChannelPartner = async (req, res, next) => {
     if (otpDbResp.otp != otp) {
       return res.send(errorRes(401, "Otp didn't matched"));
     }
-    const channelPartnerDb = await cpModel.findById(otpDbResp.docId);
+
+    const channelPartnerDb = await cpModel
+      .findById(otpDbResp.docId)
+      .select("-password -refreshToken")
+
     if (!channelPartnerDb) {
-      return res.send(
-        errorRes(404, "No Channel Partner found with given email")
-      );
+      return res.send(errorRes(404, "No Employee found with given email"));
     }
     const hashPassword = await encryptPassword(password);
-
     await channelPartnerDb.updateOne(
       {
         password: hashPassword,
       },
       { new: true }
     );
-
-    // const updatedPassChannelPartner = await cpModel.updateOne(
+    // const updatedPassChannelPartner = await employeeModel.updateOne(
     //   {
-    //     _id: channelPartnerDb._id,
+    //     _id: employeeDb._id,
     //   },
     //   {
     //     password: hashPassword,
@@ -484,10 +608,38 @@ export const resetPasswordChannelPartner = async (req, res, next) => {
 
     return res.send(
       successRes(200, `Reset password sucessfully for: ${otpDbResp.email}`, {
-        status: channelPartnerDb.acknowledged,
+        data: channelPartnerDb,
       })
     );
   } catch (error) {
     return next(error);
   }
 };
+
+// export  const generateOtpChannelPartner = async (req, res, next) => {
+//   const{email,password}=req.body;
+//   try {
+//     const user = await channelPartnerSchema.findById(_id);
+   
+
+// const newOtp = generateOTP(4);
+// const newOtpModel = new otpModel({
+//   otp: newOtp,
+//   docId: user?._id,
+//   email: email ?? "noemailprovided2026625@gmail.com",
+//   phoneNumber: phoneNumber,
+//   type: "channel-partner-otp",
+//   message: "Channel Partner OTP verifification code.",
+// });
+
+// const savedOtp = await newOtpModel.save();
+// return res.send(
+//   successRes(200, "otp Sent to Client", {
+//     data: savedOtp,
+//   })
+// );
+//   }
+//   catch (error) {
+//     return next(error);
+//   }
+// };

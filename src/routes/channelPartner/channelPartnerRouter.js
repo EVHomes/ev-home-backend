@@ -3,6 +3,7 @@ import {
   deleteChannelPartnerById,
   editChannelPartnerById,
   forgotPasswordChannelPartner,
+  // generateOtpChannelPartner,
   getChannelPartnerById,
   getChannelPartners,
   loginChannelPartner,
@@ -45,20 +46,18 @@ cpRouter.post(
 
 cpRouter.post(
   "/channel-partner-edit/:id",
-  authenticateToken,
+  // authenticateToken,
   validateChannelPartnerFields,
   editChannelPartnerById
 );
 
 cpRouter.post(
   "/channel-partner-forgot-password",
-  validateChannelPartnerFields,
   forgotPasswordChannelPartner
 );
 
 cpRouter.post(
   "/channel-partner-reset-password",
-  validateChannelPartnerFields,
   resetPasswordChannelPartner
 );
 
@@ -70,6 +69,7 @@ cpRouter.delete(
   deleteChannelPartnerById
 );
 
+// cpRouter.post("/channel-partner-otp",generateOtpChannelPartner);
 // cpRouter.post("/channel-set-name-empty", async (req, res) => {
 //   try {
 //     // Update all documents where firstName or lastName is null
