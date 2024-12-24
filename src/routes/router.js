@@ -27,7 +27,11 @@ import notifyRouter from "./notification/notificationRouter.js";
 import attendanceRouter from "./attendance/attendanceRouter.js";
 import chatRouter from "./chat/chatRouter.js";
 import upcomingRouter from "./upcomingprojects/upcomingprojectsRouter.js";
+
 import enquiryformRouter from "./enquiryform/enquiryformRouter.js";
+
+import whatsnewrouterRouter from "./whatsnew/whatsnewRouter.js";
+import appUpdateRouter from "./appUpdate/appUpdateRouter.js";
 
 
 const router = Router();
@@ -90,5 +94,8 @@ router.use(attendanceRouter);
 router.use(chatRouter);
 router.use(upcomingRouter);
 router.use(enquiryformRouter);
+router.use(whatsnewrouterRouter);
+router.use(appUpdateRouter);
+
 
 export default router;

@@ -1031,7 +1031,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 3);
 
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
@@ -1121,19 +1121,21 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       .find(searchFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ startDate: 1 })
+      .sort({ startDate: -1 })
       .populate(leadPopulateOptions);
 
     // Count the total items matching the filter
     // const totalItems = await leadModel.countDocuments(searchFilter);
 
     // Count the total items matching the filter
-    const totalItems = await leadModel.countDocuments({
-      stage: { $ne: "tagging-over" },
-      leadType: { $ne: "walk-in" },
-      channelPartner: id,
-      startDate: { $gte: sixMonthsAgo },
-    });
+    const totalItems = await leadModel
+      .countDocuments({
+        stage: { $ne: "tagging-over" },
+        leadType: { $ne: "walk-in" },
+        channelPartner: id,
+        startDate: { $gte: sixMonthsAgo },
+      })
+      .sort({ startDate: -1 });
     // const totalItems = await leadModel.countDocuments(searchFilter);
     const rejectedCount = await leadModel.countDocuments({
       $and: [
@@ -1321,12 +1323,9 @@ export const addLead = async (req, res, next) => {
         startDate: { $gte: startOfToday, $lt: endOfToday },
       });
 
-      if (todayLeadsCount >= 0) {
+      if (todayLeadsCount >= 25) {
         return res.send(
-          errorRes(
-            409,
-            `You cannot create the same lead with phone number ${phoneNumber} within 91 days.`
-          )
+          errorRes(409, `You cannot share more than 25 leads in 1 day.`)
         );
       }
 
@@ -4275,248 +4274,87 @@ export const triggerCycleChange = async (req, res, next) => {
   }
 };
 
-// export const triggerCycleChange = async (req, res, next) => {
-//   try {
-//     const currentDate = new Date();
-//     const filterDate = new Date("2024-11-24");
+export const getCpSalesFunnel = async (req, res, next) => {
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(401, "channel partner required"));
 
-//     // Fetch all leads whose cycles have expired
-//     const allCycleExpiredLeads = await leadModel.find({
-//       "cycle.validTill": { $lt: currentDate },
-//       startDate: { $gte: filterDate },
-//     });
+    // Count the total items matching the filter
+    const bookingDone = await leadModel.countDocuments({
+      channelPartner: id,
+      bookingStatus: { $ne: "pending" },
+    });
+    const visitDone = await leadModel.countDocuments({
+      channelPartner: id,
+      visitStatus: { $ne: "pending" },
+    });
+    const contacted = await leadModel.countDocuments({
+      channelPartner: id,
+      callHistory: {
+        $exists: true,
+        $not: { $size: 0 },
+      },
+    });
+    const received = await leadModel.countDocuments({ channelPartner: id });
+    const interested = await leadModel.countDocuments({
+      channelPartner: id,
+      interestedStatus: { $ne: "cold" },
+    });
+    const notInterested = await leadModel.countDocuments({
+      channelPartner: id,
+      interestedStatus: { $eq: "cold" },
+    });
+    const followup = await leadModel.countDocuments({
+      channelPartner: id,
+      followupStatus: { $ne: "pending" },
+    });
 
-//     if (allCycleExpiredLeads.length > 0) {
-//       // Fetch active team leaders sorted by createdAt
-//       const teamLeaders = await employeeModel
-//         .find({
-//           $or: [
-//             { designation: "desg-site-head" },
-//             { designation: "desg-senior-closing-manager" },
-//             { designation: "desg-post-sales-head" },
-//           ],
-//           status: "active",
-//         })
-//         .sort({ createdAt: 1 })
-//         .select("_id");
+    // itreseted, not intrested
 
-//       console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
+    return res.send({
+      data: {
+        bookingDone,
+        visitDone,
+        contacted,
+        received,
+        interested,
+        notInterested,
+        followup,
+      },
+    });
+  } catch (error) {
+    return res.send(errorRes(error));
+  }
+};
 
-//       const bulkOperations = allCycleExpiredLeads.map((entry) => {
-//         const lastIndex = teamLeaders.findIndex(
-//           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
-//         );
-//         const totalTeamLeader = teamLeaders.length;
-//         const cCycle = entry.cycle;
+export const get24hrLeadsNameList = async (req, res, next) => {
+  try {
+    const oneDayAgo = new Date();
+    oneDayAgo.setHours(oneDayAgo.getHours() - 48);
 
-//         // If the last team leader index is found
-//         if (lastIndex !== -1) {
-//           const startDate = new Date(entry.cycle.startDate); // Current date
-//           const oldStart = new Date(entry.cycle.startDate);
-//           const validTill = new Date(startDate);
-//           const previousCycle = { ...cCycle };
-
-//           if (cCycle.stage === "visit") {
-//             // Handle 'visit' stage logic
-//             if (cCycle.currentOrder >= totalTeamLeader) {
-//               validTill.setDate(oldStart.getDate() + 180);
-//               cCycle.currentOrder = 1;
-//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to the first team leader
-//             } else {
-//               // Updated ELSE logic: Set validTill based on currentOrder
-//               cCycle.currentOrder += 1;
-//               cCycle.teamLeader =
-//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-
-//               switch (cCycle.currentOrder) {
-//                 case 1:
-//                   validTill.setDate(validTill.getDate() + 15);
-//                   break;
-//                 case 2:
-//                   validTill.setDate(validTill.getDate() + 7);
-//                   break;
-//                 case 3:
-//                   validTill.setDate(validTill.getDate() + 5);
-//                   break;
-//                 case 4:
-//                   validTill.setDate(validTill.getDate() + 2);
-//                   break;
-//                 default:
-//                   validTill.setDate(oldStart.getDate() + 180);
-//                   break;
-//               }
-//             }
-
-//             cCycle.startDate = startDate;
-//             cCycle.validTill = validTill;
-
-//             // Push previous cycle data into cycleHistory
-//             entry.cycleHistory = entry.cycleHistory || [];
-//             entry.cycleHistory.push(previousCycle);
-//           } else if (cCycle.stage === "revisit") {
-//             // Handle 'revisit' stage logic here
-//             // You can add similar logic for revisits
-//             // Handle 'visit' stage logic
-//             if (cCycle.currentOrder >= totalTeamLeader) {
-//               validTill.setDate(oldStart.getDate() + 180);
-//               cCycle.currentOrder = 1;
-//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to the first team leader
-//             } else {
-//               // Updated ELSE logic: Set validTill based on currentOrder
-//               cCycle.currentOrder += 1;
-//               cCycle.teamLeader =
-//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-
-//               switch (cCycle.currentOrder) {
-//                 case 1:
-//                   validTill.setDate(validTill.getDate() + 30);
-//                   break;
-//                 case 2:
-//                   validTill.setDate(validTill.getDate() + 15);
-//                   break;
-//                 case 3:
-//                   validTill.setDate(validTill.getDate() + 7);
-//                   break;
-//                 case 4:
-//                   validTill.setDate(validTill.getDate() + 5);
-//                   break;
-//                 default:
-//                   validTill.setDate(oldStart.getDate() + 180);
-//                   break;
-//               }
-//             }
-
-//             cCycle.startDate = startDate;
-//             cCycle.validTill = validTill;
-
-//             // Push previous cycle data into cycleHistory
-//             entry.cycleHistory = entry.cycleHistory || [];
-//             entry.cycleHistory.push(previousCycle);
-//           }
-//         }
-
-//         console.log(
-//           "lastIndex:",
-//           lastIndex,
-//           "order: ",
-//           entry?.cycle?.currentOrder
-//         ); // Debug log for each entry
-//         entry.lastTlIndex = lastIndex;
-//         return entry;
-//       });
-
-//       return res.send(
-//         successRes(200, "cycle changed", {
-//           totalItem: bulkOperations?.length,
-//           data: bulkOperations,
-//         })
-//       );
-//     }
-
-//     // If no leads need cycle changes
-//     return res.send(
-//       successRes(200, "cycle change", {
-//         data: allCycleExpiredLeads,
-//         totalItem: allCycleExpiredLeads?.length,
-//       })
-//     );
-//   } catch (error) {
-//     return res.send(error);
-//   }
-// };
-
-// export const triggerCycleChange = async (req, res, next) => {
-//   try {
-//     const currentDate = new Date();
-
-//     const allCycleExpiredLeads = await leadModel.find({
-//       "cycle.validTill": { $lt: currentDate },
-//     });
-
-//     if (allCycleExpiredLeads.length > 0) {
-//       const teamLeaders = await employeeModel
-//         .find({
-//           $or: [
-//             { designation: "desg-site-head" },
-//             { designation: "desg-senior-closing-manager" },
-//             { designation: "desg-post-sales-head" },
-//           ],
-//           status: "active",
-//         })
-//         .sort({ createdAt: 1 })
-//         .select("_id");
-
-//       console.log("Team Leaders:", teamLeaders); // Debug log to check the team leaders
-
-//       const bulkOperations = allCycleExpiredLeads.map((entry) => {
-//         const lastIndex = teamLeaders.findIndex(
-//           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
-//         );
-//         const totalTeamLeader = teamLeaders.length + 1;
-//         const cCycle = entry.cycle;
-//         if (lastIndex != -1) {
-//           //visit condtions
-//           const startDate = new Date(); // Current date
-//           const validTill = new Date(startDate);
-
-//           if (cCycle.stage === "visit") {
-//             // visit condi
-//             if (cCycle.currentOrder >= totalTeamLeader) {
-//               validTill.setDate(validTill.getDate() + 15);
-//               cCycle.currentOrder = 1;
-//               cCycle.teamLeader = teamLeaders[lastIndex]?._id;
-//               cCycle.startDate = startDate;
-//               cCycle.validTill = validTill;
-//               // entry.cycleHistory.addToSet()
-//             } else {
-//             }
-//           } else if (cCycle.stage === "revisit") {
-//             // revisit condi
-//           }
-//         }
-
-//         console.log(
-//           "lastIndex:",
-//           lastIndex,
-//           "order: ",
-//           entry?.cycle?.currentOrder
-//         ); // Debug log for each entry
-//         entry.lastTlIndex = lastIndex;
-//         return entry;
-//       });
-
-//       return res.send(
-//         successRes(200, "cycle chang 2e", {
-//           data: bulkOperations,
-//           totalItem: bulkOperations?.length,
-//         })
-//       );
-//     }
-
-//     return res.send(
-//       successRes(200, "cycle change", {
-//         data: allCycleExpiredLeads,
-//         totalItem: allCycleExpiredLeads?.length,
-//       })
-//     );
-//   } catch (error) {
-//     return res.send(error);
-//   }
-// };
-
-// const timeZone = "Asia/Kolkata";
-
-// // Get yesterday's date range in local timezone
-// const startOfYesterday = moment()
-//   // .tz(timeZone)
-//   // .subtract(1, "day")
-//   // .startOf("day")
-//   .toDate();
-
-// console.log(startOfYesterday);
-// console.log(new Date().toISOString());
-// console.log(new Date());
-// console.log(moment(new Date()).tz(timeZone).format("DD-MM-YYYY HH:mm"));
-// console.log(
-//   moment("2024-12-17T11:38:53.096842").tz(timeZone).format("DD-MM-YYYY HH:mm")
-// );
+    // Count the total items matching the filter
+    const list = await leadModel
+      .find({
+        leadType: "cp",
+        startDate: { $gte: oneDayAgo },
+        channelPartner: { $ne: null },
+      })
+      .select("channelPartner")
+      .populate({
+        path: "channelPartner",
+        select: "firmName",
+      });
+    // itreseted, not intrested
+    const newList = list.map(
+      (ele) => `${ele.channelPartner.firmName} just shared a Lead`
+    );
+    return res.send(
+      successRes(200, "got", {
+        data: newList,
+      })
+    );
+  } catch (error) {
+    console.log(error);
+    return res.send(errorRes(error));
+  }
+};

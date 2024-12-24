@@ -1,3 +1,4 @@
+import leadModel from "../model/lead.model.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import taskModel from "../model/task.model.js";
@@ -71,12 +72,39 @@ export const assignTask = async (req, res, next) => {
 };
 
 export const updateTask = async (req, res, next) => {
-  const { status } = req.body;
+  const { status, remark } = req.body;
   const taskId = req.params.id;
   const user = req.user;
   try {
     if (!taskId) return res.send(errorRes(401, "taskId required"));
 
+    const myTask = await taskModel.findById(taskId);
+    const startDate = new Date(); // Current date
+
+    if (!myTask) return res.send(errorRes(404, "task not found"));
+    if (myTask.lead != null) {
+      if (
+        myTask.type.toLowerCase() == "first-call" ||
+        myTask.type.toLowerCase() == "followup"
+      ) {
+        const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
+          $addToSet: {
+            callHistory: {
+              caller: user?._id,
+              callDate: startDate,
+              remark: remark ?? "",
+              feedback: remark ?? "",
+            },
+            updateHistory: {
+              employee: user?._id,
+              changes: remark ?? "task updated",
+              updatedAt: startDate,
+              remark: remark,
+            },
+          },
+        });
+      }
+    }
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {
         completed: status === "completed" ? true : false,
