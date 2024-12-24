@@ -28,6 +28,7 @@ import attendanceRouter from "./attendance/attendanceRouter.js";
 import chatRouter from "./chat/chatRouter.js";
 import upcomingRouter from "./upcomingprojects/upcomingprojectsRouter.js";
 import whatsnewrouterRouter from "./whatsnew/whatsnewRouter.js";
+import appUpdateRouter from "./appUpdate/appUpdateRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -89,5 +90,6 @@ router.use(attendanceRouter);
 router.use(chatRouter);
 router.use(upcomingRouter);
 router.use(whatsnewrouterRouter);
+router.use(appUpdateRouter);
 
 export default router;
