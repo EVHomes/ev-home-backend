@@ -362,7 +362,7 @@ export const addSiteVisits = async (req, res) => {
       }
     }
 
-    if (lead === null) {
+    if (!lead) {
       console.log("lead is null");
 
       const startDate = new Date();
