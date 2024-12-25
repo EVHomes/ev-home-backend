@@ -223,7 +223,8 @@ export const addSiteVisits = async (req, res) => {
     virtualMeetingDoc,
     location,
   } = body;
-  // console.log(body);
+  console.log(body);
+
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
     if (!firstName) return res.send(errorRes(403, "First name is required"));
@@ -267,6 +268,8 @@ export const addSiteVisits = async (req, res) => {
       .populate(siteVisitPopulateOptions);
 
     if (lead != null) {
+      console.log("lead id is not null");
+
       const foundLead = await leadModel.findById(lead);
 
       if (foundLead) {
@@ -276,8 +279,9 @@ export const addSiteVisits = async (req, res) => {
         //   foundLead.bookingRef = bookingRef;
         //   await foundLead.save();
         // }
+        console.log("lead is not null");
 
-        if (visitType === "visited") {
+        if (visitType === "visit") {
           foundLead.visitStatus = "visited";
           foundLead.stage = "revisit";
           foundLead.visitRef = populateNewSiteVisit._id;
@@ -297,10 +301,11 @@ export const addSiteVisits = async (req, res) => {
           await foundLead.save();
         }
 
-        if (visitType === "revisited") {
+        if (visitType === "revisit") {
           foundLead.revisitStatus = "revisited";
           foundLead.stage = "booking";
           foundLead.revisitRef = populateNewSiteVisit._id;
+          foundLead.cycle.stage = "booking";
           foundLead.cycle.validTill = new Date().addDays(180);
 
           await foundLead.save();
@@ -312,12 +317,14 @@ export const addSiteVisits = async (req, res) => {
         }
       }
     } else {
+      console.log("lead is null");
+
       const foundLead = await leadModel.findOne({
         phoneNumber: phoneNumber,
         approvalStatus: { $ne: "pending" },
       });
       if (foundLead) {
-        if (visitType === "visited") {
+        if (visitType === "visit") {
           foundLead.visitStatus = "visited";
           foundLead.stage = "revisit";
           foundLead.visitRef = populateNewSiteVisit._id;
@@ -338,11 +345,12 @@ export const addSiteVisits = async (req, res) => {
           await foundLead.save();
         }
 
-        if (visitType === "revisited") {
+        if (visitType === "revisit") {
           foundLead.revisitStatus = "revisited";
           foundLead.stage = "booking";
           foundLead.revisitRef = populateNewSiteVisit._id;
-          foundLead.cycle.validTill = new Date().addMonths(5);
+          foundLead.cycle.stage = "booking";
+          foundLead.cycle.validTill = new Date().addDays(180);
 
           await foundLead.save();
         }
@@ -353,62 +361,67 @@ export const addSiteVisits = async (req, res) => {
         }
       }
     }
-    const startDate = new Date();
-    const validTill = new Date(startDate);
-    const validTillbefore = new Date(startDate);
 
-    validTillbefore.setDate(validTillbefore.getDate() + 15);
-    validTill.setDate(validTill.getDate() + 30);
+    if (lead === null) {
+      console.log("lead is null");
 
-    if (source?.toLowerCase() === "walk-in") {
-      await leadModel.create({
-        leadType: source?.toLowerCase(),
-        firstName: firstName,
-        address: residence,
-        email: email,
-        lastName: lastName,
-        project: projects,
-        requirement: choiceApt,
-        phoneNumber: phoneNumber,
-        teamLeader: closingManager,
-        visitRef: newSiteVisit?._id,
-        visitStatus: visitType,
-        stage: "revisit",
-        cycle: {
-          nextTeamLeader: null,
-          stage: "revisit",
-          currentOrder: 1,
+      const startDate = new Date();
+      const validTill = new Date(startDate);
+      const validTillbefore = new Date(startDate);
+
+      validTillbefore.setDate(validTillbefore.getDate() + 15);
+      validTill.setDate(validTill.getDate() + 30);
+
+      if (source?.toLowerCase() === "walk-in") {
+        await leadModel.create({
+          leadType: source?.toLowerCase(),
+          firstName: firstName,
+          address: residence,
+          email: email,
+          lastName: lastName,
+          project: projects,
+          requirement: choiceApt,
+          phoneNumber: phoneNumber,
           teamLeader: closingManager,
-          startDate: startDate,
-          validTill: validTill,
-        },
-        cycleHistory: [
-          {
+          visitRef: newSiteVisit?._id,
+          visitStatus: visitType,
+          stage: "revisit",
+          cycle: {
             nextTeamLeader: null,
-            stage: "visit",
+            stage: "revisit",
             currentOrder: 1,
             teamLeader: closingManager,
             startDate: startDate,
-            validTill: validTillbefore,
+            validTill: validTill,
           },
-        ],
-      });
-      const foundTLPlayerId = await oneSignalModel.findOne({
-        docId: closingManager,
-        // role: teamLeaderResp?.role,
-      });
-
-      if (foundTLPlayerId) {
-        // console.log(foundTLPlayerId);
-
-        await sendNotificationWithImage({
-          playerIds: [foundTLPlayerId.playerId],
-          title: "You've Got a new walk-in Lead!",
-          message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
-          imageUrl:
-            "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+          cycleHistory: [
+            {
+              nextTeamLeader: null,
+              stage: "visit",
+              currentOrder: 1,
+              teamLeader: closingManager,
+              startDate: startDate,
+              validTill: validTillbefore,
+            },
+          ],
         });
-        // console.log("pass sent notification");
+        const foundTLPlayerId = await oneSignalModel.findOne({
+          docId: closingManager,
+          // role: teamLeaderResp?.role,
+        });
+
+        if (foundTLPlayerId) {
+          // console.log(foundTLPlayerId);
+
+          await sendNotificationWithImage({
+            playerIds: [foundTLPlayerId.playerId],
+            title: "You've Got a new walk-in Lead!",
+            message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
+            imageUrl:
+              "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+          });
+          // console.log("pass sent notification");
+        }
       }
     }
 
