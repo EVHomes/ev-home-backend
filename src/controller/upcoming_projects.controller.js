@@ -22,6 +22,7 @@ export const getupcomingProjects = async (req, res) => {
      name,
      location,
      showcaseimage,
+     image,
     } = body;
   
     try {
