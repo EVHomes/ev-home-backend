@@ -4436,7 +4436,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
 export const get24hrLeadsNameList = async (req, res, next) => {
   try {
     const oneDayAgo = new Date();
-    oneDayAgo.setHours(oneDayAgo.getHours() - 48);
+    oneDayAgo.setHours(oneDayAgo.getHours() - 360);
 
     // Count the total items matching the filter
     const list = await leadModel
