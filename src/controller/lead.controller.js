@@ -65,64 +65,154 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
-    if (status === "visit") {
+    let walkinType = { leadType: { $ne: "walk-in" } };
+    if (status === "visit2") {
+      walkinType = { leadType: { $ne: "cp" } };
+    }
+    if (status === "booking-done") {
       statusToFind = {
-        visitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "revisit") {
-      statusToFind = {
-        revisitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "booking") {
-      statusToFind = { bookingStatus: { $ne: "pending" } };
-    } else if (status === "followup") {
-      statusToFind = { followupStatus: { $ne: "pending" } };
-    } else if (status === "visit-pending") {
-      statusToFind = {
-        visitStatus: { $ne: "pending" },
-        visitStatus: "pending",
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "revisit-pending") {
-      statusToFind = {
-        visitStatus: { $ne: "pending" },
-        revisitStatus: "pending",
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "visit-done") {
-      statusToFind = {
-        visitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
+        stage: "booking",
+        bookingStatus: { $ne: "pending" },
+        // ...walkinType,
       };
     } else if (status === "revisit-done") {
       statusToFind = {
+        stage: "booking",
         revisitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
+        ...walkinType,
       };
-    } else if (status === "booking-done") {
-      statusToFind = { bookingStatus: "booked" };
-    } else if (status === "pending") {
+    } else if (status === "visit-done" || status === "visit") {
       statusToFind = {
-        bookingStatus: { $ne: "booked" },
-        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+        stage: { $ne: "approval" },
+        visitStatus: { $ne: "pending" },
+        ...walkinType,
+      };
+    } else if (status === "revisit-pending") {
+      statusToFind = {
+        stage: { $eq: "revisit" },
+        revisitStatus: { $eq: "pending" },
+        ...walkinType,
+      };
+    } else if (status === "visit-pending") {
+      statusToFind = {
+        stage: { $eq: "visit" },
+        visitStatus: { $eq: "pending" },
+        ...walkinType,
       };
     } else if (status === "tagging-over") {
       statusToFind = {
-        stage: "tagging-over",
+        stage: { $eq: "tagging-over" },
+        // ...walkinType,
       };
-    } else if (status === "followup") {
+    } else if (status === "pending") {
       statusToFind = {
-        stage: "tagging-over",
+        stage: { $ne: "tagging-over" },
+        $or: [
+          {
+            visitStatus: { $eq: "pending" },
+          },
+          {
+            revisitStatus: { $eq: "pending" },
+          },
+        ],
+        // ...walkinType,
       };
     } else if (status === "visit2") {
       statusToFind = {
-        bookingStatus: { $ne: "booked" },
-        leadType: { $eq: "walk-in" },
-        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+        // stage: { $eq: "tagging-over" },
+        visitStatus: { $ne: "pending" },
+        $and: [
+          {
+            stage: { $ne: "tagging-over" },
+          },
+          {
+            stage: { $ne: "approval" },
+          },
+        ],
+
+        ...walkinType,
       };
     }
+
+    // if (status === "visit") {
+    //   statusToFind = {
+    //     visitStatus: { $ne: "pending" },
+    //     leadType: { $ne: "walk-in" },
+    //     stage: { $ne: "booking" },
+    //     stage: { $ne: "tagging-over" },
+    //     stage: { $ne: "approval" },
+    //   };
+    // } else if (status === "revisit") {
+    //   statusToFind = {
+    //     revisitStatus: { $ne: "pending" },
+    //     leadType: { $ne: "walk-in" },
+    //     $or: [
+    //       {
+    //         stage: { $ne: "tagging-over" },
+    //       },
+    //       {
+    //         stage: { $ne: "booking" },
+    //       },
+    //       {
+    //         stage: { $ne: "approval" },
+    //       },
+    //     ],
+    //     // stage: { $ne: "visit" },
+    //   };
+    // } else if (status === "booking") {
+    //   statusToFind = {
+    //     bookingStatus: { $ne: "pending" },
+    //     stage: { $eq: "booking" },
+    //   };
+    // } else if (status === "followup") {
+    //   statusToFind = { followupStatus: { $ne: "pending" } };
+    // } else if (status === "visit-pending") {
+    //   statusToFind = {
+    //     visitStatus: { $eq: "pending" },
+    //     stage: { $ne: "booking" },
+    //     leadType: { $ne: "walk-in" },
+    //   };
+    // } else if (status === "revisit-pending") {
+    //   statusToFind = {
+    //     visitStatus: { $eq: "pending" },
+    //     leadType: { $ne: "walk-in" },
+    //     stage: { $ne: "booking" },
+    //   };
+    // } else if (status === "visit-done") {
+    //   statusToFind = {
+    //     visitStatus: { $ne: "pending" },
+    //     stage: { $ne: "booking" },
+    //     leadType: { $ne: "walk-in" },
+    //   };
+    // } else if (status === "revisit-done") {
+    //   statusToFind = {
+    //     revisitStatus: { $ne: "pending" },
+    //     stage: { $ne: "booking" },
+    //     leadType: { $ne: "walk-in" },
+    //   };
+    // } else if (status === "booking-done") {
+    //   statusToFind = {
+    //     stage: { $eq: "booking" },
+    //     bookingStatus: "booked",
+    //   };
+    // } else if (status === "pending") {
+    //   statusToFind = {
+    //     stage: { $ne: "booking" },
+    //     $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+    //     leadType: { $ne: "walk-in" },
+    //   };
+    // } else if (status === "tagging-over") {
+    //   statusToFind = {
+    //     stage: "tagging-over",
+    //     leadType: { $ne: "walk-in" },
+    //   };
+    // } else if (status === "visit2") {
+    //   statusToFind = {
+    //     bookingStatus: { $ne: "booked" },
+    //     leadType: { $eq: "walk-in" },
+    //     $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+    //   };
+    // }
     let skip = (page - 1) * limit;
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
@@ -220,10 +310,10 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
-
       visitStatus: { $ne: "pending" },
       leadType: { $ne: "walk-in" },
-      $or: [
+      ...walkinType,
+      $and: [
         {
           stage: { $ne: "tagging-over" },
         },
@@ -236,16 +326,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const revisitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
-
-      revisitStatus: { $ne: "pending" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
-        },
-        {
-          stage: { $ne: "approval" },
-        },
-      ],
+      stage: { $eq: "revisit" },
+      revisitStatus: { $eq: "pending" },
+      ...walkinType,
     });
     // const visit2Count = await siteVisitModel.countDocuments({
     //   closingManager: { $eq: teamLeaderId },
@@ -255,7 +338,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       teamLeader: { $eq: teamLeaderId },
       visitStatus: { $ne: "pending" },
       leadType: { $eq: "walk-in" },
-      $or: [
+      // ...walkinType,
+      $and: [
         {
           stage: { $ne: "tagging-over" },
         },
@@ -268,16 +352,28 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
-
       bookingStatus: { $ne: "pending" },
-      $or: [
+      $and: [
         {
           stage: { $ne: "tagging-over" },
         },
         {
           stage: { $ne: "approval" },
         },
+        {
+          stage: { $eq: "booking" },
+        },
       ],
+      // $or: [
+      //   {
+      //     stage: { $ne: "tagging-over" },
+      //     bookingStatus: { $ne: "pending" },
+      //   },
+      //   {
+      //     stage: { $ne: "approval" },
+      //     bookingStatus: { $ne: "pending" },
+      //   },
+      // ],
     });
 
     const pendingCount = await leadModel.countDocuments({
