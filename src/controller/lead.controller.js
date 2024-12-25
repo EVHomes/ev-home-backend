@@ -1134,6 +1134,9 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     let query = req.query.query || "";
     let status = req.query.approvalStatus?.toLowerCase();
     let stage = req.query.stage?.toLowerCase();
+
+    // console.log("stage" + stage);
+    // console.log("statys" + status);
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
     const sixMonthsAgo = new Date();
@@ -1151,7 +1154,9 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       statusToFind = {
         approvalStatus: { $eq: "rejected" },
       };
-    } else if (status === "pending") {
+    } 
+    
+    else if (status === "pending") {
       statusToFind = {
         $or: [
           {
@@ -1165,6 +1170,25 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
             bookingStatus: { $ne: "booked" },
           },
         ],
+      };
+    } 
+    else if (status === "revisit-pending") {
+      // console.log("ersi pendding");
+      statusToFind = {
+        stage: { $eq: "revisit" },
+        revisitStatus: { $eq: "pending" },
+      };
+    } else if (status === "visit-pending") {
+      // console.log("visi pendding");
+      statusToFind = {
+        stage: { $eq: "visit" },
+        visitStatus: { $eq: "pending" },
+      };
+    } else if (status == "booking-pending") {
+      // console.log("booi pendding");
+      statusToFind = {
+        stage: { $eq: "booking" },
+        bookingStatus: { $eq: "pending" },
       };
     }
 
@@ -1203,6 +1227,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     let searchFilter = {
       ...(statusToFind != null ? statusToFind : null),
       $or: orFilters,
+
       // ...(approvalStatus && {
       //   approvalStatus: { $regex: approvalStatus, $options: "i" },
       // }),
@@ -1216,12 +1241,12 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       //   bookingStatus: { $regex: bookingStatus, $options: "i" },
       // }),
 
-      ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
+      // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
       leadType: { $ne: "walk-in" },
       startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
     };
-
+    // console.log(searchFilter);
     // Execute the search with the refined filter
     const respCP = await leadModel
       .find(searchFilter)
@@ -1229,6 +1254,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       .limit(limit)
       .sort({ startDate: -1 })
       .populate(leadPopulateOptions);
+    console.log(respCP.length);
 
     // Count the total items matching the filter
     // const totalItems = await leadModel.countDocuments(searchFilter);
@@ -1299,6 +1325,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
     });
+
     // const assignedCount = await leadModel.countDocuments({
     //   $and: [{ preSalesExecutive: { $ne: null } }],
     // });
