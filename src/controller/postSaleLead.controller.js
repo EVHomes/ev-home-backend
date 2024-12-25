@@ -3,6 +3,7 @@ import { errorRes, successRes } from "../model/response.js";
 import { startOfWeek, addDays, format } from "date-fns";
 import { postSalePopulateOptions } from "../utils/constant.js";
 import TargetModel from "../model/target.model.js";
+import { updateFlatInfoByIdFlatNo } from "./ourProjects.controller.js";
 
 export const getPostSaleLeads = async (req, res, next) => {
   try {
@@ -201,6 +202,8 @@ export const addPostSaleLead = async (req, res, next) => {
     carpetArea,
     flatCost,
     phoneNumber,
+    floor,
+    number,
   } = body;
   try {
     if (!body) {
@@ -238,6 +241,10 @@ export const addPostSaleLead = async (req, res, next) => {
 
       await findTarget.save();
     }
+
+    await updateFlatInfoByIdFlatNo(project, unitNo, {
+      occupied: true,
+    });
 
     return res.send(
       successRes(200, "add post sale leads", {
