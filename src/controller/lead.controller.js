@@ -69,7 +69,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     if (status === "visit2") {
       walkinType = { leadType: { $ne: "cp" } };
     }
-    if (status === "booking-done") {
+    if (status === "booking-done" || status === "booking") {
       statusToFind = {
         stage: "booking",
         bookingStatus: { $ne: "pending" },
@@ -433,62 +433,72 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
     let statusToFind = null;
-    if (status === "visit") {
+    let walkinType = { leadType: { $ne: "walk-in" } };
+    if (status === "visit2") {
+      walkinType = { leadType: { $ne: "cp" } };
+    }
+    if (status === "booking-done" || status === "booking") {
       statusToFind = {
-        visitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "revisit") {
-      statusToFind = {
-        revisitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "booking") {
-      statusToFind = { bookingStatus: { $ne: "pending" } };
-    } else if (status === "followup") {
-      statusToFind = { followupStatus: { $ne: "pending" } };
-    } else if (status === "visit-pending") {
-      statusToFind = {
-        visitStatus: { $ne: "pending" },
-        visitStatus: "pending",
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "revisit-pending") {
-      statusToFind = {
-        visitStatus: { $ne: "pending" },
-        revisitStatus: "pending",
-        leadType: { $ne: "walk-in" },
-      };
-    } else if (status === "visit-done") {
-      statusToFind = {
-        visitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
+        stage: "booking",
+        bookingStatus: { $ne: "pending" },
+        // ...walkinType,
       };
     } else if (status === "revisit-done") {
       statusToFind = {
+        stage: "booking",
         revisitStatus: { $ne: "pending" },
-        leadType: { $ne: "walk-in" },
+        ...walkinType,
       };
-    } else if (status === "booking-done") {
-      statusToFind = { bookingStatus: "booked" };
-    } else if (status === "pending") {
+    } else if (status === "visit-done" || status === "visit") {
       statusToFind = {
-        bookingStatus: { $ne: "booked" },
-        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+        stage: { $ne: "approval" },
+        visitStatus: { $ne: "pending" },
+        ...walkinType,
+      };
+    } else if (status === "revisit-pending") {
+      statusToFind = {
+        stage: { $eq: "revisit" },
+        revisitStatus: { $eq: "pending" },
+        ...walkinType,
+      };
+    } else if (status === "visit-pending") {
+      statusToFind = {
+        stage: { $eq: "visit" },
+        visitStatus: { $eq: "pending" },
+        ...walkinType,
       };
     } else if (status === "tagging-over") {
       statusToFind = {
-        stage: "tagging-over",
+        stage: { $eq: "tagging-over" },
+        // ...walkinType,
       };
-    } else if (status === "followup") {
+    } else if (status === "pending") {
       statusToFind = {
-        stage: "tagging-over",
+        stage: { $ne: "tagging-over" },
+        $or: [
+          {
+            visitStatus: { $eq: "pending" },
+          },
+          {
+            revisitStatus: { $eq: "pending" },
+          },
+        ],
+        // ...walkinType,
       };
     } else if (status === "visit2") {
       statusToFind = {
-        bookingStatus: { $ne: "booked" },
-        leadType: { $eq: "walk-in" },
-        $or: [{ visitStatus: "pending" }, { revisitStatus: "pending" }],
+        // stage: { $eq: "tagging-over" },
+        visitStatus: { $ne: "pending" },
+        $and: [
+          {
+            stage: { $ne: "tagging-over" },
+          },
+          {
+            stage: { $ne: "approval" },
+          },
+        ],
+
+        ...walkinType,
       };
     }
     let skip = (page - 1) * limit;
