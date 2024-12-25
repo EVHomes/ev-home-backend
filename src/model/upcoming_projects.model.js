@@ -6,6 +6,8 @@ export const upcomingSchema = new mongoose.Schema({
   location: { type: String, default: null },
  
  showcaseimage: { type: String, default: null},
+
+ image: { type: String, default: null},
   
 });
 
