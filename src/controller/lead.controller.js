@@ -1156,17 +1156,21 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       };
     } else if (status === "pending") {
       statusToFind = {
-        $or: [
+        $and: [
           {
             approvalStatus: { $eq: "pending" },
           },
           {
-            visitStatus: { $eq: "pending" },
+            stage: { $eq: "approval" },
           },
-          { revisitStatus: { $eq: "pending" } },
-          {
-            bookingStatus: { $ne: "booked" },
-          },
+
+          // {
+          //   visitStatus: { $eq: "pending" },
+          // },
+          // { revisitStatus: { $eq: "pending" } },
+          // {
+          //   bookingStatus: { $ne: "booked" },
+          // },
         ],
       };
     } else if (status === "revisit-pending") {
