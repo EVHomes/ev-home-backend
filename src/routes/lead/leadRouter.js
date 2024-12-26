@@ -237,6 +237,26 @@ leadRouter.get("/ok", (req, res) => {
   });
   res.send(ok);
 });
+leadRouter.post("/lead-cycleHistory", async (req, res) => {
+  try {
+    const filterDate = new Date("2024-12-10");
+
+    const resp = await leadModel.find({
+      startDate: { $gte: filterDate },
+      leadType: { $ne: "walk-in" },
+      // currentOrder: { $gt: 0 },
+    });
+    const cycleChanges = resp.map((ele) => {
+      if (ele.cycleHistory.length > 0) {
+        // if(ele.cycleHistory[0].startDate)
+        return ele;
+      }
+    });
+    return res.send({ total: cycleChanges.length, data: cycleChanges });
+  } catch (error) {
+    return res.send({ data: error });
+  }
+});
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
