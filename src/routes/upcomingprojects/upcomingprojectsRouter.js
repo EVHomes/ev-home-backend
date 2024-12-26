@@ -3,6 +3,7 @@ import {
   addupcomingProjects,
   getupcomingProjects,
   updateupcomingProjects,
+  deleteupcomingProject,
   
 } from "../../controller/upcoming_projects.controller.js";
 
@@ -19,5 +20,7 @@ upcomingRouter.post(
   // authenticateToken,
   updateupcomingProjects,
 );
+
+upcomingRouter.delete("/upcomingProjects/:id", deleteupcomingProject);
 
 export default upcomingRouter;

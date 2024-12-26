@@ -97,3 +97,22 @@ export const getupcomingProjectsById = async (req, res) => {
       return res.send(errorRes(500, `Server error: ${error?.message}`));
     }
   };
+
+  //DELETE PROJECTS
+export const deleteupcomingProject = async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    if (!id) return res.send(errorRes(403, "Project ID is required"));
+    const deleteupcomingProject = await upcomingModel.findByIdAndDelete(id);
+    if (!deleteupcomingProject)
+      return res.send(errorRes(404, `Project not found with ID: ${id}`));
+    return res.send(
+      successRes(200, `Project deleted successfully: ${deleteupcomingProject.name}`, {
+        deleteupcomingProject,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, `Server error: ${error?.message}`));
+  }
+};
