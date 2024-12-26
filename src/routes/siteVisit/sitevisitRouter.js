@@ -9,6 +9,7 @@ import {
   updateSiteVisits,
   verifySiteVisitOtp,
   getClosingManagerSiteVisitById,
+  getSiteVisitByPhoneNumber
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import path from "path";
@@ -31,6 +32,8 @@ siteVisitRouter.get(
   getSiteVisits
 );
 siteVisitRouter.get("/siteVisit/:id", authenticateToken, getSiteVisitsById);
+siteVisitRouter.get("/siteVisit-phoneNumber/:phoneNumber",getSiteVisitByPhoneNumber);
+
 siteVisitRouter.post(
   "/siteVisits-add",
   // authenticateToken,

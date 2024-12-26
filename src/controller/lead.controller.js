@@ -1404,6 +1404,38 @@ export const getSimilarLeadsById = async (req, res, next) => {
   }
 };
 
+
+export const getSiteVisitLeadByPhoneNumber=async(req,res)=>{
+
+  const phoneNumber=req.params.id;
+  try {
+    if (!phoneNumber) return res.send(errorRes(403, "id is required"));
+
+    const respSite = await leadModel
+    .findOne({ phoneNumber: phoneNumber })
+      .populate(leadPopulateOptions);
+
+    if (!respSite)
+      return res.send(
+        successRes(404, `Site vist not found with id:${phoneNumber}`, {
+          data: respSite,
+        })
+      );
+    return res.send(
+      successRes(200, "lead by id", {
+        data: respSite,
+      })
+    );
+  }catch(error){
+    return res.send(errorRes(500,`server error:${error?.message}`))
+  }
+
+};
+
+
+
+
+
 export const addLead = async (req, res, next) => {
   const body = req.filteredBody;
   const {

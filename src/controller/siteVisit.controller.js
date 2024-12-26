@@ -42,7 +42,7 @@ export const getSiteVisitsById = async (req, res) => {
 
     if (!respSite)
       return res.send(
-        successRes(404, `Department not found with id:${id}`, {
+        successRes(404, `Site visit not found with id:${id}`, {
           data: respSite,
         })
       );
@@ -54,6 +54,34 @@ export const getSiteVisitsById = async (req, res) => {
   } catch (error) {
     return res.send(errorRes(500, `server error:${error?.message}`));
   }
+};
+
+
+export const getSiteVisitByPhoneNumber=async(req,res)=>{
+
+  const phoneNumber=req.params.phoneNumber.toString();
+  try {
+    if (!phoneNumber) return res.send(errorRes(403, "id is required"));
+
+    const respSite = await siteVisitModel
+    .findOne({ phoneNumber: phoneNumber })
+      .populate(siteVisitPopulateOptions);
+
+    if (!respSite)
+      return res.send(
+        successRes(404, `Site vist not found with id:${phoneNumber}`, {
+          data: respSite,
+        })
+      );
+    return res.send(
+      successRes(200, "lead by id", {
+        data: respSite,
+      })
+    );
+  }catch(error){
+    return res.send(errorRes(500,`server error:${error?.message}`))
+  }
+
 };
 
 export const searchSiteVisits = async (req, res, next) => {
