@@ -172,7 +172,7 @@ const parseDate = (dateString) => {
   return date;
 };
 
-leadRouter.get("/sitevisitLead-phoneNumber/:id", getSiteVisitLeadByPhoneNumber);
+leadRouter.get("/sitevisitLead-phoneNumber/:id",getSiteVisitLeadByPhoneNumber);
 
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
@@ -211,6 +211,13 @@ leadRouter.get("/lead-tagging-over-check", async (req, res) => {
     res.send(data);
   }
 });
+
+// leadRouter.get("/getCycle",(req,res)=> {
+
+//   const results = leadModel.find({ "cycleHistory"});
+//   console.log(results);
+//   res.send(results);
+// });
 
 leadRouter.get("/ok", (req, res) => {
   // Online Javascript Editor for free
