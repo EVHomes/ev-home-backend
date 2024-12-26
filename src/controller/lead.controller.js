@@ -4225,32 +4225,46 @@ export const getCpSalesFunnel = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(401, "channel partner required"));
 
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 3);
+
     // Count the total items matching the filter
     const bookingDone = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       bookingStatus: { $ne: "pending" },
     });
     const visitDone = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
+
       channelPartner: id,
       visitStatus: { $ne: "pending" },
     });
     const contacted = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       callHistory: {
         $exists: true,
         $not: { $size: 0 },
       },
     });
-    const received = await leadModel.countDocuments({ channelPartner: id });
+    const received = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
+      channelPartner: id,
+      leadType: { $ne: "walk-in" },
+    });
     const interested = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       interestedStatus: { $ne: "cold" },
     });
     const notInterested = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       interestedStatus: { $eq: "cold" },
     });
     const followup = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       followupStatus: { $ne: "pending" },
     });
