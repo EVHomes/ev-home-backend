@@ -71,5 +71,32 @@ export const updateWhatsNew = async (req, res) => {
   }
 };
 
+export const deleteWhatsNew = async (req, res) => {
+  const body = req.body;
+  const { id } = req.params;
+  const { imageName,showCaseImage } = body;
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+    if (!body) return res.send(errorRes(403, "data is required"));
+
+    const deletedWhatsNew = await whatsnewModel.findByIdAndDelete(id);
+
+    if (!deletedWhatsNew)
+      return res.send(errorRes(402, `WhatsNew project not deleted: ${imageName}`));
+
+    return res.send(
+      successRes(200, `WhatsNew deleted successfully`, {
+        deletedWhatsNew,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, error));
+  }
+};
+
+
+
+
+
 
 
