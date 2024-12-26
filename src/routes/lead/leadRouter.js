@@ -247,26 +247,76 @@ leadRouter.get("/ok", (req, res) => {
   });
   res.send(ok);
 });
-leadRouter.post("/lead-cycleHistory", async (req, res) => {
+
+leadRouter.get("/lead-cycleHistory", async (req, res) => {
   try {
     const filterDate = new Date("2024-12-10");
+    const filterDatelat = new Date("2024-12-11");
 
     const resp = await leadModel.find({
-      startDate: { $gte: filterDate },
+      startDate: { $gte: filterDate, $lt: filterDatelat },
       leadType: { $ne: "walk-in" },
-      // currentOrder: { $gt: 0 },
     });
-    const cycleChanges = resp.map((ele) => {
-      if (ele.cycleHistory.length > 0) {
-        // if(ele.cycleHistory[0].startDate)
-        return ele;
+    // .populate(leadPopulateOptions);
+
+    const cycleChanges = resp.filter((ele) => ele.cycleHistory.length > 0);
+
+    // Prepare data for CSV
+    const fields = ["_id", "name", "cycle", "cycleHistory"];
+    const header = fields.join(",") + "\n";
+    const csvRows = cycleChanges.map((lead) => {
+      return fields
+        .map((field) => {
+          // if (field === "cycleHistory") {
+          return JSON.stringify(lead[field]); // Convert array/object to string
+          // }
+          // return lead[field] || "";
+        })
+        .join(",");
+    });
+
+    // Combine header and rows
+    const csvContent = header + csvRows.join("\n");
+
+    // Write CSV to a file
+    const filePath = "./cycleHistory.csv";
+    fs.writeFileSync(filePath, csvContent);
+
+    // Send the file for download
+    return res.download(filePath, "cycleHistory.csv", (err) => {
+      if (err) {
+        return res.status(500).send({ error: "Error downloading file" });
       }
+      // Clean up the file after download
+      fs.unlinkSync(filePath);
     });
-    return res.send({ total: cycleChanges.length, data: cycleChanges });
   } catch (error) {
-    return res.send({ data: error });
+    return res.status(500).send({ error: error.message });
   }
 });
+
+// leadRouter.post("/lead-cycleHistory", async (req, res) => {
+//   try {
+//     const filterDate = new Date("2024-12-10");
+//     const filterDatelat = new Date("2024-12-11");
+
+//     const resp = await leadModel.find({
+//       startDate: { $gte: filterDate, $lt: filterDatelat },
+//       leadType: { $ne: "walk-in" },
+//       // currentOrder: { $gt: 0 },
+//     });
+//     const cycleChanges = resp.map((ele) => {
+//       if (ele.cycleHistory.length > 0) {
+//         // if (ele.cycleHistory[0].startDate)
+//         return ele;
+//       }
+//     });
+
+//     return res.send({ total: cycleChanges.length, data: cycleChanges });
+//   } catch (error) {
+//     return res.send({ data: error });
+//   }
+// });
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
