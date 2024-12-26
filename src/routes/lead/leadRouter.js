@@ -245,7 +245,7 @@ leadRouter.get("/ok", (req, res) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "test_1.csv");
+  const csvFilePath = path.join(__dirname, "narayan_leads_26_12_24.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
@@ -280,7 +280,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           Number: phoneNumber,
           Cp,
           TeamLeaderDate: leadAssignDate,
-          Teamleader,
+          TeamLeader1,
           Project,
           Requirement,
           taggingstatus,
@@ -306,7 +306,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           teamLeaders.find((tl) =>
             tl.firstName
               .toLowerCase()
-              .includes(Teamleader.split(" ")[0].toLowerCase())
+              .includes(TeamLeader1.split(" ")[0].toLowerCase())
           )?._id ?? null;
 
         let channelPartner =
@@ -340,7 +340,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
         dataTuPush.push({
           firstName,
           lastName,
-          phoneNumber: phoneNumber.replace(/\s+/g, "").toLowerCase(),
+          phoneNumber: parseInt(phoneNumber.replace(/\s+/g, "").toLowerCase()),
           teamLeader: newTeamleader,
           channelPartner,
           dataAnalyzer,
@@ -350,6 +350,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           approvalRemark: "approved",
           startDate,
           cycleStartDate,
+          stage: "visit",
           project: projs,
           cycle: {
             nextTeamLeader: null,
@@ -359,6 +360,13 @@ leadRouter.post("/lead-updates", async (req, res) => {
             startDate: cycleStartDate,
             validTill: validTill,
           },
+          approvalHistory: [
+            {
+              employee: dataAnalyzer,
+              approvedAt: cycleStartDate,
+              remark: "approved",
+            },
+          ],
         });
       }
       await leadModel.insertMany(dataTuPush);
