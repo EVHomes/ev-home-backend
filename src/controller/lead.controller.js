@@ -1277,15 +1277,16 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     });
 
     const pendingCount = await leadModel.countDocuments({
-      stage: { $ne: "tagging-over" },
+      // stage: { $ne: "tagging-over" },
       leadType: { $ne: "walk-in" },
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
-      $or: [
+      $and: [
+        { stage: "approval" },
         { approvalStatus: "pending" },
-        { visitStatus: "pending" },
-        { revisitStatus: "pending" },
-        { bookingStatus: { $ne: "booked" } },
+        // { visitStatus: "pending" },
+        // { revisitStatus: "pending" },
+        // { bookingStatus: { $ne: "booked" } },
       ],
     });
 
@@ -1401,15 +1402,13 @@ export const getSimilarLeadsById = async (req, res, next) => {
   }
 };
 
-
-export const getSiteVisitLeadByPhoneNumber=async(req,res)=>{
-
-  const phoneNumber=req.params.id;
+export const getSiteVisitLeadByPhoneNumber = async (req, res) => {
+  const phoneNumber = req.params.id;
   try {
     if (!phoneNumber) return res.send(errorRes(403, "id is required"));
 
     const respSite = await leadModel
-    .findOne({ phoneNumber: phoneNumber })
+      .findOne({ phoneNumber: phoneNumber })
       .populate(leadPopulateOptions);
 
     if (!respSite)
@@ -1423,15 +1422,10 @@ export const getSiteVisitLeadByPhoneNumber=async(req,res)=>{
         data: respSite,
       })
     );
-  }catch(error){
-    return res.send(errorRes(500,`server error:${error?.message}`))
+  } catch (error) {
+    return res.send(errorRes(500, `server error:${error?.message}`));
   }
-
 };
-
-
-
-
 
 export const addLead = async (req, res, next) => {
   const body = req.filteredBody;
