@@ -32,6 +32,7 @@ import {
   getLeadCountsByChannelPartnerById,
   getCpSalesFunnel,
   get24hrLeadsNameList,
+  getSiteVisitLeadByPhoneNumber,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -170,6 +171,10 @@ const parseDate = (dateString) => {
 
   return date;
 };
+
+leadRouter.get("/sitevisitLead-phoneNumber/:id",getSiteVisitLeadByPhoneNumber);
+
+
 
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
