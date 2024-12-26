@@ -1154,9 +1154,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       statusToFind = {
         approvalStatus: { $eq: "rejected" },
       };
-    } 
-    
-    else if (status === "pending") {
+    } else if (status === "pending") {
       statusToFind = {
         $or: [
           {
@@ -1171,8 +1169,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
           },
         ],
       };
-    } 
-    else if (status === "revisit-pending") {
+    } else if (status === "revisit-pending") {
       // console.log("ersi pendding");
       statusToFind = {
         stage: { $eq: "revisit" },
@@ -3913,7 +3910,7 @@ export const generateInternalLeadPdf = async (req, res) => {
 
     const leads = await leadModel
       .find({
-        "cycle.startDate": { $gte: startOfYesterday, $lt: endOfYesterday },
+        startDate: { $gte: startOfYesterday, $lt: endOfYesterday },
       })
       .populate(leadPopulateOptions);
 
@@ -3998,16 +3995,18 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
           `Data Analyzer: ${
-            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
-            "N/A"
+            (lead.dataAnalyzer?.firstName ?? "") +
+              " " +
+              (lead.dataAnalyzer?.lastName ?? "") || "N/A"
           }`,
           300,
           cardY + 30
         )
         .text(
           `Team Leader: ${
-            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
-            "N/A"
+            (lead.teamLeader?.firstName ?? "") +
+              " " +
+              (lead.teamLeader?.lastName ?? "") || "N/A"
           }`,
           300,
           cardY + 45
@@ -4081,7 +4080,8 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
 
     const leads = await leadModel
       .find({
-        "cycle.startDate": { $gte: startOfYesterday, $lt: endOfYesterday },
+        startDate: { $gte: startOfYesterday, $lt: endOfYesterday },
+        channelPartner: { $ne: null },
       })
       .populate(leadPopulateOptions);
 
