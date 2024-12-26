@@ -4,6 +4,7 @@ import { startOfWeek, addDays, format } from "date-fns";
 import { postSalePopulateOptions } from "../utils/constant.js";
 import TargetModel from "../model/target.model.js";
 import { updateFlatInfoByIdFlatNo } from "./ourProjects.controller.js";
+import ourProjectModel from "../model/ourProjects.model.js";
 
 export const getPostSaleLeads = async (req, res, next) => {
   try {
@@ -211,6 +212,18 @@ export const addPostSaleLead = async (req, res, next) => {
     }
     if (body.applicants == null || body.applicants?.length <= 0) {
       return res.send(errorRes(401, "Aplicant cant be empty"));
+    }
+    const findProject = await ourProjectModel.findById(project);
+
+    if (findProject) {
+      const findExisintFlat = findProject.flatList.find(
+        (ele) => ele.floor === floor && ele.number === number
+      );
+      if (findExisintFlat) {
+        return res.send(
+          errorRes(401, `Flat ${findExisintFlat.flatNo} is Already Booked`)
+        );
+      }
     }
 
     // const resp = await postSaleLeadModel.find();
