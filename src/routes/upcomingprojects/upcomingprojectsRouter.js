@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   addupcomingProjects,
   getupcomingProjects,
+  updateupcomingProjects,
   
 } from "../../controller/upcoming_projects.controller.js";
 
@@ -13,6 +14,10 @@ upcomingRouter.post(
   //  authenticateToken,
   addupcomingProjects,
 );
-
+upcomingRouter.post(
+  "/upcomingProjects-update/:id",
+  // authenticateToken,
+  updateupcomingProjects,
+);
 
 export default upcomingRouter;
