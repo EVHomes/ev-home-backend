@@ -98,7 +98,7 @@ export const updateTask = async (req, res, next) => {
       //   myTask.type.toLowerCase() == "followup"
       // ) {
       const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
-        interestedStatus: intrestedStatus,
+        clientInterestedStatus: intrestedStatus,
         $addToSet: {
           callHistory: {
             caller: user?._id,
