@@ -12,7 +12,7 @@ export const getPostSaleLeads = async (req, res, next) => {
     let project = req.query.project; // Get the project name from the query
     let page = parseInt(req.query.page) || 1; // Start from page 1
     let limit = parseInt(req.query.limit) || 20;
-
+    console.log(project);
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
 
@@ -45,7 +45,7 @@ export const getPostSaleLeads = async (req, res, next) => {
           },
         },
       ].filter(Boolean),
-      ...(project ? { project: project } : {}), // Filter by project if provided
+      ...(project ? { project: project } : {}),
     };
 
     const resp = await postSaleLeadModel
@@ -59,12 +59,15 @@ export const getPostSaleLeads = async (req, res, next) => {
     const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
     const registrationDone = await postSaleLeadModel.countDocuments({
       bookingStatus: "Registration Done",
+      ...(project ? { project: project } : {}),
     });
     const eoiRecieved = await postSaleLeadModel.countDocuments({
       bookingStatus: "EOI Recieved",
+      ...(project ? { project: project } : {}),
     });
     const cancelled = await postSaleLeadModel.countDocuments({
       bookingStatus: "Cancelled",
+      ...(project ? { project: project } : {}),
     });
     const totalPages = Math.ceil(totalItems / limit);
 
