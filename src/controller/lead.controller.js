@@ -4388,18 +4388,18 @@ export const getCpSalesFunnel = async (req, res, next) => {
     const interested = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
-      interestedStatus: { $ne: "cold" },
+      clientInterestedStatus: { $eq: "interested" },
     });
     const notInterested = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
-      interestedStatus: { $eq: "cold" },
+      clientInterestedStatus: { $eq: "not-interested" },
     });
     const followup = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       // callHistory: { $gte: 1 },
-      // followupStatus: { $ne: "pending" },
+      followupStatus: { $eq: "followup" },
     });
 
     // itreseted, not intrested
@@ -4410,8 +4410,8 @@ export const getCpSalesFunnel = async (req, res, next) => {
         visitDone,
         contacted,
         received,
-        interested: 0,
-        notInterested: 0,
+        interested,
+        notInterested,
         followup,
       },
     });
