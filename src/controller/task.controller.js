@@ -126,7 +126,7 @@ export const updateTask = async (req, res, next) => {
       .populate(taskPopulateOptions);
 
     return res.send(
-      successRes(200, "get task", {
+      successRes(200, "Task updated", {
         data: resp,
       })
     );

@@ -31,6 +31,7 @@ const ALLOWED_LEAD_FIELDS = [
   "clientStatus",
   "clientRef",
   "leadType",
+  "clientInterestedStatus",
 ];
 
 // Middleware to validate and filter fields
