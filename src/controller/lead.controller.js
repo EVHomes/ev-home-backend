@@ -4200,6 +4200,7 @@ export const triggerCycleChange = async (req, res, next) => {
     const allCycleExpiredLeads = await leadModel.find({
       "cycle.validTill": { $lt: currentDate },
       startDate: { $gte: filterDate },
+      bookingStatus: { $ne: "booked" },
     });
 
     if (allCycleExpiredLeads.length > 0) {
@@ -4278,13 +4279,11 @@ export const triggerCycleChange = async (req, res, next) => {
               validTill.setDate(validTill.getDate() + 180);
               cCycle.currentOrder = 1;
               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
-              cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
               cCycle.lastIndex = lastIndex;
             } else {
               cCycle.currentOrder += 1;
               cCycle.teamLeader =
                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-              cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
               cCycle.lastIndex = lastIndex;
               cCycle.nextIndex = lastIndex + 1;
 

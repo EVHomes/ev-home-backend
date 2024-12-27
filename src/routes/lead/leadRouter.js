@@ -263,6 +263,7 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
   try {
     const filterDate = new Date("2024-12-10");
     const filterDatelat = new Date("2024-12-11");
+    const timeZone = "Asia/Kolkata";
 
     // Fetch leads with the filtering criteria
     const resp = await leadModel.find({
@@ -282,9 +283,13 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
       "currentCycleTeamLeader",
       "currentCycleOrder",
       "currentCycleStage",
+      "currentCycleAssignDate",
+      "currentCycleDeadline",
       "cycleHistory[0].order",
       "cycleHistory[0].teamLeader",
       "cycleHistory[0].stage",
+      "cycleHistory[0].AssignDate",
+      "cycleHistory[0].Deadline",
     ];
 
     // Prepare CSV header
@@ -317,6 +322,18 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
               return lead.cycle?.currentOrder
                 ? `"${lead.cycle.currentOrder}"`
                 : '""';
+            case "currentCycleAssignDate":
+              return lead.cycle?.startDate
+                ? `"${moment(lead.cycle.startDate)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+            case "currentCycleDeadline":
+              return lead.cycle?.validTill
+                ? `"${moment(lead.cycle.validTill)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
 
             case "cycleHistory[0].order":
               return lead.cycleHistory[0]?.currentOrder
@@ -329,6 +346,18 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
             case "cycleHistory[0].stage":
               return lead.cycleHistory[0]?.stage
                 ? `"${lead.cycleHistory[0].stage}"`
+                : '""';
+            case "cycleHistory[0].AssignDate":
+              return lead.cycleHistory[0]?.startDate
+                ? `"${moment(lead.cycleHistory[0].startDate)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+            case "cycleHistory[0].Deadline":
+              return lead.cycleHistory[0]?.validTill
+                ? `"${moment(lead.cycleHistory[0].validTill)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
                 : '""';
 
             default:
