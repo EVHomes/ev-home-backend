@@ -75,33 +75,75 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     if (status === "booking-done" || status === "booking") {
       statusToFind = {
         stage: "booking",
-        bookingStatus: { $ne: "pending" },
+        // bookingStatus: { $ne: "pending" },
+        $and: [
+          {
+            bookingStatus: { $ne: null },
+          },
+          {
+            bookingStatus: { $ne: "pending" },
+          },
+        ],
       };
     } else if (status === "revisit-done") {
       statusToFind = {
         stage: "booking",
         // bookingStatus: { $ne: "booked" },
-        revisitStatus: { $ne: "pending" },
+        // revisitStatus: { $ne: "pending" },
+        $and: [
+          {
+            revisitStatus: { $ne: null },
+          },
+          {
+            revisitStatus: { $ne: "pending" },
+          },
+        ],
+
         ...walkinType,
       };
     } else if (status === "visit-done" || status === "visit") {
       statusToFind = {
         stage: { $ne: "approval" },
         stage: { $ne: "booking" },
-        visitStatus: { $ne: "pending" },
+        $and: [
+          {
+            visitStatus: { $ne: null },
+          },
+          {
+            visitStatus: { $ne: "pending" },
+          },
+        ],
         ...walkinType,
       };
     } else if (status === "revisit-pending") {
       statusToFind = {
         stage: { $eq: "revisit" },
         stage: { $ne: "booking" },
-        revisitStatus: { $eq: "pending" },
+        // revisitStatus: { $eq: "pending" },
+        $and: [
+          {
+            revisitStatus: { $ne: null },
+          },
+          {
+            revisitStatus: { $eq: "pending" },
+          },
+        ],
+
         ...walkinType,
       };
     } else if (status === "visit-pending") {
       statusToFind = {
         stage: { $eq: "visit" },
-        visitStatus: { $eq: "pending" },
+        // visitStatus: { $eq: "pending" },
+        $and: [
+          {
+            visitStatus: { $ne: null },
+          },
+          {
+            visitStatus: { $eq: "pending" },
+          },
+        ],
+
         ...walkinType,
       };
     } else if (status === "tagging-over") {
@@ -239,9 +281,23 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const revisitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
-      stage: { $eq: "revisit" },
-      revisitStatus: { $eq: "pending" },
+      stage: "booking",
+      // bookingStatus: { $ne: "booked" },
+      // revisitStatus: { $ne: "pending" },
+      $and: [
+        {
+          revisitStatus: { $ne: null },
+        },
+        {
+          revisitStatus: { $ne: "pending" },
+        },
+      ],
+
       ...walkinType,
+
+      // stage: { $eq: "revisit" },
+      // revisitStatus: { $eq: "pending" },
+      // ...walkinType,
     });
 
     const visit2Count = await leadModel.countDocuments({
