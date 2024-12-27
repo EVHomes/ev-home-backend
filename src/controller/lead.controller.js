@@ -274,8 +274,20 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
-      visitStatus: { $ne: "pending" },
-      leadType: "cp",
+      // visitStatus: { $ne: "pending" },
+      stage: { $ne: "approval" },
+      stage: { $ne: "booking" },
+      $and: [
+        {
+          visitStatus: { $ne: null },
+        },
+        {
+          visitStatus: { $ne: "pending" },
+        },
+      ],
+      ...walkinType,
+
+      // leadType: "cp",
     });
 
     const revisitCount = await leadModel.countDocuments({
