@@ -7,11 +7,20 @@ import { sendNotificationWithImage } from "./oneSignal.controller.js";
 
 export const getTask = async (req, res, next) => {
   const id = req.params.id;
+  const type = req.query.type;
   try {
     if (!id) return res.send(errorRes(401, "no id provided"));
-
+    let filter = {
+      assignTo: id,
+    };
+    if(type) {
+       filter = {
+        assignTo: id,
+        type,
+      };
+    };
     const resp = await taskModel
-      .find({ assignTo: id })
+      .find(filter)
       .populate(taskPopulateOptions);
 
     return res.send(
