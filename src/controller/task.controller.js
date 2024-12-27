@@ -72,7 +72,8 @@ export const assignTask = async (req, res, next) => {
 };
 
 export const updateTask = async (req, res, next) => {
-  const { status, remark } = req.body;
+  const { stage, status, intrestedStatus, feedback, document, recording } =
+    req.body;
   const taskId = req.params.id;
   const user = req.user;
   try {
@@ -83,27 +84,30 @@ export const updateTask = async (req, res, next) => {
 
     if (!myTask) return res.send(errorRes(404, "task not found"));
     if (myTask.lead != null) {
-      if (
-        myTask.type.toLowerCase() == "first-call" ||
-        myTask.type.toLowerCase() == "followup"
-      ) {
-        const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
-          $addToSet: {
-            callHistory: {
-              caller: user?._id,
-              callDate: startDate,
-              remark: remark ?? "",
-              feedback: remark ?? "",
-            },
-            updateHistory: {
-              employee: user?._id,
-              changes: remark ?? "task updated",
-              updatedAt: startDate,
-              remark: remark,
-            },
+      // if (
+      //   myTask.type.toLowerCase() == "first-call" ||
+      //   myTask.type.toLowerCase() == "followup"
+      // ) {
+      const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
+        interestedStatus: intrestedStatus,
+        $addToSet: {
+          callHistory: {
+            caller: user?._id,
+            callDate: startDate,
+            remark: stage ?? "",
+            feedback: feedback ?? "",
+            document: document,
+            recording: recording,
           },
-        });
-      }
+          updateHistory: {
+            employee: user?._id,
+            changes: feedback ?? "task updated",
+            updatedAt: startDate,
+            remark: stage,
+          },
+        },
+      });
+      // }
     }
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {

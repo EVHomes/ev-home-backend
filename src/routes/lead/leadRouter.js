@@ -172,7 +172,7 @@ const parseDate = (dateString) => {
   return date;
 };
 
-leadRouter.get("/sitevisitLead-phoneNumber/:id",getSiteVisitLeadByPhoneNumber);
+leadRouter.get("/sitevisitLead-phoneNumber/:id", getSiteVisitLeadByPhoneNumber);
 
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
@@ -211,6 +211,17 @@ leadRouter.get("/lead-tagging-over-check", async (req, res) => {
     res.send(data);
   }
 });
+function getStatus1(lead) {
+  if (lead.stage == "visit") {
+    return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+  } else if (lead.stage == "revisit") {
+    return `${lead.stage ?? ""} ${lead.revisitStatus ?? ""}`;
+  } else if (lead.stage == "booking") {
+    return `${lead.stage ?? ""} ${lead.bookingStatus ?? ""}`;
+  }
+
+  return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+}
 
 // leadRouter.get("/getCycle",(req,res)=> {
 
@@ -252,25 +263,106 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
   try {
     const filterDate = new Date("2024-12-10");
     const filterDatelat = new Date("2024-12-11");
+    const timeZone = "Asia/Kolkata";
 
+    // Fetch leads with the filtering criteria
     const resp = await leadModel.find({
       startDate: { $gte: filterDate, $lt: filterDatelat },
       leadType: { $ne: "walk-in" },
     });
-    // .populate(leadPopulateOptions);
 
     const cycleChanges = resp.filter((ele) => ele.cycleHistory.length > 0);
 
-    // Prepare data for CSV
-    const fields = ["_id", "name", "cycle", "cycleHistory"];
+    // Define the fields for CSV
+    const fields = [
+      "id",
+      "firstName",
+      "lastName",
+      "phoneNumber",
+      "channelPartner",
+      "currentCycleTeamLeader",
+      "currentCycleOrder",
+      "currentCycleStage",
+      "currentCycleAssignDate",
+      "currentCycleDeadline",
+      "cycleHistory[0].order",
+      "cycleHistory[0].teamLeader",
+      "cycleHistory[0].stage",
+      "cycleHistory[0].AssignDate",
+      "cycleHistory[0].Deadline",
+    ];
+
+    // Prepare CSV header
     const header = fields.join(",") + "\n";
+
+    // Prepare CSV rows
     const csvRows = cycleChanges.map((lead) => {
       return fields
         .map((field) => {
-          // if (field === "cycleHistory") {
-          return JSON.stringify(lead[field]); // Convert array/object to string
-          // }
-          // return lead[field] || "";
+          switch (field) {
+            case "id":
+              return `"${lead._id || ""}"`;
+
+            case "firstName":
+              return `"${lead.firstName || ""}"`;
+            case "lastName":
+              return `"${lead.lastName || ""}"`;
+            case "phoneNumber":
+              return `"${lead.phoneNumber || ""}"`;
+            case "channelPartner":
+              return `"${lead.channelPartner || "NA"}"`;
+
+            case "currentCycleTeamLeader":
+              return lead.cycle?.teamLeader
+                ? `"${lead.cycle.teamLeader}"`
+                : '""';
+            case "currentCycleStage":
+              return lead.cycle?.stage ? `"${getStatus1(lead)}"` : '""';
+            case "currentCycleOrder":
+              return lead.cycle?.currentOrder
+                ? `"${lead.cycle.currentOrder}"`
+                : '""';
+            case "currentCycleAssignDate":
+              return lead.cycle?.startDate
+                ? `"${moment(lead.cycle.startDate)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+            case "currentCycleDeadline":
+              return lead.cycle?.validTill
+                ? `"${moment(lead.cycle.validTill)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+
+            case "cycleHistory[0].order":
+              return lead.cycleHistory[0]?.currentOrder
+                ? `"${lead.cycleHistory[0].currentOrder}"`
+                : '""';
+            case "cycleHistory[0].teamLeader":
+              return lead.cycleHistory[0]?.teamLeader
+                ? `"${lead.cycleHistory[0].teamLeader}"`
+                : '""';
+            case "cycleHistory[0].stage":
+              return lead.cycleHistory[0]?.stage
+                ? `"${lead.cycleHistory[0].stage}"`
+                : '""';
+            case "cycleHistory[0].AssignDate":
+              return lead.cycleHistory[0]?.startDate
+                ? `"${moment(lead.cycleHistory[0].startDate)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+            case "cycleHistory[0].Deadline":
+              return lead.cycleHistory[0]?.validTill
+                ? `"${moment(lead.cycleHistory[0].validTill)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+
+            default:
+              return '""'; // Default empty string for any undefined fields
+          }
         })
         .join(",");
     });
