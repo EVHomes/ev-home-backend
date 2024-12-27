@@ -69,7 +69,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let statusToFind = null;
     let walkinType = { leadType: { $ne: "walk-in" } };
 
-    if (status === "visit2") {
+    if (status.includes("visit2")) {
       walkinType = { leadType: { $ne: "cp" } };
     }
     if (status === "booking-done" || status === "booking") {
