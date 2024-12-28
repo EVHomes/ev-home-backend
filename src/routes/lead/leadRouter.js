@@ -251,6 +251,8 @@ leadRouter.get("/fix-pending-lead", async (req, res) => {
       approvalStatus: { $ne: "approved" },
       startDate: {
         $gte: new Date("2024-09-25T00:00:00.000Z"), // Filter for December leads
+      },
+      validTill: {
         $lt: new Date("2025-01-01T00:00:00.000Z"),
       },
     });
@@ -263,7 +265,7 @@ leadRouter.get("/fix-pending-lead", async (req, res) => {
       if (ele.validTill < today) {
         expiredLeads.push(ele._id);
       } else {
-        validLeads.push(ele._id);
+        validLeads.push({ id: ele._id, phoneNumber: ele.phoneNumber });
       }
     });
 

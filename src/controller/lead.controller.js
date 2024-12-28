@@ -1455,8 +1455,10 @@ export const searchLeads = async (req, res, next) => {
         approvalStatus: { $regex: approvalStatus, $options: "i" },
       }),
       ...(channelPartner ? { channelPartner: channelPartner } : {}),
-      ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
-      ...(stage === "all" ? {} : { leadType: { $ne: "walk-in" } }),
+      // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
+      ...(stage === "all"
+        ? { stage: stage }
+        : { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
