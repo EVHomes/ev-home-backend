@@ -107,7 +107,8 @@ export const updateTask = async (req, res, next) => {
           callHistory: {
             caller: user?._id,
             callDate: startDate,
-            remark: stage ?? "",
+            remark: status ?? "",
+            stage: stage ?? "",
             feedback: feedback ?? "",
             document: document,
             recording: recording,
