@@ -6,6 +6,7 @@ import {
   getPostSaleLeadsForExecutive,
   updatePostSaleLeadById,
   getPostSaleLeadByFlat,
+  getLeadCounts
 } from "../../controller/postSaleLead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
@@ -18,6 +19,8 @@ postSaleRouter.get(
   getPostSaleLeadsForExecutive
 );
 postSaleRouter.get("/post-sale-lead-by-id/:flatNo", getPostSaleLeadById);
+postSaleRouter.get("/post-sale-lead",getLeadCounts);
+
 
 postSaleRouter.get("/post-sale-lead-by-flat", getPostSaleLeadByFlat);
 
