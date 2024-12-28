@@ -180,6 +180,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         ],
         ...walkinType,
       };
+    }else if (status === "followup") {
+      statusToFind = {
+        taskRef: { $ne: null },
+        ...walkinType,
+      };
     }
 
     // Base Filter for Search and Leads Query
