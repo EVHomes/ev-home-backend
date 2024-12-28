@@ -53,6 +53,12 @@ export const assignTask = async (req, res, next) => {
     const foundTLPlayerId = await oneSignalModel.find({
       docId: assignTo,
     });
+    if (body?.lead) {
+      const foundLead = await leadModel.findOneAndUpdate(
+        { _id: body?.lead },
+        { taskRef: resp?._id }
+      );
+    }
 
     if (foundTLPlayerId.length > 0) {
       // console.log(foundTLPlayerId);

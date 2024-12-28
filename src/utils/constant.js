@@ -309,6 +309,39 @@ export const leadPopulateOptions = [
       },
     ],
   },
+  {
+    path: "taskRef",
+    populate: [
+      // {
+      //   path: "lead",
+      //   populate: leadPopulateOptions,
+      // },
+      {
+        path: "assignBy",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+      {
+        path: "assignTo",
+        select: "firstName lastName",
+        populate: [
+          { path: "designation" },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: [{ path: "designation" }],
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 export const meetingPopulateOptions = [
