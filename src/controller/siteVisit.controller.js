@@ -56,15 +56,13 @@ export const getSiteVisitsById = async (req, res) => {
   }
 };
 
-
-export const getSiteVisitByPhoneNumber=async(req,res)=>{
-
-  const phoneNumber=req.params.phoneNumber.toString();
+export const getSiteVisitByPhoneNumber = async (req, res) => {
+  const phoneNumber = req.params.phoneNumber.toString();
   try {
     if (!phoneNumber) return res.send(errorRes(403, "id is required"));
 
     const respSite = await siteVisitModel
-    .findOne({ phoneNumber: phoneNumber })
+      .findOne({ phoneNumber: phoneNumber })
       .populate(siteVisitPopulateOptions);
 
     if (!respSite)
@@ -78,10 +76,9 @@ export const getSiteVisitByPhoneNumber=async(req,res)=>{
         data: respSite,
       })
     );
-  }catch(error){
-    return res.send(errorRes(500,`server error:${error?.message}`))
+  } catch (error) {
+    return res.send(errorRes(500, `server error:${error?.message}`));
   }
-
 };
 
 export const searchSiteVisits = async (req, res, next) => {
@@ -308,6 +305,7 @@ export const addSiteVisits = async (req, res) => {
         //   await foundLead.save();
         // }
         console.log("lead is not null");
+        const today = new Date();
 
         if (visitType === "visit") {
           foundLead.visitStatus = "visited";
@@ -315,6 +313,16 @@ export const addSiteVisits = async (req, res) => {
           foundLead.visitRef = populateNewSiteVisit._id;
           foundLead.cycle.stage = "revisit";
           foundLead.cycle.validTill = new Date().addDays(30);
+          const totalRemainingDays = Math.floor(
+            (new Date(foundLead.validTill) - today) / (1000 * 60 * 60 * 24)
+          );
+          if (totalRemainingDays <= 29) {
+            const availableDays = 30 - totalRemainingDays;
+            // Logic for leads with 29 or fewer remaining days
+            foundLead.validTill = new Date(foundLead.validTill).addDays(
+              availableDays
+            );
+          }
           await foundLead.save();
         }
 
@@ -325,6 +333,16 @@ export const addSiteVisits = async (req, res) => {
           foundLead.cycle.stage = "revisit";
           foundLead.cycle.validTill = new Date().addDays(30);
           foundLead.virtualMeetingDoc = virtualMeetingDoc;
+          const totalRemainingDays = Math.floor(
+            (new Date(foundLead.validTill) - today) / (1000 * 60 * 60 * 24)
+          );
+          if (totalRemainingDays <= 29) {
+            const availableDays = 30 - totalRemainingDays;
+            // Logic for leads with 29 or fewer remaining days
+            foundLead.validTill = new Date(foundLead.validTill).addDays(
+              availableDays
+            );
+          }
 
           await foundLead.save();
         }
