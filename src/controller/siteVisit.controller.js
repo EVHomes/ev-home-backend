@@ -376,6 +376,16 @@ export const addSiteVisits = async (req, res) => {
           foundLead.visitRef = populateNewSiteVisit._id;
           foundLead.cycle.stage = "revisit";
           foundLead.cycle.validTill = new Date().addDays(30);
+          const totalRemainingDays = Math.floor(
+            (new Date(foundLead.validTill) - today) / (1000 * 60 * 60 * 24)
+          );
+          if (totalRemainingDays <= 29) {
+            const availableDays = 30 - totalRemainingDays;
+            // Logic for leads with 29 or fewer remaining days
+            foundLead.validTill = new Date(foundLead.validTill).addDays(
+              availableDays
+            );
+          }
 
           await foundLead.save();
         }
@@ -387,6 +397,16 @@ export const addSiteVisits = async (req, res) => {
           foundLead.cycle.stage = "revisit";
           foundLead.cycle.validTill = new Date().addDays(30);
           foundLead.virtualMeetingDoc = virtualMeetingDoc;
+          const totalRemainingDays = Math.floor(
+            (new Date(foundLead.validTill) - today) / (1000 * 60 * 60 * 24)
+          );
+          if (totalRemainingDays <= 29) {
+            const availableDays = 30 - totalRemainingDays;
+            // Logic for leads with 29 or fewer remaining days
+            foundLead.validTill = new Date(foundLead.validTill).addDays(
+              availableDays
+            );
+          }
 
           await foundLead.save();
         }
