@@ -197,6 +197,11 @@ export const leadSchema = new mongoose.Schema(
       ref: "siteVisits",
       default: null,
     },
+    taskRef: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "task",
+      default: null,
+    },
     revisitStatus: {
       type: String,
       default: "pending",
@@ -228,6 +233,11 @@ export const leadSchema = new mongoose.Schema(
       type: String,
       default: "Cold",
     },
+    clientInterestedStatus: {
+      type: String,
+      default: null,
+    },
+
     clientStatus: {
       type: String,
       default: "none",

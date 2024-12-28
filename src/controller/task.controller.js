@@ -13,15 +13,13 @@ export const getTask = async (req, res, next) => {
     let filter = {
       assignTo: id,
     };
-    if(type) {
-       filter = {
+    if (type) {
+      filter = {
         assignTo: id,
         type,
       };
-    };
-    const resp = await taskModel
-      .find(filter)
-      .populate(taskPopulateOptions);
+    }
+    const resp = await taskModel.find(filter).populate(taskPopulateOptions);
 
     return res.send(
       successRes(200, "get task", {
@@ -53,6 +51,12 @@ export const assignTask = async (req, res, next) => {
     const foundTLPlayerId = await oneSignalModel.find({
       docId: assignTo,
     });
+    if (body?.lead) {
+      const foundLead = await leadModel.findOneAndUpdate(
+        { _id: body?.lead },
+        { taskRef: resp?._id }
+      );
+    }
 
     if (foundTLPlayerId.length > 0) {
       // console.log(foundTLPlayerId);
@@ -81,7 +85,8 @@ export const assignTask = async (req, res, next) => {
 };
 
 export const updateTask = async (req, res, next) => {
-  const { status, remark } = req.body;
+  const { stage, status, intrestedStatus, feedback, document, recording } =
+    req.body;
   const taskId = req.params.id;
   const user = req.user;
   try {
@@ -92,27 +97,31 @@ export const updateTask = async (req, res, next) => {
 
     if (!myTask) return res.send(errorRes(404, "task not found"));
     if (myTask.lead != null) {
-      if (
-        myTask.type.toLowerCase() == "first-call" ||
-        myTask.type.toLowerCase() == "followup"
-      ) {
-        const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
-          $addToSet: {
-            callHistory: {
-              caller: user?._id,
-              callDate: startDate,
-              remark: remark ?? "",
-              feedback: remark ?? "",
-            },
-            updateHistory: {
-              employee: user?._id,
-              changes: remark ?? "task updated",
-              updatedAt: startDate,
-              remark: remark,
-            },
+      // if (
+      //   myTask.type.toLowerCase() == "first-call" ||
+      //   myTask.type.toLowerCase() == "followup"
+      // ) {
+      const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
+        clientInterestedStatus: intrestedStatus,
+        $addToSet: {
+          callHistory: {
+            caller: user?._id,
+            callDate: startDate,
+            remark: stage ?? "",
+            feedback: feedback ?? "",
+            document: document,
+            recording: recording,
           },
-        });
-      }
+          updateHistory: {
+            employee: user?._id,
+            changes: feedback ?? "task updated",
+            updatedAt: startDate,
+            remark: stage,
+          },
+        },
+      });
+      // if()
+      // }
     }
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {
@@ -122,7 +131,7 @@ export const updateTask = async (req, res, next) => {
       .populate(taskPopulateOptions);
 
     return res.send(
-      successRes(200, "get task", {
+      successRes(200, "Task updated", {
         data: resp,
       })
     );

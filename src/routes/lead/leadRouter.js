@@ -161,18 +161,31 @@ leadRouter.get(
   // authenticateToken,
   checkLeadsExists
 );
-const parseDate = (dateString) => {
-  // Split the string into day, month, year
+const parseDate = (dateString, timeString = "12:00:00") => {
+  // Split the date string into day, month, year
   const [day, month, year] = dateString.split("-").map(Number);
-  // const [day, month, year] = dateString.split("-").map(Number);
 
-  // Create a new Date object
-  const date = new Date(year, month - 1, day); // Adjust year and month (0-indexed)
+  // Split the time string into hours, minutes, seconds
+  const [hours, minutes, seconds] = timeString.split(":").map(Number);
+
+  // Create a new Date object with the specified date and time
+  const date = new Date(year, month - 1, day, hours, minutes, seconds);
 
   return date;
 };
 
-leadRouter.get("/sitevisitLead-phoneNumber/:id",getSiteVisitLeadByPhoneNumber);
+// const parseDate = (dateString) => {
+//   // Split the string into day, month, year
+//   const [day, month, year] = dateString.split("-").map(Number);
+//   // const [day, month, year] = dateString.split("-").map(Number);
+
+//   // Create a new Date object
+//   const date = new Date(year, month - 1, day); // Adjust year and month (0-indexed)
+
+//   return date;
+// };
+
+leadRouter.get("/sitevisitLead-phoneNumber/:id", getSiteVisitLeadByPhoneNumber);
 
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
@@ -211,6 +224,17 @@ leadRouter.get("/lead-tagging-over-check", async (req, res) => {
     res.send(data);
   }
 });
+function getStatus1(lead) {
+  if (lead.stage == "visit") {
+    return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+  } else if (lead.stage == "revisit") {
+    return `${lead.stage ?? ""} ${lead.revisitStatus ?? ""}`;
+  } else if (lead.stage == "booking") {
+    return `${lead.stage ?? ""} ${lead.bookingStatus ?? ""}`;
+  }
+
+  return `${lead.stage ?? ""} ${lead.visitStatus ?? ""}`;
+}
 
 // leadRouter.get("/getCycle",(req,res)=> {
 
@@ -219,6 +243,89 @@ leadRouter.get("/lead-tagging-over-check", async (req, res) => {
 //   res.send(results);
 // });
 
+leadRouter.get("/fix-pending-lead", async (req, res) => {
+  try {
+    const today = new Date();
+    const oldLeads = await leadModel.find({
+      stage: { $ne: "tagging-over" },
+      approvalStatus: { $ne: "approved" },
+      startDate: {
+        $gte: new Date("2024-09-25T00:00:00.000Z"), // Filter for December leads
+        $lt: new Date("2025-01-01T00:00:00.000Z"),
+      },
+    });
+
+    // Separate expired and valid leads
+    const validLeads = [];
+    const expiredLeads = [];
+
+    oldLeads.forEach((ele) => {
+      if (ele.validTill < today) {
+        expiredLeads.push(ele._id);
+      } else {
+        validLeads.push(ele._id);
+      }
+    });
+
+    // Update only valid leads
+    if (expiredLeads.length > 0) {
+      // await leadModel.updateMany(
+      //   { _id: { $in: expiredLeads } },
+      //   { $set: { stage: "tagging-over" } }
+      // );
+    }
+
+    return res.status(200).send({
+      total: oldLeads.length,
+      updated: validLeads.length,
+      expired: expiredLeads.length,
+      data: { validLeads, expiredLeads },
+    });
+  } catch (error) {
+    console.error("Error updating leads:", error);
+    return res.status(500).send({
+      message: "An error occurred while processing leads",
+      error: error.message,
+    });
+  }
+});
+
+// leadRouter.get("/fix-pending-lead", async (req, res) => {
+//   try {
+//     const today = new Date();
+//     const oldLeads = await leadModel.find({
+//       stage: { $ne: "tagging-over" },
+//       approvalStatus: { $ne: "approved" },
+//       startDate: {
+//         $gte: new Date("2024-09-25T00:00:00.000Z"), // Filter for December leads
+//         $lt: new Date("2024-12-28T00:00:00.000Z"),
+//       },
+//     });
+
+//     const leadsToUpdate = oldLeads.filter((ele) => ele.validTill > today);
+
+//     if (leadsToUpdate.length > 0) {
+//       const idsToUpdate = leadsToUpdate.map((ele) => ele._id);
+//       // await leadModel.updateMany(
+//       //   { _id: { $in: idsToUpdate } },
+//       //   { $set: { stage: "tagging-over" } }
+//       // );
+//     }
+
+//     return res.status(200).send({
+//       total: oldLeads.length,
+//       updated: leadsToUpdate.length,
+//       left: oldLeads.length - leadsToUpdate.length,
+//       data: oldLeads,
+//     });
+//   } catch (error) {
+//     console.error("Error updating leads:", error);
+//     return res.status(500).send({
+//       message: "An error occurred while processing leads",
+//       error: error.message,
+//     });
+//   }
+// });
 leadRouter.get("/ok", (req, res) => {
   // Online Javascript Editor for free
   // Write, Edit and Run your Javascript code using JS Online Compiler
@@ -252,25 +359,106 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
   try {
     const filterDate = new Date("2024-12-10");
     const filterDatelat = new Date("2024-12-11");
+    const timeZone = "Asia/Kolkata";
 
+    // Fetch leads with the filtering criteria
     const resp = await leadModel.find({
       startDate: { $gte: filterDate, $lt: filterDatelat },
       leadType: { $ne: "walk-in" },
     });
-    // .populate(leadPopulateOptions);
 
     const cycleChanges = resp.filter((ele) => ele.cycleHistory.length > 0);
 
-    // Prepare data for CSV
-    const fields = ["_id", "name", "cycle", "cycleHistory"];
+    // Define the fields for CSV
+    const fields = [
+      "id",
+      "firstName",
+      "lastName",
+      "phoneNumber",
+      "channelPartner",
+      "currentCycleTeamLeader",
+      "currentCycleOrder",
+      "currentCycleStage",
+      "currentCycleAssignDate",
+      "currentCycleDeadline",
+      "cycleHistory[0].order",
+      "cycleHistory[0].teamLeader",
+      "cycleHistory[0].stage",
+      "cycleHistory[0].AssignDate",
+      "cycleHistory[0].Deadline",
+    ];
+
+    // Prepare CSV header
     const header = fields.join(",") + "\n";
+
+    // Prepare CSV rows
     const csvRows = cycleChanges.map((lead) => {
       return fields
         .map((field) => {
-          // if (field === "cycleHistory") {
-          return JSON.stringify(lead[field]); // Convert array/object to string
-          // }
-          // return lead[field] || "";
+          switch (field) {
+            case "id":
+              return `"${lead._id || ""}"`;
+
+            case "firstName":
+              return `"${lead.firstName || ""}"`;
+            case "lastName":
+              return `"${lead.lastName || ""}"`;
+            case "phoneNumber":
+              return `"${lead.phoneNumber || ""}"`;
+            case "channelPartner":
+              return `"${lead.channelPartner || "NA"}"`;
+
+            case "currentCycleTeamLeader":
+              return lead.cycle?.teamLeader
+                ? `"${lead.cycle.teamLeader}"`
+                : '""';
+            case "currentCycleStage":
+              return lead.cycle?.stage ? `"${getStatus1(lead)}"` : '""';
+            case "currentCycleOrder":
+              return lead.cycle?.currentOrder
+                ? `"${lead.cycle.currentOrder}"`
+                : '""';
+            case "currentCycleAssignDate":
+              return lead.cycle?.startDate
+                ? `"${moment(lead.cycle.startDate)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+            case "currentCycleDeadline":
+              return lead.cycle?.validTill
+                ? `"${moment(lead.cycle.validTill)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+
+            case "cycleHistory[0].order":
+              return lead.cycleHistory[0]?.currentOrder
+                ? `"${lead.cycleHistory[0].currentOrder}"`
+                : '""';
+            case "cycleHistory[0].teamLeader":
+              return lead.cycleHistory[0]?.teamLeader
+                ? `"${lead.cycleHistory[0].teamLeader}"`
+                : '""';
+            case "cycleHistory[0].stage":
+              return lead.cycleHistory[0]?.stage
+                ? `"${lead.cycleHistory[0].stage}"`
+                : '""';
+            case "cycleHistory[0].AssignDate":
+              return lead.cycleHistory[0]?.startDate
+                ? `"${moment(lead.cycleHistory[0].startDate)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+            case "cycleHistory[0].Deadline":
+              return lead.cycleHistory[0]?.validTill
+                ? `"${moment(lead.cycleHistory[0].validTill)
+                    .tz(timeZone)
+                    .format("DD-MM-YYYY HH:mm")}"`
+                : '""';
+
+            default:
+              return '""'; // Default empty string for any undefined fields
+          }
         })
         .join(",");
     });
@@ -320,7 +508,7 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "narayan_leads_26_12_24.csv");
+  const csvFilePath = path.join(__dirname, "pavan_leads_28_12_24.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
@@ -355,14 +543,14 @@ leadRouter.post("/lead-updates", async (req, res) => {
           Number: phoneNumber,
           Cp,
           TeamLeaderDate: leadAssignDate,
-          TeamLeader1,
+          Teamleader,
           Project,
           Requirement,
           taggingstatus,
           "Data Analyer": anayl,
         } = row;
-        let startDate = parseDate(Leadreceivedon);
-        let cycleStartDate = parseDate(leadAssignDate);
+        let startDate = parseDate(Leadreceivedon, "09:00:00");
+        let cycleStartDate = parseDate(leadAssignDate, "09:00:00");
         let requirement = Requirement.replace(/\s+/g, "")
           .toUpperCase()
           ?.split(",");
@@ -381,7 +569,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           teamLeaders.find((tl) =>
             tl.firstName
               .toLowerCase()
-              .includes(TeamLeader1.split(" ")[0].toLowerCase())
+              .includes(Teamleader.split(" ")[0].toLowerCase())
           )?._id ?? null;
 
         let channelPartner =
@@ -444,7 +632,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           ],
         });
       }
-      await leadModel.insertMany(dataTuPush);
+      // await leadModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })

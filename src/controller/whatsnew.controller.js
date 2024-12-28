@@ -17,7 +17,7 @@ export const getWhatsNew = async (req, res) => {
 
 export const addWhatsNew = async (req, res) => {
   const body = req.body;
-  const { showCaseImage, imageName } = body;
+  const { imagesId, showCaseImage, imageName } = body;
   try {
     if (!showCaseImage) return res.send(errorRes(400, "Body is required"));
 
@@ -58,11 +58,11 @@ export const updateWhatsNew = async (req, res) => {
     );
 
     if (!updatedWhatsNew)
-      return res.send(errorRes(404, `Project not found with ID: ${id}`));
+      return res.send(errorRes(404, `Not Exists: ${id}`));
 
     // Send a success response
     return res.send(
-      successRes(200, `Project updated successfully`, {
+      successRes(200, `Updated successfully!`, {
         updatedWhatsNew,
       })
     );
