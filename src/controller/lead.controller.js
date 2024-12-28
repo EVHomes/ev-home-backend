@@ -1069,11 +1069,28 @@ export const leadUpdateStatus = async (req, res, next) => {
     if (!foundLead) {
       return res.send(errorRes(404, "no lead found with id"));
     }
+    const foundTLPlayerId = await oneSignalModel.findOne({
+      docId: foundLead?.channelPartner,
+      // role: teamLeaderResp?.role,
+    });
 
     if (status === "booked") {
       foundLead.bookingStatus = "booked";
       foundLead.bookingRef = bookingRef;
       await foundLead.save();
+      if (foundLead.channelPartner) {
+        if (foundTLPlayerId) {
+          try {
+            await sendNotificationWithInfo({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Booking Done",
+              message: `Booking Done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }.`,
+            });
+          } catch (error) {}
+        }
+      }
     }
 
     if (status === "visited") {
@@ -1082,8 +1099,21 @@ export const leadUpdateStatus = async (req, res, next) => {
       foundLead.visitRef = visitRef;
       foundLead.cycle.stage = "revisit";
       foundLead.cycle.validTill = new Date().addDays(30);
-
       await foundLead.save();
+
+      if (foundLead.channelPartner) {
+        if (foundTLPlayerId) {
+          await sendNotificationWithImage({
+            playerIds: [foundTLPlayerId.playerId],
+            title: "Site Visit done",
+            message: `Site Visit Done for ${foundLead.firstName ?? ""} ${
+              foundLead.lastName ?? ""
+            }.`,
+            imageUrl:
+              "https://cdni.iconscout.com/illustration/premium/thumb/couple-visiting-construction-site-for-checking-work-progress-illustration-download-in-svg-png-gif-file-formats--crane-lifting-family-plot-area-real-estate-pack-buildings-illustrations-1757215.png",
+          });
+        }
+      }
     }
     if (status === "revisited") {
       foundLead.revisitStatus = "revisited";
@@ -1092,6 +1122,19 @@ export const leadUpdateStatus = async (req, res, next) => {
       foundLead.cycle.validTill = new Date().addDays(180);
 
       await foundLead.save();
+      if (foundLead.channelPartner) {
+        if (foundTLPlayerId) {
+          try {
+            await sendNotificationWithInfo({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Revisit Done",
+              message: `Revisit Done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }.`,
+            });
+          } catch (error) {}
+        }
+      }
     }
     if (status === "called") {
       foundLead.contactedStatus = "contacted";
@@ -2757,13 +2800,12 @@ export async function getLeadCounts(req, res, next) {
       "Oct",
       "Nov",
       "Dec",
-    ];  
+    ];
     const formattedMonthlyData = leadCounts.map((item) => ({
       year: item._id.year,
       month: monthNames[item._id.month - 1], // Use month number to get month name
       count: item.count,
     }));
-  
 
     return res.send(
       successRes(200, "ok", {
@@ -3358,7 +3400,7 @@ export async function getLeadCountsByChannelPartnerById(req, res, next) {
     const defaultEndDate = currentDate;
     const defaultStartDate = new Date(
       currentDate.getFullYear(),
-      currentDate.getMonth() - 3,
+      currentDate.getMonth() - 2,
       1
     );
     const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });

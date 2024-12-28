@@ -243,6 +243,89 @@ function getStatus1(lead) {
 //   res.send(results);
 // });
 
+leadRouter.get("/fix-pending-lead", async (req, res) => {
+  try {
+    const today = new Date();
+    const oldLeads = await leadModel.find({
+      stage: { $ne: "tagging-over" },
+      approvalStatus: { $ne: "approved" },
+      startDate: {
+        $gte: new Date("2024-09-25T00:00:00.000Z"), // Filter for December leads
+        $lt: new Date("2025-01-01T00:00:00.000Z"),
+      },
+    });
+
+    // Separate expired and valid leads
+    const validLeads = [];
+    const expiredLeads = [];
+
+    oldLeads.forEach((ele) => {
+      if (ele.validTill < today) {
+        expiredLeads.push(ele._id);
+      } else {
+        validLeads.push(ele._id);
+      }
+    });
+
+    // Update only valid leads
+    if (expiredLeads.length > 0) {
+      // await leadModel.updateMany(
+      //   { _id: { $in: expiredLeads } },
+      //   { $set: { stage: "tagging-over" } }
+      // );
+    }
+
+    return res.status(200).send({
+      total: oldLeads.length,
+      updated: validLeads.length,
+      expired: expiredLeads.length,
+      data: { validLeads, expiredLeads },
+    });
+  } catch (error) {
+    console.error("Error updating leads:", error);
+    return res.status(500).send({
+      message: "An error occurred while processing leads",
+      error: error.message,
+    });
+  }
+});
+
+// leadRouter.get("/fix-pending-lead", async (req, res) => {
+//   try {
+//     const today = new Date();
+//     const oldLeads = await leadModel.find({
+//       stage: { $ne: "tagging-over" },
+//       approvalStatus: { $ne: "approved" },
+//       startDate: {
+//         $gte: new Date("2024-09-25T00:00:00.000Z"), // Filter for December leads
+//         $lt: new Date("2024-12-28T00:00:00.000Z"),
+//       },
+//     });
+
+//     const leadsToUpdate = oldLeads.filter((ele) => ele.validTill > today);
+
+//     if (leadsToUpdate.length > 0) {
+//       const idsToUpdate = leadsToUpdate.map((ele) => ele._id);
+//       // await leadModel.updateMany(
+//       //   { _id: { $in: idsToUpdate } },
+//       //   { $set: { stage: "tagging-over" } }
+//       // );
+//     }
+
+//     return res.status(200).send({
+//       total: oldLeads.length,
+//       updated: leadsToUpdate.length,
+//       left: oldLeads.length - leadsToUpdate.length,
+//       data: oldLeads,
+//     });
+//   } catch (error) {
+//     console.error("Error updating leads:", error);
+//     return res.status(500).send({
+//       message: "An error occurred while processing leads",
+//       error: error.message,
+//     });
+//   }
+// });
 leadRouter.get("/ok", (req, res) => {
   // Online Javascript Editor for free
   // Write, Edit and Run your Javascript code using JS Online Compiler
