@@ -69,6 +69,9 @@ export const getPostSaleLeads = async (req, res, next) => {
       bookingStatus: "Cancelled",
       ...(project ? { project: project } : {}),
     });
+    const report= await postSaleLeadModel.countDocuments({
+
+    })
     const totalPages = Math.ceil(totalItems / limit);
 
     return res.send(
@@ -193,6 +196,125 @@ export const getPostSaleLeadsForExecutive = async (req, res, next) => {
     return next(error);
   }
 };
+
+export async function getLeadCounts(req, res, next) {
+  try {
+    const { interval = "monthly", year, date, endDate } = req.query;
+    const currentYear = new Date().getFullYear();
+
+    console.log(date);
+        // Validate and set the year
+    let selectedYear = currentYear;
+    if (year) {
+      selectedYear = parseInt(year, 10);
+      if (isNaN(selectedYear)) {
+        return res.status(400).json({ message: "Invalid year parameter" });
+      }
+    }
+
+    // Weekly date range (Monday to Sunday)
+    const currentDate = new Date();
+    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const endOfCurrentWeek = addDays(startOfCurrentWeek, 7);
+
+    // Set match stage for MongoDB aggregation
+    let matchStage = {};
+    if (interval === "weekly") {
+      matchStage = {
+        date: {
+          $gte: startOfCurrentWeek,
+          $lt: endOfCurrentWeek,
+        },
+      };
+    } else if (interval === "monthly") {
+      if (date && endDate) {
+        // Parse startDate and endDate
+        const parsedStartDate = new Date(date);
+        const parsedEndDate = new Date(endDate);
+        if (isNaN(parsedStartDate) || isNaN(parsedEndDate)) {
+          return res.status(400).json({ message: "Invalid date range" });
+        }
+        matchStage = {
+          date: {
+            $gte: parsedStartDate,
+            $lt: parsedEndDate,
+          },
+        };
+      } else {
+        matchStage = {
+          date: {
+            $gte: new Date(`${selectedYear}-01-01`),
+            $lt: new Date(`${selectedYear + 1}-01-01`),
+          },
+        };
+      }
+    } else {
+      return res.status(400).json({ message: "Invalid interval parameter" });
+    }
+
+    // Group stage for MongoDB aggregation
+    let groupStage = {};
+    if (interval === "weekly") {
+      groupStage = {
+        _id: {
+          dayOfWeek: { $dayOfWeek: "$date" },
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+        },
+        count: { $sum: 1 },
+      };
+    } else if (interval === "monthly") {
+      groupStage = {
+        _id: {
+          month: { $month: "$date" },
+          year: { $year: "$date" },
+        },
+        count: { $sum: 1 },
+      };
+    }
+
+    const leadCounts = await postSaleLeadModel.aggregate([
+      { $match: matchStage },
+      { $group: groupStage },
+      { $sort: { "_id.date": 1, "_id.month": 1, "_id.dayOfWeek": 1 } },
+    ]);
+
+    if (interval === "weekly") {
+      // Weekly: fill missing days
+      const dayMap = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const weekData = Array.from({ length: 7 }, (_, i) => {
+        const date = addDays(startOfCurrentWeek, i);
+        return {
+          date: format(date, "yyyy-MM-dd"),
+          day: dayMap[i], // Adjust to match JavaScript's week start (Monday)
+          count: 0,
+        };
+      });
+
+      // Populate counts
+      leadCounts.forEach((item) => {
+        const foundDay = weekData.find((day) => day.date === item._id.date);
+        if (foundDay) foundDay.count = item.count;
+      });
+
+      return res.json(weekData);
+    }
+
+    // Monthly: format data
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const formattedMonthlyData = leadCounts.map((item) => ({
+      year: item._id.year,
+      month: monthNames[item._id.month - 1],
+      count: item.count,
+    }));
+
+    console.log("Query Parameters:", { interval, year, date, endDate });
+    return res.send(successRes(200, "ok", { data: formattedMonthlyData }));
+  } catch (error) {
+    console.error("Error getting lead counts:", error);
+    next(error);
+  }
+}
+
 
 export const addPostSaleLead = async (req, res, next) => {
   const body = req.body;
