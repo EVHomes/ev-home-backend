@@ -3361,13 +3361,13 @@ export async function getLeadCountsByChannelPartnerById(req, res, next) {
       currentDate.getMonth() - 3,
       1
     );
+    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
 
     let matchStage = {
       channelPartner: teamLeaderId, // Match by team leader ID
     };
 
     if (interval === "weekly") {
-      const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
       const endOfCurrentWeek = addDays(startOfCurrentWeek, 7); // Limit to current week (Mon-Sun)
       matchStage.startDate = {
         $gte: startOfCurrentWeek,
