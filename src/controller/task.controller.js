@@ -13,15 +13,13 @@ export const getTask = async (req, res, next) => {
     let filter = {
       assignTo: id,
     };
-    if(type) {
-       filter = {
+    if (type) {
+      filter = {
         assignTo: id,
         type,
       };
-    };
-    const resp = await taskModel
-      .find(filter)
-      .populate(taskPopulateOptions);
+    }
+    const resp = await taskModel.find(filter).populate(taskPopulateOptions);
 
     return res.send(
       successRes(200, "get task", {
@@ -122,6 +120,7 @@ export const updateTask = async (req, res, next) => {
           },
         },
       });
+      // if()
       // }
     }
     const resp = await taskModel
