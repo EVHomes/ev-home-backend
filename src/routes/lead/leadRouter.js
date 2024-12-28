@@ -168,11 +168,20 @@ const parseDate = (dateString, timeString = "12:00:00") => {
   // Split the time string into hours, minutes, seconds
   const [hours, minutes, seconds] = timeString.split(":").map(Number);
 
-  // Create a new Date object with the specified date and time
-  const date = new Date(year, month - 1, day, hours, minutes, seconds);
+  // Create a new Date object with the specified date and time in UTC
+  const date = new Date(
+    Date.UTC(year, month - 1, day, hours, minutes, seconds)
+  );
+
+  // Adjust to IST by adding 5 hours and 30 minutes
+  date.setUTCHours(date.getUTCHours() + 5);
+  date.setUTCMinutes(date.getUTCMinutes() + 30);
 
   return date;
 };
+
+// Example usage
+// const result = parseDate("26-12-2024", "17:00:00"); // 5 PM IST
 
 // const parseDate = (dateString) => {
 //   // Split the string into day, month, year
@@ -510,7 +519,7 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "pavan_leads_28_12_24.csv");
+  const csvFilePath = path.join(__dirname, "pavan_leads_28_12_2024_2.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
@@ -551,8 +560,8 @@ leadRouter.post("/lead-updates", async (req, res) => {
           taggingstatus,
           "Data Analyer": anayl,
         } = row;
-        let startDate = parseDate(Leadreceivedon, "09:00:00");
-        let cycleStartDate = parseDate(leadAssignDate, "09:00:00");
+        let startDate = parseDate(Leadreceivedon, "6:00:00");
+        let cycleStartDate = parseDate(leadAssignDate, "6:00:00");
         let requirement = Requirement.replace(/\s+/g, "")
           .toUpperCase()
           ?.split(",");
@@ -634,7 +643,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           ],
         });
       }
-      // await leadModel.insertMany(dataTuPush);
+      await leadModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })
