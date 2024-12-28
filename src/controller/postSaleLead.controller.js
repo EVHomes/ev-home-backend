@@ -199,11 +199,14 @@ export const getPostSaleLeadsForExecutive = async (req, res, next) => {
 
 export async function getLeadCounts(req, res, next) {
   try {
+    let query = req.query.query || "";
+    let project = req.query.project; // Get project from query params
     const { interval = "monthly", year, date, endDate } = req.query;
     const currentYear = new Date().getFullYear();
 
     console.log(date);
-        // Validate and set the year
+
+    // Validate and set the year
     let selectedYear = currentYear;
     if (year) {
       selectedYear = parseInt(year, 10);
@@ -220,11 +223,9 @@ export async function getLeadCounts(req, res, next) {
     // Set match stage for MongoDB aggregation
     let matchStage = {};
     if (interval === "weekly") {
-      matchStage = {
-        date: {
-          $gte: startOfCurrentWeek,
-          $lt: endOfCurrentWeek,
-        },
+      matchStage.date = {
+        $gte: startOfCurrentWeek,
+        $lt: endOfCurrentWeek,
       };
     } else if (interval === "monthly") {
       if (date && endDate) {
@@ -234,22 +235,23 @@ export async function getLeadCounts(req, res, next) {
         if (isNaN(parsedStartDate) || isNaN(parsedEndDate)) {
           return res.status(400).json({ message: "Invalid date range" });
         }
-        matchStage = {
-          date: {
-            $gte: parsedStartDate,
-            $lt: parsedEndDate,
-          },
+        matchStage.date = {
+          $gte: parsedStartDate,
+          $lt: parsedEndDate,
         };
       } else {
-        matchStage = {
-          date: {
-            $gte: new Date(`${selectedYear}-01-01`),
-            $lt: new Date(`${selectedYear + 1}-01-01`),
-          },
+        matchStage.date = {
+          $gte: new Date(`${selectedYear}-01-01`),
+          $lt: new Date(`${selectedYear + 1}-01-01`),
         };
       }
     } else {
       return res.status(400).json({ message: "Invalid interval parameter" });
+    }
+
+    // Add project filter if provided
+    if (project) {
+      matchStage.project = project;
     }
 
     // Group stage for MongoDB aggregation
@@ -285,7 +287,7 @@ export async function getLeadCounts(req, res, next) {
         const date = addDays(startOfCurrentWeek, i);
         return {
           date: format(date, "yyyy-MM-dd"),
-          day: dayMap[i], // Adjust to match JavaScript's week start (Monday)
+          day: dayMap[i],
           count: 0,
         };
       });
@@ -307,13 +309,14 @@ export async function getLeadCounts(req, res, next) {
       count: item.count,
     }));
 
-    console.log("Query Parameters:", { interval, year, date, endDate });
+    console.log("Query Parameters:", { interval, year, date, endDate, project });
     return res.send(successRes(200, "ok", { data: formattedMonthlyData }));
   } catch (error) {
     console.error("Error getting lead counts:", error);
     next(error);
   }
 }
+
 
 
 export const addPostSaleLead = async (req, res, next) => {

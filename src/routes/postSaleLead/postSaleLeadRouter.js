@@ -19,7 +19,7 @@ postSaleRouter.get(
   getPostSaleLeadsForExecutive
 );
 postSaleRouter.get("/post-sale-lead-by-id/:flatNo", getPostSaleLeadById);
-postSaleRouter.get("/post-sale-lead",getLeadCounts);
+postSaleRouter.get("/post-sale-leadCount",getLeadCounts);
 
 
 postSaleRouter.get("/post-sale-lead-by-flat", getPostSaleLeadByFlat);
