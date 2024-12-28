@@ -180,9 +180,14 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         ],
         ...walkinType,
       };
-    }else if (status === "followup") {
+    } else if (status === "followup") {
       statusToFind = {
         taskRef: { $ne: null },
+        ...walkinType,
+      };
+    } else if (status === "not-followup") {
+      statusToFind = {
+        taskRef: { $eq: null },
         ...walkinType,
       };
     }
