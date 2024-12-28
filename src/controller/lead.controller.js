@@ -244,7 +244,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     // Calculate Counts
-    const totalItems = await leadModel.countDocuments(baseFilter);
+    const totalItems = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      startDate: { $gte: filterDate },
+      // ...(statusToFind != null ? statusToFind : null),
+    });
 
     const pendingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
