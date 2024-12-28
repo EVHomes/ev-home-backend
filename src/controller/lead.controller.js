@@ -2757,13 +2757,12 @@ export async function getLeadCounts(req, res, next) {
       "Oct",
       "Nov",
       "Dec",
-    ];  
+    ];
     const formattedMonthlyData = leadCounts.map((item) => ({
       year: item._id.year,
       month: monthNames[item._id.month - 1], // Use month number to get month name
       count: item.count,
     }));
-  
 
     return res.send(
       successRes(200, "ok", {
@@ -3358,7 +3357,7 @@ export async function getLeadCountsByChannelPartnerById(req, res, next) {
     const defaultEndDate = currentDate;
     const defaultStartDate = new Date(
       currentDate.getFullYear(),
-      currentDate.getMonth() - 3,
+      currentDate.getMonth() - 2,
       1
     );
     const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
