@@ -85,8 +85,15 @@ export const assignTask = async (req, res, next) => {
 };
 
 export const updateTask = async (req, res, next) => {
-  const { stage, status, intrestedStatus, feedback, document, recording } =
-    req.body;
+  const {
+    stage,
+    status,
+    intrestedStatus,
+    feedback,
+    document,
+    recording,
+    leadStatus,
+  } = req.body;
   const taskId = req.params.id;
   const user = req.user;
   try {
@@ -103,6 +110,7 @@ export const updateTask = async (req, res, next) => {
       // ) {
       const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
         clientInterestedStatus: intrestedStatus,
+        interestedStatus: leadStatus,
         $addToSet: {
           callHistory: {
             caller: user?._id,
