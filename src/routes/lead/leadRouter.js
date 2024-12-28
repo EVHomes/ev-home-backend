@@ -161,16 +161,29 @@ leadRouter.get(
   // authenticateToken,
   checkLeadsExists
 );
-const parseDate = (dateString) => {
-  // Split the string into day, month, year
+const parseDate = (dateString, timeString = "12:00:00") => {
+  // Split the date string into day, month, year
   const [day, month, year] = dateString.split("-").map(Number);
-  // const [day, month, year] = dateString.split("-").map(Number);
 
-  // Create a new Date object
-  const date = new Date(year, month - 1, day); // Adjust year and month (0-indexed)
+  // Split the time string into hours, minutes, seconds
+  const [hours, minutes, seconds] = timeString.split(":").map(Number);
+
+  // Create a new Date object with the specified date and time
+  const date = new Date(year, month - 1, day, hours, minutes, seconds);
 
   return date;
 };
+
+// const parseDate = (dateString) => {
+//   // Split the string into day, month, year
+//   const [day, month, year] = dateString.split("-").map(Number);
+//   // const [day, month, year] = dateString.split("-").map(Number);
+
+//   // Create a new Date object
+//   const date = new Date(year, month - 1, day); // Adjust year and month (0-indexed)
+
+//   return date;
+// };
 
 leadRouter.get("/sitevisitLead-phoneNumber/:id", getSiteVisitLeadByPhoneNumber);
 
@@ -412,7 +425,7 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "narayan_leads_26_12_24.csv");
+  const csvFilePath = path.join(__dirname, "pavan_leads_28_12_24.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
@@ -447,14 +460,14 @@ leadRouter.post("/lead-updates", async (req, res) => {
           Number: phoneNumber,
           Cp,
           TeamLeaderDate: leadAssignDate,
-          TeamLeader1,
+          Teamleader,
           Project,
           Requirement,
           taggingstatus,
           "Data Analyer": anayl,
         } = row;
-        let startDate = parseDate(Leadreceivedon);
-        let cycleStartDate = parseDate(leadAssignDate);
+        let startDate = parseDate(Leadreceivedon, "09:00:00");
+        let cycleStartDate = parseDate(leadAssignDate, "09:00:00");
         let requirement = Requirement.replace(/\s+/g, "")
           .toUpperCase()
           ?.split(",");
@@ -473,7 +486,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           teamLeaders.find((tl) =>
             tl.firstName
               .toLowerCase()
-              .includes(TeamLeader1.split(" ")[0].toLowerCase())
+              .includes(Teamleader.split(" ")[0].toLowerCase())
           )?._id ?? null;
 
         let channelPartner =
@@ -536,7 +549,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           ],
         });
       }
-      await leadModel.insertMany(dataTuPush);
+      // await leadModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })
