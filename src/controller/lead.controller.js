@@ -715,6 +715,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
 
     let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 20;
+    let skip = (page - 1) * limit;
     let statusToFind = null;
     let walkinType = { leadType: { $ne: "walk-in" } };
 
