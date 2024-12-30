@@ -1,3 +1,4 @@
+import { name } from "ejs";
 import leadModel from "../model/lead.model.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
@@ -8,21 +9,57 @@ import { sendNotificationWithImage } from "./oneSignal.controller.js";
 export const getTask = async (req, res, next) => {
   const id = req.params.id;
   const type = req.query.type;
-  try {
-    if (!id) return res.send(errorRes(401, "no id provided"));
-    let filter = {
-      assignTo: id,
-    };
-    if (type) {
-      filter = {
-        assignTo: id,
-        type,
-      };
-    }
-    const resp = await taskModel.find(filter).populate(taskPopulateOptions);
+  const query = req.query.query || "";
 
+  try {
+    if (!id) return res.send(errorRes(401, "No ID provided"));
+
+    let filter = { assignTo: id };
+
+    if (type) {
+      filter.type = type;
+    }
+
+    if (query) {
+      const isNumberQuery = !isNaN(query);
+      const searchConditions = [];
+
+      // Add search conditions based on the query type
+      if (!isNumberQuery) {
+        searchConditions.push(
+          { clientName: { $regex: query, $options: "i" } },
+          { firstName: { $regex: query, $options: "i" } },
+          { lastName: { $regex: query, $options: "i" } }
+        );
+      } else {
+        searchConditions.push({ someNumericField: Number(query) });
+      }
+
+      filter.$or = searchConditions;
+    }
+
+ 
+
+    // Query the database
+    const resp = await taskModel
+      .find(filter)
+
+      .populate(taskPopulateOptions);
+
+    // .populate({
+    //   path: "lead",
+    //   select:"",
+    //   match: {
+    //     $or: [
+    //       { firstname: { $regex: query, $options: "i" } }, // Case-insensitive search
+    //       { lastname: { $regex: query, $options: "i" } },
+    //     ],
+    //   },
+    // });
+
+    // console.log(match);
     return res.send(
-      successRes(200, "get task", {
+      successRes(200, "Get task", {
         data: resp,
       })
     );
@@ -93,6 +130,7 @@ export const updateTask = async (req, res, next) => {
     document,
     recording,
     leadStatus,
+    taskCompleted
   } = req.body;
   const taskId = req.params.id;
   const user = req.user;
@@ -132,9 +170,10 @@ export const updateTask = async (req, res, next) => {
       // if()
       // }
     }
+    const statusValue = taskCompleted ? taskCompleted.toLowerCase() : "";
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {
-        completed: status === "completed" ? true : false,
+        completed: statusValue === "completed" ? true : false,
         completedDate: new Date(),
       })
       .populate(taskPopulateOptions);
