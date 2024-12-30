@@ -69,9 +69,7 @@ export const getPostSaleLeads = async (req, res, next) => {
       bookingStatus: "Cancelled",
       ...(project ? { project: project } : {}),
     });
-    const report= await postSaleLeadModel.countDocuments({
-
-    })
+    const report = await postSaleLeadModel.countDocuments({});
     const totalPages = Math.ceil(totalItems / limit);
 
     return res.send(
@@ -282,7 +280,15 @@ export async function getLeadCounts(req, res, next) {
 
     if (interval === "weekly") {
       // Weekly: fill missing days
-      const dayMap = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayMap = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
       const weekData = Array.from({ length: 7 }, (_, i) => {
         const date = addDays(startOfCurrentWeek, i);
         return {
@@ -302,22 +308,39 @@ export async function getLeadCounts(req, res, next) {
     }
 
     // Monthly: format data
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const formattedMonthlyData = leadCounts.map((item) => ({
       year: item._id.year,
       month: monthNames[item._id.month - 1],
       count: item.count,
     }));
 
-    console.log("Query Parameters:", { interval, year, date, endDate, project });
+    console.log("Query Parameters:", {
+      interval,
+      year,
+      date,
+      endDate,
+      project,
+    });
     return res.send(successRes(200, "ok", { data: formattedMonthlyData }));
   } catch (error) {
     console.error("Error getting lead counts:", error);
     next(error);
   }
 }
-
-
 
 export const addPostSaleLead = async (req, res, next) => {
   const body = req.body;
@@ -347,11 +370,11 @@ export const addPostSaleLead = async (req, res, next) => {
       const findExisintFlat = findProject.flatList.find(
         (ele) => ele.floor === floor && ele.number === number
       );
-      if (findExisintFlat) {
-        return res.send(
-          errorRes(401, `Flat ${findExisintFlat.flatNo} is Already Booked`)
-        );
-      }
+      // if (findExisintFlat) {
+      //   return res.send(
+      //     errorRes(401, `Flat ${findExisintFlat.flatNo} is Already Booked`)
+      //   );
+      // }
     }
 
     // const resp = await postSaleLeadModel.find();
