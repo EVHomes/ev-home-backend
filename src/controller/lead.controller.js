@@ -287,7 +287,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .sort({ startDate: -1 })
       .populate(leadPopulateOptions);
 
-    if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
+    // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     // Calculate Counts
     const totalItems = await leadModel.countDocuments({
@@ -937,7 +937,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       .sort({ startDate: -1 })
       .populate(leadPopulateOptions);
 
-    if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
+    // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     // Calculate Counts
     const totalItems = await leadModel.countDocuments({
