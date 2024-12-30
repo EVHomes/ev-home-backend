@@ -19,7 +19,10 @@ export const getTask = async (req, res, next) => {
         type,
       };
     }
-    const resp = await taskModel.find(filter).populate(taskPopulateOptions);
+    const resp = await taskModel
+      .find(filter)
+      .populate(taskPopulateOptions)
+      .sort({ assignDate: -1 });
 
     return res.send(
       successRes(200, "get task", {
