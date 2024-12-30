@@ -519,7 +519,7 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(__dirname, "pavan_leads_29_12_24.csv");
+  const csvFilePath = path.join(__dirname, "leads__.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
@@ -585,7 +585,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
 
         let channelPartner =
           cpResp.find((cp) =>
-            cp.firmName.toLowerCase().includes(Cp.split(" ")[0].toLowerCase())
+            cp.firmName.toLowerCase().includes(Cp.toLowerCase())
           )?._id ?? null;
 
         // if (Cp != "") {
