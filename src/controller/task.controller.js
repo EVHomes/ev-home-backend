@@ -37,6 +37,10 @@ export const getTask = async (req, res, next) => {
 
       filter.$or = searchConditions;
     }
+    const resp = await taskModel
+      .find(filter)
+      .populate(taskPopulateOptions)
+      .sort({ assignDate: -1 });
 
  
 

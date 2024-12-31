@@ -293,6 +293,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const totalItems = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
+      // stage: { $ne: "tagging-over" },
+      leadType: { $ne: null },
       // ...(statusToFind != null ? statusToFind : null),
     });
 
@@ -4598,7 +4600,7 @@ function getStatus1(lead) {
 export const triggerCycleChange = async (req, res, next) => {
   try {
     const currentDate = new Date();
-    const filterDate = new Date("2024-11-21");
+    const filterDate = new Date("2024-12-10");
 
     // Fetch all leads whose cycles have expired
     const allCycleExpiredLeads = await leadModel.find({
@@ -4729,13 +4731,13 @@ export const triggerCycleChange = async (req, res, next) => {
 
       // Execute bulk update
       if (bulkOperations.length > 0) {
-        const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
         // console.log("Bulk Update Result:", bulkResult);
 
         return res.send(
           successRes(200, "Cycles updated successfully", {
-            matchedCount: bulkResult.matchedCount,
-            modifiedCount: bulkResult.modifiedCount,
+            // matchedCount: bulkResult.matchedCount,
+            // modifiedCount: bulkResult.modifiedCount,
             total: bulkOperations?.length,
             data: bulkOperations,
           })
@@ -4853,5 +4855,164 @@ export const get24hrLeadsNameList = async (req, res, next) => {
   } catch (error) {
     console.log(error);
     return res.send(errorRes(error));
+  }
+};
+
+export const triggerCycleChangeFunction = async () => {
+  try {
+    const currentDate = new Date();
+    const filterDate = new Date("2024-12-10");
+
+    // Fetch all leads whose cycles have expired
+    const allCycleExpiredLeads = await leadModel.find({
+      "cycle.validTill": { $lt: currentDate },
+      startDate: { $gte: filterDate },
+      bookingStatus: { $ne: "booked" },
+    });
+
+    if (allCycleExpiredLeads.length > 0) {
+      // Fetch active team leaders sorted by createdAt
+      const teamLeaders = [
+        { _id: "ev15-deepak-karki" },
+        { _id: "ev69-vicky-mane" },
+        { _id: "ev70-jaspreet-arora" },
+        { _id: "ev54-ranjna-gupta" },
+      ];
+      // const teamLeaders = await employeeModel
+      //   .find({
+      //     $or: [
+      //       { designation: "desg-site-head" },
+      //       { designation: "desg-senior-closing-manager" },
+      //       { designation: "desg-post-sales-head" },
+      //     ],
+      //     status: "active",
+      //   })
+      //   .sort({ createdAt: 1 })
+      //   .select("_id");
+
+      console.log("Team Leaders:", teamLeaders); // Debug log
+
+      // Prepare bulk operations
+      const bulkOperations = [];
+
+      allCycleExpiredLeads.map((entry) => {
+        const lastIndex = teamLeaders.findIndex(
+          (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
+        );
+        const totalTeamLeader = teamLeaders.length;
+        const cCycle = { ...entry.cycle }; // Clone cycle object
+
+        const previousCycle = { ...cCycle }; // For cycle history
+        const startDate = new Date(entry.cycle.validTill); // Current date
+        const validTill = new Date(startDate);
+
+        if (lastIndex !== -1) {
+          // Logic for visit stage
+          if (cCycle.stage === "visit") {
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setDate(validTill.getDate() + 180);
+              cCycle.currentOrder = 1;
+              cCycle.lastIndex = lastIndex;
+              cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+              // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
+            } else {
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              // cCycle.oldTeamLeader = cCycle.teamLeader;
+              // cCycle.lastIndex = lastIndex;
+              // cCycle.nextIndex = lastIndex + 1;
+
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 15);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 7);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 3);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 2);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 15);
+              }
+            }
+          } else if (cCycle.stage === "revisit") {
+            // Logic for revisit stage
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setDate(validTill.getDate() + 180);
+              cCycle.currentOrder = 1;
+              cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+              cCycle.lastIndex = lastIndex;
+            } else {
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.lastIndex = lastIndex;
+              cCycle.nextIndex = lastIndex + 1;
+
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 30);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 15);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 7);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 5);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 30);
+              }
+            }
+          }
+
+          cCycle.startDate = startDate;
+          cCycle.validTill = validTill;
+
+          // Add bulk update operation
+          bulkOperations.push({
+            updateOne: {
+              filter: { _id: entry._id },
+              update: {
+                teamLeader: cCycle.teamLeader,
+                $set: { cycle: cCycle },
+                $push: { cycleHistory: previousCycle }, // Add previous cycle to history
+              },
+            },
+          });
+        }
+      });
+
+      // Execute bulk update
+      if (bulkOperations.length > 0) {
+        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        // console.log("Bulk Update Result:", bulkResult);
+
+        return {
+          // matchedCount: bulkResult.matchedCount,
+          // modifiedCount: bulkResult.modifiedCount,
+          total: bulkOperations?.length,
+          data: bulkOperations,
+        };
+      }
+    }
+
+    // If no leads need cycle changes
+    return res.send(
+      successRes(200, "No cycle changes needed", {
+        data: [],
+        totalItem: 0,
+      })
+    );
+  } catch (error) {
+    console.error("Error updating cycles:", error);
+    return res.status(500).send({ message: "Internal Server Error", error });
   }
 };
