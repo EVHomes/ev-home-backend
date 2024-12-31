@@ -611,7 +611,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
         const validTill = new Date(cycleStartDate);
         validTill.setDate(validTill.getDate() + 15);
         const taggingValidTill = new Date(startDate);
-        taggingValidTill.setDate(validTill.getDate() + 60);
+        taggingValidTill.setDate(taggingValidTill.getDate() + 59);
 
         // i++;
         dataTuPush.push({
