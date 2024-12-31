@@ -1720,7 +1720,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
           // },
         ],
       };
-    } else if (status === "revisit-pending") {
+    } else if (status === "revisit-pending" || status === "visit-done") {
       // console.log("ersi pendding");
       statusToFind = {
         stage: { $eq: "revisit" },
@@ -1732,11 +1732,17 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         stage: { $eq: "visit" },
         visitStatus: { $eq: "pending" },
       };
-    } else if (status == "booking-pending") {
+    } else if (status == "booking-pending" || status == "revisit-done") {
       // console.log("booi pendding");
       statusToFind = {
         stage: { $eq: "booking" },
         bookingStatus: { $eq: "pending" },
+      };
+    }else if (status == "booking-done") {
+      // console.log("booi pendding");
+      statusToFind = {
+        stage: { $eq: "booking" },
+        bookingStatus: { $eq: "booked" },
       };
     }
 
