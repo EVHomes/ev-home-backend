@@ -936,7 +936,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ startDate: -1 })
+      .sort({ "cycle.startDate": -1 })
       .populate(leadPopulateOptions);
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
