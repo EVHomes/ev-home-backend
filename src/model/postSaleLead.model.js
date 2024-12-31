@@ -42,7 +42,7 @@ const applicantSchema = new mongoose.Schema({
 
 export const postSaleLeadSchema = new mongoose.Schema(
   {
-    unitNo: { type: String, required: true, default: null },
+    unitNo: { type: String,  default: null },
     floor: { type: Number, default: null },
     number: { type: Number, default: null },
     project: {
@@ -51,8 +51,8 @@ export const postSaleLeadSchema = new mongoose.Schema(
       default: null,
       ref: "ourProjects",
     },
-    firstName: { type: String, required: true, default: null },
-    lastName: { type: String, required: true, default: null },
+    firstName: { type: String,  default: "" },
+    lastName: { type: String,  default: "" },
     requirement: { type: String, default: null },
     countryCode: { type: String, default: "+91" },
     phoneNumber: { type: Number, default: null },

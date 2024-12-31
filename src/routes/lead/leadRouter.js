@@ -49,6 +49,7 @@ import PDFDocument from "pdfkit";
 import siteVisitModel from "../../model/siteVisit.model.js";
 import { leadPopulateOptions } from "../../utils/constant.js";
 import { addSiteVisitsManual } from "../../controller/siteVisit.controller.js";
+import postSaleLeadModel from "../../model/postSaleLead.model.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -421,14 +422,14 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
             case "currentCycleAssignDate":
               return lead.cycle?.startDate
                 ? `"${moment(lead.cycle.startDate)
-                    .tz(timeZone)
-                    .format("DD-MM-YYYY HH:mm")}"`
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY HH:mm")}"`
                 : '""';
             case "currentCycleDeadline":
               return lead.cycle?.validTill
                 ? `"${moment(lead.cycle.validTill)
-                    .tz(timeZone)
-                    .format("DD-MM-YYYY HH:mm")}"`
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY HH:mm")}"`
                 : '""';
 
             case "cycleHistory[0].order":
@@ -446,14 +447,14 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
             case "cycleHistory[0].AssignDate":
               return lead.cycleHistory[0]?.startDate
                 ? `"${moment(lead.cycleHistory[0].startDate)
-                    .tz(timeZone)
-                    .format("DD-MM-YYYY HH:mm")}"`
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY HH:mm")}"`
                 : '""';
             case "cycleHistory[0].Deadline":
               return lead.cycleHistory[0]?.validTill
                 ? `"${moment(lead.cycleHistory[0].validTill)
-                    .tz(timeZone)
-                    .format("DD-MM-YYYY HH:mm")}"`
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY HH:mm")}"`
                 : '""';
 
             default:
@@ -633,6 +634,112 @@ leadRouter.post("/lead-updates", async (req, res) => {
         });
       }
       // await leadModel.insertMany(dataTuPush);
+      // Send the results only after processing is done
+      return res.send(dataTuPush);
+    })
+    .on("error", (err) => {
+      return res.status(500).send({ error: err.message });
+    });
+});
+
+function divideUnitNo(unitNo) {
+  const unitString = unitNo.toString();
+  
+  if (unitString.length === 4) {
+   
+    const floor = parseInt(unitString.slice(0, 2), 10); // First two digits as floor
+    const number = parseInt(unitString.slice(2), 10);  // Last two digits as number
+    return { floor, number };
+  } else if (unitString.length === 3) {
+    
+    const floor = parseInt(unitString.slice(0, 1), 10); // First digit as floor
+    const number = parseInt(unitString.slice(1), 10);  // Last two digits as number
+    return { floor, number };
+  } else {
+    // Handle unexpected cases (optional)
+    return { floor: null, number: null };
+  }
+}
+
+
+leadRouter.post("/postsalelead-updates", async (req, res) => {
+  const results = [];
+  const dataTuPush = [];
+  const csvFilePath = path.join(__dirname, "marina_bay_booking-latest.csv");
+
+  const cpResp = await cpModel.find();
+  const teamLeaders = await employeeModel.find({
+    $or: [
+      { designation: "desg-senior-closing-manager" },
+      { designation: "desg-site-head" },
+      { designation: "desg-post-sales-head" },
+    ],
+  });
+  const dataAnalyzers = await employeeModel.find({
+    designation: "desg-data-analyzer",
+  });
+
+  const projectsResp = await ourProjectModel.find({});
+
+  if (!fs.existsSync(csvFilePath)) {
+    return res.status(400).send("CSV file not found");
+  }
+  let i = 0;
+
+  fs.createReadStream(csvFilePath)
+    .pipe(csv())
+    .on("data", (data) => {
+      results.push(data);
+    })
+    .on("end", async () => {
+      for (const row of results) {
+        const {
+          "Net Amount": netAmount,
+          "flatNo": unitNo,
+          "firstname": firstName,
+          "lastname": lastName,
+          "firstname1": firstName1,
+          "lastname1": lastName1,
+          "AllInclusive": allInclusiveAmount,
+          "GST": cgstAmount,
+          "StampDuty": stampDutyAmount,
+          "TotalAmount": totalAmount,
+          "TDS": tdsAmount,
+          "FlatCost": flatCost,
+
+
+
+        } = row;
+
+        const { floor, number } = divideUnitNo(unitNo);
+        
+        let applicants = [];
+        applicants.push({ firstName, lastName });
+        if (firstName1 != "") {
+          applicants.push({ firstName: firstName1, lastName: lastName1 });
+
+        }
+
+        dataTuPush.push({
+          unitNo,
+          floor,
+          number,
+          firstName,
+          lastName,
+          // firstName1,
+          // lastName1,
+          netAmount: parseFloat(netAmount.replace(/\s+/g, "").toLowerCase()),
+          allInclusiveAmount: parseFloat(allInclusiveAmount.replace(/\s+/g, "").toLowerCase()),
+          cgstAmount: parseFloat(cgstAmount.replace(/\s+/g, "").toLowerCase()),
+          stampDutyAmount: parseFloat(stampDutyAmount.replace(/\s+/g, "").toLowerCase()),
+          totalAmount: parseFloat(totalAmount.replace(/\s+/g, "").toLowerCase()),
+          tdsAmount: parseFloat(tdsAmount.replace(/\s+/g, "").toLowerCase()),
+          flatCost: parseFloat(flatCost.replace(/\s+/g, "").toLowerCase()),
+          applicants,
+          project:"project-ev-10-marina-bay-vashi-sector-10",
+        });
+      }
+      await postSaleLeadModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })
