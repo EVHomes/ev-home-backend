@@ -42,14 +42,6 @@ export const getTask = async (req, res, next) => {
       .populate(taskPopulateOptions)
       .sort({ assignDate: -1 });
 
- 
-
-    // Query the database
-    const resp = await taskModel
-      .find(filter)
-
-      .populate(taskPopulateOptions);
-
     // .populate({
     //   path: "lead",
     //   select:"",
@@ -134,7 +126,7 @@ export const updateTask = async (req, res, next) => {
     document,
     recording,
     leadStatus,
-    taskCompleted
+    taskCompleted,
   } = req.body;
   const taskId = req.params.id;
   const user = req.user;
