@@ -33,6 +33,7 @@ import {
   getCpSalesFunnel,
   get24hrLeadsNameList,
   getSiteVisitLeadByPhoneNumber,
+  getLeadTeamLeaderReportingToGraph,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -71,6 +72,11 @@ leadRouter.get(
   "/leads-team-leader-graph/:id",
   // authenticateToken,
   getLeadTeamLeaderGraph
+);
+leadRouter.get(
+  "/leads-team-leader-reporting-graph/:id",
+  // authenticateToken,
+  getLeadTeamLeaderReportingToGraph
 );
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);

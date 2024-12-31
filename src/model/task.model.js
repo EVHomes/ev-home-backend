@@ -35,6 +35,9 @@ const taskSchema = new mongoose.Schema(
     completed: { type: Boolean, default: false },
     completedDate: { type: Date, default: null },
     deadline: { type: Date, default: null },
+    reminderDate: { type: Date, default: null },
+    remindMe: { type: Boolean, default: false },
+    reminderDescription: { type: String, default: null },
   },
   { timestamps: true }
 );

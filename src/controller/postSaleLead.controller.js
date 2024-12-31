@@ -118,8 +118,8 @@ export const getPostSaleLeadsForExecutive = async (req, res, next) => {
     if (!id) return res.send(errorRes(401, "Executive id required"));
 
     let query = req.query.query || "";
-    let project = req.query.project; // Get the project name from the query
-    let page = parseInt(req.query.page) || 1; // Start from page 1
+    let project = req.query.project;
+    let page = parseInt(req.query.page) || 1;
     let limit = parseInt(req.query.limit) || 10;
 
     let skip = (page - 1) * limit;
@@ -154,7 +154,7 @@ export const getPostSaleLeadsForExecutive = async (req, res, next) => {
           },
         },
       ].filter(Boolean),
-      ...(project ? { project: project } : {}), // Filter by project if provided
+      ...(project ? { project: project } : {}),
       postSaleExecutive: id,
     };
 
