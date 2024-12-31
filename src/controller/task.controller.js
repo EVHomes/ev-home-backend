@@ -71,8 +71,7 @@ export const assignTask = async (req, res, next) => {
   try {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
-    console.log(assignTo);
-    console.log(body);
+
     const newData = {
       ...body,
       assignTo: assignTo,
@@ -138,10 +137,6 @@ export const updateTask = async (req, res, next) => {
 
     if (!myTask) return res.send(errorRes(404, "task not found"));
     if (myTask.lead != null) {
-      // if (
-      //   myTask.type.toLowerCase() == "first-call" ||
-      //   myTask.type.toLowerCase() == "followup"
-      // ) {
       const theLead = await leadModel.findByIdAndUpdate(myTask.lead, {
         clientInterestedStatus: intrestedStatus,
         interestedStatus: leadStatus,
@@ -163,20 +158,78 @@ export const updateTask = async (req, res, next) => {
           },
         },
       });
-      // if()
-      // }
     }
     const statusValue = taskCompleted ? taskCompleted.toLowerCase() : "";
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {
         completed: statusValue === "completed" ? true : false,
-        completedDate: new Date(),
+        completedDate: startDate,
       })
       .populate(taskPopulateOptions);
 
     return res.send(
       successRes(200, "Task updated", {
         data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updateFeedback = async (req, res, next) => {
+  const {
+    stage,
+    status,
+    intrestedStatus,
+    feedback,
+    document,
+    recording,
+    leadStatus,
+    taskCompleted,
+    lead,
+    task,
+  } = req.body;
+  const user = req.user;
+  try {
+    if (lead == null) return res.send(errorRes(404, "Lead not found"));
+
+    const startDate = new Date(); // Current date
+    const theLead = await leadModel.findByIdAndUpdate(lead, {
+      clientInterestedStatus: intrestedStatus,
+      interestedStatus: leadStatus,
+      $addToSet: {
+        callHistory: {
+          caller: user?._id,
+          callDate: startDate,
+          remark: status ?? "",
+          stage: stage ?? "",
+          feedback: feedback ?? "",
+          document: document,
+          recording: recording,
+        },
+        updateHistory: {
+          employee: user?._id,
+          changes: feedback ?? "task updated",
+          updatedAt: startDate,
+          remark: stage,
+        },
+      },
+    });
+
+    if (task != null) {
+      const statusValue = taskCompleted ? taskCompleted.toLowerCase() : "";
+      const resp = await taskModel
+        .findByIdAndUpdate(task, {
+          completed: statusValue === "completed" ? true : false,
+          completedDate: startDate,
+        })
+        .populate(taskPopulateOptions);
+    }
+
+    return res.send(
+      successRes(200, "Feedback added", {
+        data: true,
       })
     );
   } catch (error) {
