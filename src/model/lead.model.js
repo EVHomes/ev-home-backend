@@ -168,7 +168,7 @@ export const leadSchema = new mongoose.Schema(
       default: function () {
         let startDate = this.startDate || Date.now();
         let validTillDate = new Date(startDate);
-        validTillDate.setMonth(validTillDate.getMonth() + 2);
+        validTillDate.setMonth(validTillDate.getDay() + 60);
         return validTillDate;
       },
     },

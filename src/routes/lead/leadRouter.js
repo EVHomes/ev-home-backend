@@ -610,6 +610,9 @@ leadRouter.post("/lead-updates", async (req, res) => {
         i = i >= 1 ? 0 : 1;
         const validTill = new Date(cycleStartDate);
         validTill.setDate(validTill.getDate() + 15);
+        const taggingValidTill = new Date(startDate);
+        taggingValidTill.setDate(validTill.getDate() + 60);
+
         // i++;
         dataTuPush.push({
           firstName,
@@ -623,6 +626,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           approvalDate: cycleStartDate,
           approvalRemark: "approved",
           startDate,
+          validTill: taggingValidTill,
           cycleStartDate,
           stage: "visit",
           project: projs,
@@ -643,7 +647,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
           ],
         });
       }
-      await leadModel.insertMany(dataTuPush);
+      // await leadModel.insertMany(dataTuPush);
       // Send the results only after processing is done
       return res.send(dataTuPush);
     })
