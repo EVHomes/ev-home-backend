@@ -190,6 +190,8 @@ export const updateFeedback = async (req, res, next) => {
     taskCompleted,
     lead,
     task,
+    siteVisitInterested,
+    siteVisitInterestedDate,
   } = req.body;
   const user = req.user;
   try {
@@ -199,6 +201,8 @@ export const updateFeedback = async (req, res, next) => {
     const theLead = await leadModel.findByIdAndUpdate(lead, {
       clientInterestedStatus: intrestedStatus,
       interestedStatus: leadStatus,
+      siteVisitInterested,
+      siteVisitInterestedDate,
       $addToSet: {
         callHistory: {
           caller: user?._id,
