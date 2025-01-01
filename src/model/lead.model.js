@@ -228,7 +228,6 @@ export const leadSchema = new mongoose.Schema(
       type: String,
       default: "pending",
     },
-
     interestedStatus: {
       type: String,
       default: "Cold",
@@ -237,7 +236,6 @@ export const leadSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
-
     clientStatus: {
       type: String,
       default: "none",
@@ -250,6 +248,14 @@ export const leadSchema = new mongoose.Schema(
     status: {
       type: String,
       default: "Pending",
+    },
+    siteVisitInterested: {
+      type: Boolean,
+      default: false,
+    },
+    siteVisitInterestedDate: {
+      type: Date,
+      default: null,
     },
     cycle: cycle,
     approvalHistory: [approvalSchema],

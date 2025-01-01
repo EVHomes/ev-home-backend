@@ -71,10 +71,11 @@ export const assignTask = async (req, res, next) => {
   try {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
-
+    const assignDate = new Date();
     const newData = {
       ...body,
       assignTo: assignTo,
+      assignDate,
       // assignTo: user._id,
     };
 
@@ -189,6 +190,8 @@ export const updateFeedback = async (req, res, next) => {
     taskCompleted,
     lead,
     task,
+    siteVisitInterested,
+    siteVisitInterestedDate,
   } = req.body;
   const user = req.user;
   try {
@@ -198,6 +201,8 @@ export const updateFeedback = async (req, res, next) => {
     const theLead = await leadModel.findByIdAndUpdate(lead, {
       clientInterestedStatus: intrestedStatus,
       interestedStatus: leadStatus,
+      siteVisitInterested,
+      siteVisitInterestedDate,
       $addToSet: {
         callHistory: {
           caller: user?._id,

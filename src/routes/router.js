@@ -32,7 +32,7 @@ import enquiryformRouter from "./enquiryform/enquiryformRouter.js";
 
 import whatsnewrouterRouter from "./whatsnew/whatsnewRouter.js";
 import appUpdateRouter from "./appUpdate/appUpdateRouter.js";
-
+import auditSectionRouter from "./auditSection/auditSectionRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -96,6 +96,6 @@ router.use(upcomingRouter);
 router.use(enquiryformRouter);
 router.use(whatsnewrouterRouter);
 router.use(appUpdateRouter);
-
+router.use(auditSectionRouter);
 
 export default router;
