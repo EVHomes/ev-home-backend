@@ -10,7 +10,7 @@ const taskRouter = Router();
 
 taskRouter.get("/task/:id", getTask);
 taskRouter.post("/assign-task/:id", authenticateToken, assignTask);
-taskRouter.post("/update-task/:id", updateTask);
-taskRouter.post("/update-feedback", updateFeedback);
+taskRouter.post("/update-task/:id", authenticateToken, updateTask);
+taskRouter.post("/update-feedback", authenticateToken, updateFeedback);
 
 export default taskRouter;
