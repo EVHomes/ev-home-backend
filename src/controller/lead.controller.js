@@ -2006,6 +2006,8 @@ export const addLead = async (req, res, next) => {
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
+    console.log(body);
+
     const validFields = validateRequiredLeadsFields(body);
     // console.log("p3");
 
