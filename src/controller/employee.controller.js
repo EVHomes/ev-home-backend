@@ -853,3 +853,47 @@ export const searchEmployee = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const newPassword = async (req, res, next) => {
+  const { id } = req.params;
+  const { password, newPassword } = req.body;
+
+  try {
+    if (!id) {
+      return res.send(errorRes(403, "ID is required"));
+    }
+    console.log(id);
+    console.log(password);
+    console.log(newPassword);
+    if (!password || !newPassword) {
+      return res.send(errorRes(403, "Old and new passwords are required"));
+    }
+
+    const respAdmin = await employeeModel.findById(id);
+
+    if (!respAdmin) {
+      return res.send(errorRes(404, `Admin not found with id: ${id}`));
+    }
+    console.log("pass 1");
+    console.log(respAdmin.password);
+
+    const isMatch = await comparePassword(password, respAdmin.password);
+    console.log("pass 2");
+
+    if (!isMatch) {
+      return res.send(errorRes(400, "Old password is incorrect"));
+    }
+    console.log("pass 3");
+
+    const hashedNewPassword = await encryptPassword(newPassword);
+    respAdmin.password = hashedNewPassword;
+    await respAdmin.save();
+    console.log("pass 4");
+
+    return res.send(
+      successRes(200, "Password updated successfully", { data: respAdmin })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
