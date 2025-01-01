@@ -71,10 +71,11 @@ export const assignTask = async (req, res, next) => {
   try {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
-
+    const assignDate = new Date();
     const newData = {
       ...body,
       assignTo: assignTo,
+      assignDate,
       // assignTo: user._id,
     };
 
