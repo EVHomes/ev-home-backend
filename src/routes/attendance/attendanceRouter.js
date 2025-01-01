@@ -93,6 +93,31 @@ attendanceRouter.get("/get-check-in/:id", async (req, res) => {
   }
 });
 
+// Check-In Endpoint
+attendanceRouter.get("/get-check-in-by-date", async (req, res) => {
+  const { date } = req.query;
+  try {
+    let now = new Date();
+    if (date) {
+      now = new Date(date);
+    }
+    const existingAttendance = await attendanceModel.find({
+      day: now.getDate(),
+      month: now.getMonth() + 1,
+      year: now.getFullYear(),
+    });
+
+    return res.send(
+      successRes(200, "Checked In", {
+        data: existingAttendance,
+      })
+    );
+  } catch (error) {
+    console.error(error);
+    return res.send(errorRes(500, "Internal Server Error"));
+  }
+});
+
 // Break Start Endpoint
 attendanceRouter.post("/break-start", async (req, res) => {
   try {

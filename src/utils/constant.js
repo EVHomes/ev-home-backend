@@ -626,6 +626,33 @@ export const taskPopulateOptions = [
   },
 ];
 
+export const auditSectionPopulateOption = [
+  {
+    path: "executive",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+  {
+    path: "teamLeaders",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
+];
+
 export const attendancePopulateOption = [
   {
     path: "userId",
