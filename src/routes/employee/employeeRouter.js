@@ -9,6 +9,7 @@ import {
   getEmployees,
   getPostSaleExecutives,
   getPreSalesExecutive,
+  newPassword,
   getSalesManagers,
   getSeniorClosingManagers,
   getTeamLeaderCSM,
@@ -95,6 +96,8 @@ employeeRouter.post(
   validateEmployeeFields,
   resetPasswordEmployee
 );
+
+employeeRouter.post("/employee-pw/:id", newPassword);
 
 employeeRouter.delete("/employee/:id", authenticateToken, deleteEmployeeById);
 
