@@ -19,6 +19,7 @@ import {
   searchEmployee,
   getReportingTo,
   getEmployeeReAuth,
+  newPassword,
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -97,6 +98,7 @@ employeeRouter.post(
   validateEmployeeFields,
   resetPasswordEmployee
 );
+employeeRouter.post("/employee-pw/:id", newPassword);
 
 employeeRouter.delete("/employee/:id", authenticateToken, deleteEmployeeById);
 
