@@ -18,6 +18,7 @@ import {
   resetPasswordEmployee,
   searchEmployee,
   getReportingTo,
+  getEmployeeReAuth,
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -31,6 +32,7 @@ employeeRouter.get(
 );
 
 employeeRouter.get("/employee/:id", authenticateToken, getEmployeeById);
+employeeRouter.get("/employee-reauth", authenticateToken, getEmployeeReAuth);
 
 employeeRouter.get(
   "/employee-visit-allowed-staff",

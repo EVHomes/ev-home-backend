@@ -1,6 +1,7 @@
 import config from "../config/config.js";
 import { validateRegisterEmployeeFields } from "../middleware/employee.middleware.js";
 import cpModel from "../model/channelPartner.model.js";
+import clientModel from "../model/client.model.js";
 import employeeModel from "../model/employee.model.js";
 import otpModel from "../model/otp.model.js";
 import { errorRes, successRes } from "../model/response.js";
@@ -324,6 +325,112 @@ export const getEmployeeById = async (req, res, next) => {
     );
   } catch (error) {
     return next(error);
+  }
+};
+
+export const getEmployeeReAuth = async (req, res, next) => {
+  try {
+    const accessToken = req.headers["authorization"]?.split(" ")[1];
+    // const refreshToken = req.headers.refreshtoken?.split(" ")[1];
+    const refreshToken = req.headers["x-refresh-token"]?.split(" ")[1];
+    // console.log(`acces: ${accessToken} `);
+    // console.log(`refresh: ${refreshToken} `);
+    if (!accessToken) {
+      return res.status(401).json({ message: "No token provided" });
+    }
+
+    try {
+      const decoded = verifyJwtToken(accessToken, config.SECRET_ACCESS_KEY);
+      let user = null;
+      if (decoded.data.role === "channel-partner") {
+        user = await cpModel.findById(decoded.data._id).lean();
+
+        if (!user) {
+          return res.send(errorRes(401, "Channel Partner not found"));
+        }
+      } else if (decoded.data.role === "employee") {
+        user = await employeeModel.findById(decoded.data._id).lean();
+
+        if (!user) {
+          return res.send(errorRes(401, "Channel Partner not found"));
+        }
+      } else if (decoded.data.role === "customer") {
+        user = await clientModel.findById(decoded.data._id).lean();
+
+        if (!user) {
+          return res.send(errorRes(401, "Channel Partner not found"));
+        }
+      }
+
+      if (!user) {
+        return res.send(errorRes(401, "No valid Session found"));
+      }
+
+      req.user = user;
+      return res.send(successRes(200, "re-login", { data: user }));
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        // Token has expired, attempt to refresh
+        if (!refreshToken) {
+          return res.send(errorRes(401, "Refresh token not found"));
+        }
+
+        try {
+          const decoded = verifyJwtToken(
+            refreshToken,
+            config.SECRET_REFRESH_KEY
+          );
+          let user = null;
+          if (decoded.data.role === "channel-partner") {
+            user = await cpModel.findById(decoded.data._id).lean();
+
+            if (!user) {
+              return res.send(errorRes(401, "Channel Partner not found"));
+            }
+          } else if (decoded.data.role === "employee") {
+            user = await employeeModel.findById(decoded.data._id).lean();
+
+            if (!user) {
+              return res.send(errorRes(401, "Channel Partner not found"));
+            }
+          } else if (decoded.data.role === "customer") {
+            user = await clientModel.findById(decoded.data._id).lean();
+
+            if (!user) {
+              return res.send(errorRes(401, "Channel Partner not found"));
+            }
+          }
+
+          if (!user) {
+            return res.send(errorRes(401, "No valid Session found"));
+          }
+          const { password, ...userWithoutPassword } = user;
+          const dataToken = {
+            _id: user._id,
+            email: user.email,
+            role: user.role,
+          };
+
+          const newAccessToken = createJwtToken(
+            dataToken,
+            config.SECRET_ACCESS_KEY,
+            "15m"
+          );
+
+          res.setHeader("Authorization", `Bearer ${newAccessToken}`);
+          // res.setHeader("NewAccessToken", `Bearer ${newAccessToken}`);
+          req.user = {
+            ...userWithoutPassword,
+          };
+          return res.send(successRes(200, "re-login", { data: user }));
+        } catch (refreshError) {
+          return res.send(errorRes(401, "Invalid refresh token"));
+        }
+      }
+      return res.send(errorRes(401, "Invalid token"));
+    }
+  } catch (error) {
+    return res.send(errorRes(401, "Internal server error"));
   }
 };
 
