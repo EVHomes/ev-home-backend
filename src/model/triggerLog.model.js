@@ -6,6 +6,7 @@ export const triggerLog = new mongoose.Schema(
     totalTrigger: { type: Number, default: 0 },
     message: { type: String, default: "" },
     changes: [{ type: mongoose.Schema.Types.ObjectId, ref: "leads" }],
+    changesString: { type: String, default: "" },
   },
   { timestamps: true }
 );

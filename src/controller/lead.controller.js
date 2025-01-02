@@ -22,8 +22,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 Date.prototype.addDays = function (days) {
-  const date = new Date(this.valueOf());
-  date.setDate(date.getDate() + days);
+  const date = new Date(this); // Copy the current date
+  date.setDate(this.getDate() + days); // Add the days
   return date;
 };
 
@@ -1602,7 +1602,9 @@ export const searchLeads = async (req, res, next) => {
       }),
       ...(channelPartner ? { channelPartner: channelPartner } : {}),
       // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
-      ...(stage === "all" ? { stage: stage } : { leadType: { $ne: "walk-in" } }),
+      ...(stage === "all"
+        ? { stage: stage }
+        : { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
@@ -2037,7 +2039,9 @@ export const addLead = async (req, res, next) => {
       });
 
       if (todayLeadsCount >= 25) {
-        return res.send(errorRes(409, `You cannot share more than 25 leads in 1 day.`));
+        return res.send(
+          errorRes(409, `You cannot share more than 25 leads in 1 day.`)
+        );
       }
 
       const existingLeadForCP = await leadModel.findOne({
@@ -2191,7 +2195,8 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully`, {
@@ -2261,7 +2266,8 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -2283,7 +2289,8 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
 
-    if (!teamLeaderId) return res.send(errorRes(403, "teamLeaderId is required"));
+    if (!teamLeaderId)
+      return res.send(errorRes(403, "teamLeaderId is required"));
 
     const respLead = await leadModel.findById(id);
 
@@ -2353,7 +2360,9 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
       // console.log("pass sent notification");
     }
 
-    return res.send(successRes(200, "Lead Assigned Successfully", { data: updatedLead }));
+    return res.send(
+      successRes(200, "Lead Assigned Successfully", { data: updatedLead })
+    );
   } catch (error) {
     return next(error);
   }
@@ -2554,7 +2563,11 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -2691,7 +2704,8 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } = body;
+  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } =
+    body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -3100,7 +3114,11 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       {
         $project: {
           teamLeader: {
-            $concat: ["$teamLeaderDetails.firstName", " ", "$teamLeaderDetails.lastName"],
+            $concat: [
+              "$teamLeaderDetails.firstName",
+              " ",
+              "$teamLeaderDetails.lastName",
+            ],
           },
           count: 1,
           interval,
@@ -3169,7 +3187,9 @@ export async function getAllLeadCountsFunnel(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res.status(400).json({ message: "Invalid year or month parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -3303,7 +3323,11 @@ export async function getAllLeadCountsFunnel(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -4131,7 +4155,9 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res.status(400).json({ message: "Invalid year or month parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -4184,7 +4210,12 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
     }
 
     // Define all possible statuses for the funnel
-    const allStatuses = ["Booked", "Site Visit", "Leads Contacted", "Leads Received"];
+    const allStatuses = [
+      "Booked",
+      "Site Visit",
+      "Leads Contacted",
+      "Leads Received",
+    ];
 
     // Group stage by lead status and interval
     let groupStage = {
@@ -4261,7 +4292,11 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -4276,7 +4311,8 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
 }
 
 export const getLeadByStartEndDate = async (req, res) => {
-  const { startDate, endDate, teamLeader, status, project, channelPartner } = req.body;
+  const { startDate, endDate, teamLeader, status, project, channelPartner } =
+    req.body;
 
   try {
     if (!startDate || !endDate)
@@ -4355,14 +4391,22 @@ export const generateInternalLeadPdf = async (req, res) => {
       .subtract(1, "day")
       .startOf("day")
       .toDate();
-    const endOfYesterday = moment().tz(timeZone).subtract(1, "day").endOf("day").toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
     console.log(startOfYesterday);
     console.log(endOfYesterday);
 
     console.log(
-      moment("2024-12-10T20:39:57.938+00:00").tz(timeZone).format("DD-MM-YYYY HH:mm")
+      moment("2024-12-10T20:39:57.938+00:00")
+        .tz(timeZone)
+        .format("DD-MM-YYYY HH:mm")
     );
-    console.log(moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
+    console.log(
+      moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm")
+    );
 
     console.log(moment(endOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
 
@@ -4416,7 +4460,11 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
           align: "left",
         })
-        .text(`Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`, 50, cardY + 15)
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
         .text(
           `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
           50,
@@ -4424,7 +4472,9 @@ export const generateInternalLeadPdf = async (req, res) => {
         )
         .text(
           `Alt Phone: ${
-            lead.altPhoneNumber ? lead.countryCode + " " + lead.altPhoneNumber : "N/A"
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
           }`,
           50,
           cardY + 45
@@ -4432,11 +4482,17 @@ export const generateInternalLeadPdf = async (req, res) => {
 
         .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
         .text(
-          `Projects: ${lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"}`,
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
           50,
           cardY + 75
         )
-        .text(`Requirement: ${lead.requirement?.join(", ") || "N/A"}`, 50, cardY + 90)
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
 
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
@@ -4467,7 +4523,9 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(
           `Assigned Date: ${
             lead.cycle?.startDate
-              ? moment(lead.cycle.startDate).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.cycle.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4476,7 +4534,9 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(
           `Deadline: ${
             lead.cycle?.validTill
-              ? moment(lead.cycle.validTill).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.cycle.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4514,7 +4574,11 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
       .subtract(1, "day")
       .startOf("day")
       .toDate();
-    const endOfYesterday = moment().tz(timeZone).subtract(1, "day").endOf("day").toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
 
     const leads = await leadModel
       .find({
@@ -4569,7 +4633,11 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
           align: "left",
         })
-        .text(`Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`, 50, cardY + 15)
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
         .text(
           `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
           50,
@@ -4577,7 +4645,9 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         )
         .text(
           `Alt Phone: ${
-            lead.altPhoneNumber ? lead.countryCode + " " + lead.altPhoneNumber : "N/A"
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
           }`,
           50,
           cardY + 45
@@ -4585,23 +4655,31 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
 
         .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
         .text(
-          `Projects: ${lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"}`,
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
           50,
           cardY + 75
         )
-        .text(`Requirement: ${lead.requirement?.join(", ") || "N/A"}`, 50, cardY + 90)
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
 
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
           `Data Analyzer: ${
-            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName || "N/A"
+            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
+            "N/A"
           }`,
           300,
           cardY + 30
         )
         .text(
           `Team Leader: ${
-            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName || "N/A"
+            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
+            "N/A"
           }`,
           300,
           cardY + 45
@@ -4616,7 +4694,9 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(
           `Tagging Date: ${
             lead.startDate
-              ? moment(lead.startDate).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4625,7 +4705,9 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(
           `Valid Till: ${
             lead.validTill
-              ? moment(lead.validTill).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4724,7 +4806,8 @@ export const triggerCycleChange = async (req, res, next) => {
               // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
               // cCycle.oldTeamLeader = cCycle.teamLeader;
               // cCycle.lastIndex = lastIndex;
               // cCycle.nextIndex = lastIndex + 1;
@@ -4755,7 +4838,8 @@ export const triggerCycleChange = async (req, res, next) => {
               cCycle.lastIndex = lastIndex;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
               cCycle.lastIndex = lastIndex;
               cCycle.nextIndex = lastIndex + 1;
 
@@ -4797,13 +4881,13 @@ export const triggerCycleChange = async (req, res, next) => {
 
       // Execute bulk update
       if (bulkOperations.length > 0) {
-        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
         // console.log("Bulk Update Result:", bulkResult);
 
         return res.send(
           successRes(200, "Cycles updated successfully", {
-            // matchedCount: bulkResult.matchedCount,
-            // modifiedCount: bulkResult.modifiedCount,
+            matchedCount: bulkResult.matchedCount,
+            modifiedCount: bulkResult.modifiedCount,
             total: bulkOperations?.length,
             data: bulkOperations,
           })
@@ -4929,7 +5013,6 @@ export const triggerCycleChangeFunction = async () => {
     const currentDate = new Date();
     const filterDate = new Date("2024-12-10");
 
-    // Fetch all leads whose cycles have expired
     const allCycleExpiredLeads = await leadModel.find({
       "cycle.validTill": { $lt: currentDate },
       startDate: { $gte: filterDate },
@@ -4937,56 +5020,35 @@ export const triggerCycleChangeFunction = async () => {
     });
 
     if (allCycleExpiredLeads.length > 0) {
-      // Fetch active team leaders sorted by createdAt
       const teamLeaders = [
         { _id: "ev15-deepak-karki" },
         { _id: "ev69-vicky-mane" },
         { _id: "ev70-jaspreet-arora" },
         { _id: "ev54-ranjna-gupta" },
       ];
-      // const teamLeaders = await employeeModel
-      //   .find({
-      //     $or: [
-      //       { designation: "desg-site-head" },
-      //       { designation: "desg-senior-closing-manager" },
-      //       { designation: "desg-post-sales-head" },
-      //     ],
-      //     status: "active",
-      //   })
-      //   .sort({ createdAt: 1 })
-      //   .select("_id");
 
-      console.log("Team Leaders:", teamLeaders); // Debug log
-
-      // Prepare bulk operations
       const bulkOperations = [];
 
-      allCycleExpiredLeads.map((entry) => {
+      allCycleExpiredLeads.forEach((entry) => {
         const lastIndex = teamLeaders.findIndex(
           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
         );
         const totalTeamLeader = teamLeaders.length;
-        const cCycle = { ...entry.cycle }; // Clone cycle object
-
-        const previousCycle = { ...cCycle }; // For cycle history
-        const startDate = new Date(entry.cycle.validTill); // Current date
+        const cCycle = { ...entry.cycle };
+        const previousCycle = { ...cCycle };
+        const startDate = new Date(entry.cycle.validTill);
         const validTill = new Date(startDate);
 
         if (lastIndex !== -1) {
-          // Logic for visit stage
           if (cCycle.stage === "visit") {
             if (cCycle.currentOrder >= totalTeamLeader) {
-              validTill.setDate(validTill.getDate() + 180);
+              validTill.setDate(validTill.getDate() + 150);
               cCycle.currentOrder = 1;
-              cCycle.lastIndex = lastIndex;
-              cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
-              // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
+              cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-              // cCycle.oldTeamLeader = cCycle.teamLeader;
-              // cCycle.lastIndex = lastIndex;
-              // cCycle.nextIndex = lastIndex + 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5006,17 +5068,14 @@ export const triggerCycleChangeFunction = async () => {
               }
             }
           } else if (cCycle.stage === "revisit") {
-            // Logic for revisit stage
             if (cCycle.currentOrder >= totalTeamLeader) {
-              validTill.setDate(validTill.getDate() + 180);
+              validTill.setDate(validTill.getDate() + 150);
               cCycle.currentOrder = 1;
-              cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
-              cCycle.lastIndex = lastIndex;
+              cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-              cCycle.lastIndex = lastIndex;
-              cCycle.nextIndex = lastIndex + 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5037,46 +5096,204 @@ export const triggerCycleChangeFunction = async () => {
             }
           }
 
+          // Explicitly handle year rollover
+          const adjustedYear = validTill.getFullYear();
+          if (adjustedYear > startDate.getFullYear()) {
+            console.log(
+              `Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`
+            );
+            validTill.setFullYear(adjustedYear); // Explicitly set the year, even though it's already correct
+          }
+
           cCycle.startDate = startDate;
           cCycle.validTill = validTill;
 
-          // Add bulk update operation
           bulkOperations.push({
             updateOne: {
               filter: { _id: entry._id },
               update: {
                 teamLeader: cCycle.teamLeader,
+                taskRef: null,
                 $set: { cycle: cCycle },
-                $push: { cycleHistory: previousCycle }, // Add previous cycle to history
+                $push: { cycleHistory: previousCycle },
               },
             },
           });
         }
       });
 
-      // Execute bulk update
       if (bulkOperations.length > 0) {
         // const bulkResult = await leadModel.bulkWrite(bulkOperations);
-        // console.log("Bulk Update Result:", bulkResult);
+        const list =
+          bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
           // matchedCount: bulkResult.matchedCount,
           // modifiedCount: bulkResult.modifiedCount,
-          total: bulkOperations?.length,
+          total: bulkOperations.length,
+          changes: list,
+          changesString: JSON.stringify(bulkOperations),
           data: bulkOperations,
+          message: "cycle changed successfully",
         };
       }
     }
 
-    // If no leads need cycle changes
-    return res.send(
-      successRes(200, "No cycle changes needed", {
-        data: [],
-        totalItem: 0,
-      })
-    );
+    return {
+      total: 0,
+      changes: [],
+      changesString: "no cycle changes",
+      data: [],
+      message: "no cycle changes",
+    };
   } catch (error) {
     console.error("Error updating cycles:", error);
-    return res.status(500).send({ message: "Internal Server Error", error });
+    throw new Error("Internal Server Error");
   }
 };
+
+// export const triggerCycleChangeFunction = async () => {
+//   try {
+//     const currentDate = new Date();
+//     const filterDate = new Date("2024-12-10");
+
+//     // Fetch all leads whose cycles have expired
+//     const allCycleExpiredLeads = await leadModel.find({
+//       "cycle.validTill": { $lt: currentDate },
+//       startDate: { $gte: filterDate },
+//       bookingStatus: { $ne: "booked" },
+//     });
+
+//     if (allCycleExpiredLeads.length > 0) {
+//       // Fetch active team leaders sorted by createdAt
+//       const teamLeaders = [
+//         { _id: "ev15-deepak-karki" },
+//         { _id: "ev69-vicky-mane" },
+//         { _id: "ev70-jaspreet-arora" },
+//         { _id: "ev54-ranjna-gupta" },
+//       ];
+
+//       // Prepare bulk operations
+//       const bulkOperations = [];
+
+//       allCycleExpiredLeads.map((entry) => {
+//         const lastIndex = teamLeaders.findIndex(
+//           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
+//         );
+//         const totalTeamLeader = teamLeaders.length;
+//         const cCycle = { ...entry.cycle }; // Clone cycle object
+
+//         const previousCycle = { ...cCycle }; // For cycle history
+//         const startDate = new Date(entry.cycle.validTill); // Current date
+//         const validTill = new Date(startDate);
+
+//         if (lastIndex !== -1) {
+//           // Logic for visit stage
+//           if (cCycle.stage === "visit") {
+//             if (cCycle.currentOrder >= totalTeamLeader) {
+//               validTill.setDate(validTill.getDate() + 150);
+//               cCycle.currentOrder = 1;
+//               cCycle.lastIndex = lastIndex;
+//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+//               // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
+//             } else {
+//               cCycle.currentOrder += 1;
+//               cCycle.teamLeader =
+//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+//               // cCycle.oldTeamLeader = cCycle.teamLeader;
+//               // cCycle.lastIndex = lastIndex;
+//               // cCycle.nextIndex = lastIndex + 1;
+
+//               switch (cCycle.currentOrder) {
+//                 case 1:
+//                   validTill.setDate(validTill.getDate() + 15);
+//                   break;
+//                 case 2:
+//                   validTill.setDate(validTill.getDate() + 7);
+//                   break;
+//                 case 3:
+//                   validTill.setDate(validTill.getDate() + 3);
+//                   break;
+//                 case 4:
+//                   validTill.setDate(validTill.getDate() + 2);
+//                   break;
+//                 default:
+//                   validTill.setDate(validTill.getDate() + 15);
+//               }
+//             }
+//           } else if (cCycle.stage === "revisit") {
+//             // Logic for revisit stage
+//             if (cCycle.currentOrder >= totalTeamLeader) {
+//               validTill.setDate(validTill.getDate() + 150);
+//               cCycle.currentOrder = 1;
+//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+//               cCycle.lastIndex = lastIndex;
+//             } else {
+//               cCycle.currentOrder += 1;
+//               cCycle.teamLeader =
+//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+//               cCycle.lastIndex = lastIndex;
+//               cCycle.nextIndex = lastIndex + 1;
+
+//               switch (cCycle.currentOrder) {
+//                 case 1:
+//                   validTill.setDate(validTill.getDate() + 30);
+//                   break;
+//                 case 2:
+//                   validTill.setDate(validTill.getDate() + 15);
+//                   break;
+//                 case 3:
+//                   validTill.setDate(validTill.getDate() + 7);
+//                   break;
+//                 case 4:
+//                   validTill.setDate(validTill.getDate() + 5);
+//                   break;
+//                 default:
+//                   validTill.setDate(validTill.getDate() + 30);
+//               }
+//             }
+//           }
+
+//           cCycle.startDate = startDate;
+//           cCycle.validTill = validTill;
+
+//           // Add bulk update operation
+//           bulkOperations.push({
+//             updateOne: {
+//               filter: { _id: entry._id },
+//               update: {
+//                 teamLeader: cCycle.teamLeader,
+//                 $set: { cycle: cCycle },
+//                 $push: { cycleHistory: previousCycle }, // Add previous cycle to history
+//               },
+//             },
+//           });
+//         }
+//       });
+
+//       // Execute bulk update
+//       if (bulkOperations.length > 0) {
+//         // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+//         // console.log("Bulk Update Result:", bulkResult);
+
+//         return {
+//           // matchedCount: bulkResult.matchedCount,
+//           // modifiedCount: bulkResult.modifiedCount,
+//           total: bulkOperations?.length,
+//           data: bulkOperations,
+//         };
+//       }
+//     }
+
+//     // If no leads need cycle changes
+//     return res.send(
+//       successRes(200, "No cycle changes needed", {
+//         data: [],
+//         totalItem: 0,
+//       })
+//     );
+//   } catch (error) {
+//     console.error("Error updating cycles:", error);
+//     return res.status(500).send({ message: "Internal Server Error", error });
+//   }
+// };

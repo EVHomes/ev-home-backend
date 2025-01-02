@@ -10,8 +10,8 @@ import oneSignalModel from "../model/oneSignal.model.js";
 import clientModel from "../model/client.model.js";
 import { siteVisitPopulateOptions } from "../utils/constant.js";
 Date.prototype.addDays = function (days) {
-  const date = new Date(this.valueOf());
-  date.setDate(date.getDate() + days);
+  const date = new Date(this); // Copy the current date
+  date.setDate(this.getDate() + days); // Add the days
   return date;
 };
 
@@ -450,7 +450,7 @@ export const addSiteVisits = async (req, res) => {
           phoneNumber: phoneNumber,
           teamLeader: closingManager,
           visitRef: newSiteVisit?._id,
-          visitStatus: visitType,
+          visitStatus: visitType + "ed",
           stage: "revisit",
           cycle: {
             nextTeamLeader: null,
