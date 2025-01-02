@@ -9,6 +9,7 @@ import { hostnameCheck } from "./utils/helper.js";
 import cron from "node-cron";
 import axios from "axios";
 import triggerHistoryModel from "./model/triggerLog.model.js";
+import { triggerCycleChangeFunction } from "./controller/lead.controller.js";
 connectDatabase();
 
 const app = express();
@@ -28,15 +29,16 @@ app.use(errorHandler);
 cron.schedule("0 9 * * *", async () => {
   try {
     // Make the API call
-    const response = await axios.get(
-      "https://api.evhomes.tech/lead-trigger-cycle-change"
-    );
-    const list = response?.data?.data.map((ele) => ele?._id) ?? [];
+    // const response = await axios.get(
+    //   "https://api.evhomes.tech/lead-trigger-cycle-change"
+    // );
+    const response = await triggerCycleChangeFunction();
     await triggerHistoryModel.create({
       date: new Date(),
-      changes: list,
-      totalTrigger: response?.data?.totalItem ?? 0,
-      message: response?.data?.message ?? "",
+      changes: response?.changes ?? [],
+      changesString: response?.changesString ?? "",
+      totalTrigger: response?.total ?? 0,
+      message: response?.message ?? "",
     });
     console.log("API Response:", response.data);
   } catch (error) {

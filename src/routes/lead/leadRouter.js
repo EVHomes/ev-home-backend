@@ -34,6 +34,7 @@ import {
   get24hrLeadsNameList,
   getSiteVisitLeadByPhoneNumber,
   getLeadTeamLeaderReportingToGraph,
+  triggerCycleChangeFunction,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -205,6 +206,11 @@ leadRouter.get("/sitevisitLead-phoneNumber/:id", getSiteVisitLeadByPhoneNumber);
 leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
 leadRouter.get("/lead-trigger-cycle-change", triggerCycleChange);
+leadRouter.get("/lead-trigger-cycle--test", async (req, res) => {
+  const resp = await triggerCycleChangeFunction();
+
+  return res.send(resp);
+});
 leadRouter.get("/lead-tagging-over-check", async (req, res) => {
   const date1 = new Date();
   try {
@@ -497,6 +503,82 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
     });
   } catch (error) {
     return res.status(500).send({ error: error.message });
+  }
+});
+/*
+    const filterDate = new Date("2024-12-10");
+
+    const allCycleExpiredLeads = await leadModel.find({
+      "cycle.validTill": { $lt: currentDate },
+      startDate: { $gte: filterDate },
+      bookingStatus: { $ne: "booked" },
+    });
+
+
+
+*/
+leadRouter.get("/all-leads", async (req, res) => {
+  try {
+    const filterDate = new Date("2024-12-10");
+    console.log(filterDate);
+    const allLeads = await leadModel.find({
+      startDate: { $gte: filterDate },
+      bookingStatus: { $ne: "booked" },
+    });
+
+    const cycleHistoryNotEmpty = allLeads.filter(
+      (el) => el.cycleHistory.length >= 3
+    );
+
+    const onlyWalkin = cycleHistoryNotEmpty.filter(
+      (el) => el.leadType === "walk-in"
+    );
+    res.send({
+      total: allLeads.length,
+      cycleHLength: cycleHistoryNotEmpty.length,
+      onlyWalkinLength: onlyWalkin.length,
+      // onlyWalkin,
+      // data: allLeads,
+      cycleHistoryNotEmpty,
+    });
+  } catch (error) {
+    res.send(error);
+  }
+});
+
+leadRouter.get("/removed-assigned", async (req, res) => {
+  try {
+    const filterDate = new Date("2024-12-10");
+    console.log(filterDate);
+    const allLeads = await leadModel
+      .find({
+        startDate: { $gte: filterDate },
+        "cycle.currentOrder": { $gt: 1 },
+        bookingStatus: { $ne: "booked" },
+      })
+      .populate(leadPopulateOptions);
+
+    const onlyWalkin = allLeads.filter(
+      (el) => el.taskRef?.assignTo?.reportingTo?._id != el.cycle.teamLeader?._id
+    );
+    // await Promise.all(
+    //   allLeads.map(async (el) => {
+    //     if (
+    //       el.taskRef?.assignTo?.reportingTo?._id != el.cycle.teamLeader?._id
+    //     ) {
+    //       await leadModel.findByIdAndUpdate(el._id, {taskRef: null})
+    //     }
+    //   })
+    // );
+
+    res.send({
+      total: allLeads.length,
+      onlyWalkinLength: onlyWalkin.length,
+      onlyWalkin,
+      // data: allLeads,
+    });
+  } catch (error) {
+    res.send(error);
   }
 });
 
