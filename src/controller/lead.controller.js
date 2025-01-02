@@ -1615,9 +1615,7 @@ export const searchLeads = async (req, res, next) => {
       }),
       ...(channelPartner ? { channelPartner: channelPartner } : {}),
       // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
-      ...(stage === "all"
-        ? { stage: stage }
-        : { leadType: { $ne: "walk-in" } }),
+      ...(stage === "all" ? { stage: stage } : { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
@@ -2048,13 +2046,12 @@ export const addLead = async (req, res, next) => {
       const endOfToday = moment().tz(timeZone).endOf("day").toDate();
 
       const todayLeadsCount = await leadModel.countDocuments({
+        channelPartner: channelPartner,
         startDate: { $gte: startOfToday, $lt: endOfToday },
       });
 
       if (todayLeadsCount >= 25) {
-        return res.send(
-          errorRes(409, `You cannot share more than 25 leads in 1 day.`)
-        );
+        return res.send(errorRes(409, `You cannot share more than 25 leads in 1 day.`));
       }
 
       const existingLeadForCP = await leadModel.findOne({
@@ -2208,8 +2205,7 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully`, {
@@ -2279,8 +2275,7 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead)
-      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -2302,8 +2297,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
 
-    if (!teamLeaderId)
-      return res.send(errorRes(403, "teamLeaderId is required"));
+    if (!teamLeaderId) return res.send(errorRes(403, "teamLeaderId is required"));
 
     const respLead = await leadModel.findById(id);
 
@@ -2373,9 +2367,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
       // console.log("pass sent notification");
     }
 
-    return res.send(
-      successRes(200, "Lead Assigned Successfully", { data: updatedLead })
-    );
+    return res.send(successRes(200, "Lead Assigned Successfully", { data: updatedLead }));
   } catch (error) {
     return next(error);
   }
@@ -2576,11 +2568,7 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [
-          { path: "designation" },
-          { path: "department" },
-          { path: "division" },
-        ],
+        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -2717,8 +2705,7 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } =
-    body;
+  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } = body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -3127,11 +3114,7 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       {
         $project: {
           teamLeader: {
-            $concat: [
-              "$teamLeaderDetails.firstName",
-              " ",
-              "$teamLeaderDetails.lastName",
-            ],
+            $concat: ["$teamLeaderDetails.firstName", " ", "$teamLeaderDetails.lastName"],
           },
           count: 1,
           interval,
@@ -3200,9 +3183,7 @@ export async function getAllLeadCountsFunnel(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res
-        .status(400)
-        .json({ message: "Invalid year or month parameter" });
+      return res.status(400).json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -3336,11 +3317,7 @@ export async function getAllLeadCountsFunnel(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found
-          ? found.month
-          : interval === "monthly"
-          ? currentMonth
-          : undefined,
+        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -4168,9 +4145,7 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res
-        .status(400)
-        .json({ message: "Invalid year or month parameter" });
+      return res.status(400).json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -4223,12 +4198,7 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
     }
 
     // Define all possible statuses for the funnel
-    const allStatuses = [
-      "Booked",
-      "Site Visit",
-      "Leads Contacted",
-      "Leads Received",
-    ];
+    const allStatuses = ["Booked", "Site Visit", "Leads Contacted", "Leads Received"];
 
     // Group stage by lead status and interval
     let groupStage = {
@@ -4305,11 +4275,7 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found
-          ? found.month
-          : interval === "monthly"
-          ? currentMonth
-          : undefined,
+        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -4324,8 +4290,7 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
 }
 
 export const getLeadByStartEndDate = async (req, res) => {
-  const { startDate, endDate, teamLeader, status, project, channelPartner } =
-    req.body;
+  const { startDate, endDate, teamLeader, status, project, channelPartner } = req.body;
 
   try {
     if (!startDate || !endDate)
@@ -4404,22 +4369,14 @@ export const generateInternalLeadPdf = async (req, res) => {
       .subtract(1, "day")
       .startOf("day")
       .toDate();
-    const endOfYesterday = moment()
-      .tz(timeZone)
-      .subtract(1, "day")
-      .endOf("day")
-      .toDate();
+    const endOfYesterday = moment().tz(timeZone).subtract(1, "day").endOf("day").toDate();
     console.log(startOfYesterday);
     console.log(endOfYesterday);
 
     console.log(
-      moment("2024-12-10T20:39:57.938+00:00")
-        .tz(timeZone)
-        .format("DD-MM-YYYY HH:mm")
+      moment("2024-12-10T20:39:57.938+00:00").tz(timeZone).format("DD-MM-YYYY HH:mm")
     );
-    console.log(
-      moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm")
-    );
+    console.log(moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
 
     console.log(moment(endOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
 
@@ -4473,11 +4430,7 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
           align: "left",
         })
-        .text(
-          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
-          50,
-          cardY + 15
-        )
+        .text(`Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`, 50, cardY + 15)
         .text(
           `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
           50,
@@ -4485,9 +4438,7 @@ export const generateInternalLeadPdf = async (req, res) => {
         )
         .text(
           `Alt Phone: ${
-            lead.altPhoneNumber
-              ? lead.countryCode + " " + lead.altPhoneNumber
-              : "N/A"
+            lead.altPhoneNumber ? lead.countryCode + " " + lead.altPhoneNumber : "N/A"
           }`,
           50,
           cardY + 45
@@ -4495,17 +4446,11 @@ export const generateInternalLeadPdf = async (req, res) => {
 
         .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
         .text(
-          `Projects: ${
-            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
-          }`,
+          `Projects: ${lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"}`,
           50,
           cardY + 75
         )
-        .text(
-          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
-          50,
-          cardY + 90
-        )
+        .text(`Requirement: ${lead.requirement?.join(", ") || "N/A"}`, 50, cardY + 90)
 
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
@@ -4536,9 +4481,7 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(
           `Assigned Date: ${
             lead.cycle?.startDate
-              ? moment(lead.cycle.startDate)
-                  .tz(timeZone)
-                  .format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.cycle.startDate).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4547,9 +4490,7 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(
           `Deadline: ${
             lead.cycle?.validTill
-              ? moment(lead.cycle.validTill)
-                  .tz(timeZone)
-                  .format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.cycle.validTill).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4587,11 +4528,7 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
       .subtract(1, "day")
       .startOf("day")
       .toDate();
-    const endOfYesterday = moment()
-      .tz(timeZone)
-      .subtract(1, "day")
-      .endOf("day")
-      .toDate();
+    const endOfYesterday = moment().tz(timeZone).subtract(1, "day").endOf("day").toDate();
 
     const leads = await leadModel
       .find({
@@ -4646,11 +4583,7 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
           align: "left",
         })
-        .text(
-          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
-          50,
-          cardY + 15
-        )
+        .text(`Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`, 50, cardY + 15)
         .text(
           `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
           50,
@@ -4658,9 +4591,7 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         )
         .text(
           `Alt Phone: ${
-            lead.altPhoneNumber
-              ? lead.countryCode + " " + lead.altPhoneNumber
-              : "N/A"
+            lead.altPhoneNumber ? lead.countryCode + " " + lead.altPhoneNumber : "N/A"
           }`,
           50,
           cardY + 45
@@ -4668,31 +4599,23 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
 
         .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
         .text(
-          `Projects: ${
-            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
-          }`,
+          `Projects: ${lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"}`,
           50,
           cardY + 75
         )
-        .text(
-          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
-          50,
-          cardY + 90
-        )
+        .text(`Requirement: ${lead.requirement?.join(", ") || "N/A"}`, 50, cardY + 90)
 
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
           `Data Analyzer: ${
-            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
-            "N/A"
+            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName || "N/A"
           }`,
           300,
           cardY + 30
         )
         .text(
           `Team Leader: ${
-            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
-            "N/A"
+            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName || "N/A"
           }`,
           300,
           cardY + 45
@@ -4707,9 +4630,7 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(
           `Tagging Date: ${
             lead.startDate
-              ? moment(lead.startDate)
-                  .tz(timeZone)
-                  .format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.startDate).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4718,9 +4639,7 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(
           `Valid Till: ${
             lead.validTill
-              ? moment(lead.validTill)
-                  .tz(timeZone)
-                  .format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.validTill).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4819,8 +4738,7 @@ export const triggerCycleChange = async (req, res, next) => {
               // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
               // cCycle.oldTeamLeader = cCycle.teamLeader;
               // cCycle.lastIndex = lastIndex;
               // cCycle.nextIndex = lastIndex + 1;
@@ -4851,8 +4769,7 @@ export const triggerCycleChange = async (req, res, next) => {
               cCycle.lastIndex = lastIndex;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
               cCycle.lastIndex = lastIndex;
               cCycle.nextIndex = lastIndex + 1;
 
@@ -5060,8 +4977,7 @@ export const triggerCycleChangeFunction = async () => {
               cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5087,8 +5003,7 @@ export const triggerCycleChangeFunction = async () => {
               cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5112,9 +5027,7 @@ export const triggerCycleChangeFunction = async () => {
           // Explicitly handle year rollover
           const adjustedYear = validTill.getFullYear();
           if (adjustedYear > startDate.getFullYear()) {
-            console.log(
-              `Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`
-            );
+            console.log(`Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`);
             validTill.setFullYear(adjustedYear); // Explicitly set the year, even though it's already correct
           }
 
@@ -5137,8 +5050,7 @@ export const triggerCycleChangeFunction = async () => {
 
       if (bulkOperations.length > 0) {
         // const bulkResult = await leadModel.bulkWrite(bulkOperations);
-        const list =
-          bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
+        const list = bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
           // matchedCount: bulkResult.matchedCount,
