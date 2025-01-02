@@ -230,7 +230,7 @@ export const leadSchema = new mongoose.Schema(
     },
     interestedStatus: {
       type: String,
-      default: "Cold",
+      default: null,
     },
     clientInterestedStatus: {
       type: String,

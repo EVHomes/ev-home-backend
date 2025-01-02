@@ -18,6 +18,7 @@ import csv from "csv-parser";
 import path from "path";
 import moment from "moment-timezone";
 import PDFDocument from "pdfkit";
+import taskModel from "../model/task.model.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -40,6 +41,7 @@ export const getAllLeads = async (req, res, next) => {
       .populate(leadPopulateOptions);
 
     if (!respLeads) return res.send(errorRes(404, "No leads found"));
+
     // console.log("leads sent");
     return res.send(
       successRes(200, "all Leads", {
@@ -59,7 +61,17 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
+    let member = req.query.member;
+    let ids = [];
 
+    if (member) {
+      const test = await taskModel.find({ assignTo: member }).select("_id");
+      test.map((ele) => {
+        ids.push(ele._id.toString());
+      });
+
+      // console.log(ids);
+    }
     const isNumberQuery = !isNaN(query);
     const filterDate = new Date("2024-12-10");
     let page = parseInt(req.query.page) || 1;
@@ -243,6 +255,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
+      ...(member != null ? { taskRef: { $in: ids } } : null),
     };
 
     // Add query search conditions (if applicable)
@@ -2299,7 +2312,7 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
     const teamLeaderResp = await employeeModel.find({ _id: teamLeaderId });
 
     const startDate = new Date(); // Current date
-    const daysToAdd = 15;
+    const daysToAdd = 14;
 
     // Properly calculate validTill
     const validTill = new Date(startDate);
@@ -4814,19 +4827,19 @@ export const triggerCycleChange = async (req, res, next) => {
 
               switch (cCycle.currentOrder) {
                 case 1:
-                  validTill.setDate(validTill.getDate() + 15);
+                  validTill.setDate(validTill.getDate() + 14);
                   break;
                 case 2:
-                  validTill.setDate(validTill.getDate() + 7);
+                  validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 3:
-                  validTill.setDate(validTill.getDate() + 5);
+                  validTill.setDate(validTill.getDate() + 3);
                   break;
                 case 4:
-                  validTill.setDate(validTill.getDate() + 2);
+                  validTill.setDate(validTill.getDate() + 1);
                   break;
                 default:
-                  validTill.setDate(validTill.getDate() + 15);
+                  validTill.setDate(validTill.getDate() + 14);
               }
             }
           } else if (cCycle.stage === "revisit") {
@@ -4845,19 +4858,19 @@ export const triggerCycleChange = async (req, res, next) => {
 
               switch (cCycle.currentOrder) {
                 case 1:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
                   break;
                 case 2:
-                  validTill.setDate(validTill.getDate() + 15);
+                  validTill.setDate(validTill.getDate() + 14);
                   break;
                 case 3:
-                  validTill.setDate(validTill.getDate() + 7);
+                  validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 4:
-                  validTill.setDate(validTill.getDate() + 5);
+                  validTill.setDate(validTill.getDate() + 3);
                   break;
                 default:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
               }
             }
           }
