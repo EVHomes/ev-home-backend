@@ -212,7 +212,14 @@ attendanceRouter.post("/check-out", async (req, res) => {
     attendance.checkOutLongitude = checkOutLongitude;
     attendance.checkOutPhoto = checkOutPhoto;
     attendance.totalActiveSeconds = activeDuration;
-    attendance.status = "completed";
+    const difference = calculateHoursDifferenceWithTZ(attendance.checkInTime);
+    if (difference < 3) {
+      attendance.status = "absent";
+    } else if (difference > 3 && difference < 7) {
+      attendance.status = "half-day";
+    } else if (difference > 7) {
+      attendance.status = "completed";
+    }
     await attendance.save();
     return res.send(
       successRes(200, "Check-out successful", { data: attendance })
@@ -445,4 +452,21 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 });
+const calculateHoursDifferenceWithTZ = (passedDate) => {
+  const timeZone = "Asia/Kolkata";
+
+  const now = moment.tz(timeZone); // Current time in specified time zone
+  const past = moment.tz(passedDate, timeZone); // Passed date in same time zone
+
+  const diffInHours = now.diff(past, "hours", true);
+  return diffInHours;
+};
+
+attendanceRouter.post("/attendance-difference", async (req, res) => {
+  const { checkInTime } = req.body;
+
+  const difference = calculateHoursDifferenceWithTZ(checkInTime);
+  res.json({ data: difference });
+});
+
 export default attendanceRouter;

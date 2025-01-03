@@ -50,6 +50,18 @@ export const shiftSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    absentMin: {
+      type: Number,
+      default: false,
+    },
+    halfDayMin: {
+      type: Number,
+      default: false,
+    },
+    fullDayMin: {
+      type: Number,
+      default: false,
+    },
   },
   { timestamps: true }
 );
