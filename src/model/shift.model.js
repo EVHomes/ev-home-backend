@@ -2,6 +2,10 @@
 import mongoose from "mongoose";
 export const shiftSchema = new mongoose.Schema(
   {
+    _id: {
+      type: String,
+      required: true,
+    },
     shiftName: {
       type: String,
       default: null,
