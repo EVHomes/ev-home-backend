@@ -10,6 +10,10 @@ import cron from "node-cron";
 import axios from "axios";
 import triggerHistoryModel from "./model/triggerLog.model.js";
 import { triggerCycleChangeFunction } from "./controller/lead.controller.js";
+import {
+  insertDailyAttendance,
+  markPendingDailyAttendance,
+} from "./routes/attendance/attendanceRouter.js";
 connectDatabase();
 
 const app = express();
@@ -44,6 +48,18 @@ cron.schedule("0 9 * * *", async () => {
   } catch (error) {
     console.error("Error making API call:", error.message);
   }
+});
+
+// Trigger at 5:30 AM
+cron.schedule("30 5 * * *", async () => {
+  console.log("Triggered at 5:30 AM local time");
+  await insertDailyAttendance();
+});
+
+// Trigger at 11:59 PM
+cron.schedule("59 23 * * *", async () => {
+  console.log("Triggered at 11:59 PM local time");
+  await markPendingDailyAttendance();
 });
 
 app.listen(config.PORT, () => console.log("listening on port " + config.PORT));

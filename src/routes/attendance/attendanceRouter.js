@@ -24,8 +24,7 @@ const calculateSeconds = (start, end) => {
 // Check-In Endpoint
 attendanceRouter.post("/check-in", async (req, res) => {
   try {
-    const { userId, checkInLatitude, checkInLongitude, checkInPhoto } =
-      req.body;
+    const { userId, checkInLatitude, checkInLongitude, checkInPhoto } = req.body;
 
     // Validate required fields
     if (!userId || !checkInLatitude || !checkInLongitude || !checkInPhoto) {
@@ -138,16 +137,10 @@ attendanceRouter.get("/get-check-in-by-date", async (req, res) => {
     const presentList = existingAttendance.filter(
       (ele) => ele.status === "active" || ele.status === "present"
     );
-    const absentList = existingAttendance.filter(
-      (ele) => ele.status === "absent"
-    );
-    const weekOffList = existingAttendance.filter(
-      (ele) => ele.status === "weekoff"
-    );
+    const absentList = existingAttendance.filter((ele) => ele.status === "absent");
+    const weekOffList = existingAttendance.filter((ele) => ele.status === "weekoff");
 
-    const onLeaveList = existingAttendance.filter(
-      (ele) => ele.status === "on-leave"
-    );
+    const onLeaveList = existingAttendance.filter((ele) => ele.status === "on-leave");
 
     const lateComersList = [];
     const earlyLeaversList = [];
@@ -201,9 +194,7 @@ attendanceRouter.post("/break-start", async (req, res) => {
     attendance.breakStartTime = now;
     await attendance.save();
 
-    return res.send(
-      successRes(200, "Break started successfully", { data: attendance })
-    );
+    return res.send(successRes(200, "Break started successfully", { data: attendance }));
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -234,9 +225,7 @@ attendanceRouter.post("/break-end", async (req, res) => {
     attendance.breakStartTime = null;
     await attendance.save();
 
-    return res.send(
-      successRes(200, "Break ended successfully", { data: attendance })
-    );
+    return res.send(successRes(200, "Break ended successfully", { data: attendance }));
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -246,8 +235,7 @@ attendanceRouter.post("/break-end", async (req, res) => {
 // Check-Out Endpoint
 attendanceRouter.post("/check-out", async (req, res) => {
   try {
-    const { userId, checkOutLatitude, checkOutLongitude, checkOutPhoto } =
-      req.body;
+    const { userId, checkOutLatitude, checkOutLongitude, checkOutPhoto } = req.body;
 
     const now = new Date();
     const attendance = await attendanceModel
@@ -268,8 +256,7 @@ attendanceRouter.post("/check-out", async (req, res) => {
     }
 
     const activeDuration =
-      calculateSeconds(attendance.checkInTime, now) -
-      attendance.totalBreakSeconds;
+      calculateSeconds(attendance.checkInTime, now) - attendance.totalBreakSeconds;
     attendance.checkOutTime = now;
     attendance.checkOutLatitude = checkOutLatitude;
     attendance.checkOutLongitude = checkOutLongitude;
@@ -284,9 +271,7 @@ attendanceRouter.post("/check-out", async (req, res) => {
       attendance.status = "present";
     }
     await attendance.save();
-    return res.send(
-      successRes(200, "Check-out successful", { data: attendance })
-    );
+    return res.send(successRes(200, "Check-out successful", { data: attendance }));
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -566,7 +551,27 @@ export const insertDailyAttendance = async () => {
       year: formattedDate.getFullYear(),
       status: "absent",
     }));
+    await attendanceModel.insertMany(attendanceRecords);
     return attendanceRecords;
+  } catch (error) {
+    return error;
+  }
+};
+
+export const markPendingDailyAttendance = async () => {
+  try {
+    const today = new Date();
+    const pendingresp = await attendanceModel.updateMany(
+      {
+        day: today.getDay(),
+        month: today.getMonth() + 1,
+        year: today.getFullYear(),
+        checkOutTime: null,
+      },
+      { status: "pending" }
+    );
+
+    return pendingresp;
   } catch (error) {
     return error;
   }
