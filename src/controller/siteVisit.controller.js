@@ -324,6 +324,25 @@ export const addSiteVisits = async (req, res) => {
             );
           }
           await foundLead.save();
+          const foundTLPlayerId = await oneSignalModel.findOne({
+            docId: foundLead?.channelPartner,
+            // role: teamLeaderResp?.role,
+          });
+
+          if (foundTLPlayerId) {
+            // console.log(foundTLPlayerId);
+
+            await sendNotificationWithImage({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Visit Done",
+              message: `Visit done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }`,
+              imageUrl:
+                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            });
+            // console.log("pass sent notification");
+          }
         }
 
         if (visitType === "virtual-meeting") {
@@ -345,6 +364,25 @@ export const addSiteVisits = async (req, res) => {
           }
 
           await foundLead.save();
+          const foundTLPlayerId = await oneSignalModel.findOne({
+            docId: foundLead?.channelPartner,
+            // role: teamLeaderResp?.role,
+          });
+
+          if (foundTLPlayerId) {
+            // console.log(foundTLPlayerId);
+
+            await sendNotificationWithImage({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Virtual Meeting Done",
+              message: `Virtual meeting done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }`,
+              imageUrl:
+                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            });
+            // console.log("pass sent notification");
+          }
         }
 
         if (visitType === "revisit") {
@@ -355,6 +393,25 @@ export const addSiteVisits = async (req, res) => {
           foundLead.cycle.validTill = new Date().addDays(180);
 
           await foundLead.save();
+          const foundTLPlayerId = await oneSignalModel.findOne({
+            docId: foundLead?.channelPartner,
+            // role: teamLeaderResp?.role,
+          });
+
+          if (foundTLPlayerId) {
+            // console.log(foundTLPlayerId);
+
+            await sendNotificationWithImage({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Revisit Done",
+              message: `Revisit done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }`,
+              imageUrl:
+                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            });
+            // console.log("pass sent notification");
+          }
         }
         if (visitType === "called") {
           foundLead.contactedStatus = "contacted";
@@ -388,6 +445,25 @@ export const addSiteVisits = async (req, res) => {
           }
 
           await foundLead.save();
+          const foundTLPlayerId = await oneSignalModel.findOne({
+            docId: foundLead?.channelPartner,
+            // role: teamLeaderResp?.role,
+          });
+
+          if (foundTLPlayerId) {
+            // console.log(foundTLPlayerId);
+
+            await sendNotificationWithImage({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Site Visit Done!",
+              message: `Site visit is done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }`,
+              imageUrl:
+                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            });
+            // console.log("pass sent notification");
+          }
         }
 
         if (visitType === "virtual-meeting") {
@@ -409,6 +485,25 @@ export const addSiteVisits = async (req, res) => {
           }
 
           await foundLead.save();
+          const foundTLPlayerId = await oneSignalModel.findOne({
+            docId: foundLead?.channelPartner,
+            // role: teamLeaderResp?.role,
+          });
+
+          if (foundTLPlayerId) {
+            // console.log(foundTLPlayerId);
+
+            await sendNotificationWithImage({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "virtual meeting",
+              message: `virtual meeting for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }`,
+              imageUrl:
+                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            });
+            // console.log("pass sent notification");
+          }
         }
 
         if (visitType === "revisit") {
@@ -419,6 +514,25 @@ export const addSiteVisits = async (req, res) => {
           foundLead.cycle.validTill = new Date().addDays(180);
 
           await foundLead.save();
+          const foundTLPlayerId = await oneSignalModel.findOne({
+            docId: foundLead?.channelPartner,
+            // role: teamLeaderResp?.role,
+          });
+
+          if (foundTLPlayerId) {
+            // console.log(foundTLPlayerId);
+
+            await sendNotificationWithImage({
+              playerIds: [foundTLPlayerId.playerId],
+              title: "Revisit Done",
+              message: `Revisit done for ${foundLead.firstName ?? ""} ${
+                foundLead.lastName ?? ""
+              }`,
+              imageUrl:
+                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            });
+            // console.log("pass sent notification");
+          }
         }
         if (visitType === "called") {
           foundLead.contactedStatus = "contacted";
@@ -484,7 +598,7 @@ export const addSiteVisits = async (req, res) => {
             title: "You've Got a new walk-in Lead!",
             message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
             imageUrl:
-              "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+              "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
           });
           // console.log("pass sent notification");
         }
@@ -848,7 +962,7 @@ export const addSiteVisitsManual = async (data) => {
     //       title: "You've Got a new walk-in Lead!",
     //       message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
     //       imageUrl:
-    //         "https://img.freepik.com/premium-vector/checklist-with-check-marks-pencil-envelope-list-notepad_1280751-82597.jpg?w=740",
+    //         "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
     //     });
     //     // console.log("pass sent notification");
     //   }
