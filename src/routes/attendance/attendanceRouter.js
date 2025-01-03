@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import csv from "csv-parser";
 import path from "path";
+import employeeModel from "../../model/employee.model.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,28 @@ attendanceRouter.post("/check-in", async (req, res) => {
     });
 
     if (existingAttendance) {
+      if (
+        !existingAttendance.checkInTime ||
+        !existingAttendance.checkInLatitude ||
+        !existingAttendance.checkInLongitude ||
+        !existingAttendance.checkInPhoto
+      ) {
+        const updated = await attendanceModel
+          .findByIdAndUpdate(existingAttendance._id, {
+            checkInLatitude: checkInLatitude,
+            checkInLongitude: checkInLongitude,
+            checkInPhoto: checkInPhoto,
+            checkInTime: now,
+            status: "active",
+          })
+          .populate(attendancePopulateOption);
+        return res.send(
+          successRes(200, "Check-in successful", {
+            data: updated,
+          })
+        );
+      }
+
       return res.send(
         successRes(400, "User has already checked in today", {
           data: existingAttendance,
@@ -56,13 +79,15 @@ attendanceRouter.post("/check-in", async (req, res) => {
       checkInLatitude,
       checkInLongitude,
       checkInPhoto,
-      status: "present",
+      status: "active",
     });
 
     await newAttendance.save();
-    return res.send(
-      successRes(200, "Check-in successful", { data: newAttendance })
-    );
+    const newAtt = await attendanceModel
+      .findById(newAttendance._id)
+      .populate(attendancePopulateOption);
+
+    return res.send(successRes(200, "Check-in successful", { data: newAtt }));
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -75,12 +100,14 @@ attendanceRouter.get("/get-check-in/:id", async (req, res) => {
     const userId = req.params.id;
 
     const now = new Date();
-    const existingAttendance = await attendanceModel.findOne({
-      userId,
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const existingAttendance = await attendanceModel
+      .findOne({
+        userId,
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
 
     return res.send(
       successRes(200, "Checked In", {
@@ -101,15 +128,45 @@ attendanceRouter.get("/get-check-in-by-date", async (req, res) => {
     if (date) {
       now = new Date(date);
     }
-    const existingAttendance = await attendanceModel.find({
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const existingAttendance = await attendanceModel
+      .find({
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
+    const presentList = existingAttendance.filter(
+      (ele) => ele.status === "active" || ele.status === "present"
+    );
+    const absentList = existingAttendance.filter(
+      (ele) => ele.status === "absent"
+    );
+    const weekOffList = existingAttendance.filter(
+      (ele) => ele.status === "weekoff"
+    );
+
+    const onLeaveList = existingAttendance.filter(
+      (ele) => ele.status === "on-leave"
+    );
+
+    const lateComersList = [];
+    const earlyLeaversList = [];
 
     return res.send(
-      successRes(200, "Checked In", {
-        data: existingAttendance,
+      successRes(200, "Attendance List", {
+        presentCount: presentList.length,
+        absentCount: absentList.length,
+        weekOffCount: weekOffList.length,
+        onLeaveCount: onLeaveList.length,
+        lateComersCount: lateComersList.length,
+        earlyLeaversCount: earlyLeaversList.length,
+        data: presentList,
+        presentList,
+        absentList,
+        weekOffList,
+        onLeaveList,
+        lateComersList,
+        earlyLeaversList,
       })
     );
   } catch (error) {
@@ -124,12 +181,14 @@ attendanceRouter.post("/break-start", async (req, res) => {
     const { userId } = req.body;
 
     const now = new Date();
-    const attendance = await attendanceModel.findOne({
-      userId,
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const attendance = await attendanceModel
+      .findOne({
+        userId,
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
 
     if (!attendance) {
       return res.send(errorRes(404, "Attendance record not found for today"));
@@ -157,12 +216,14 @@ attendanceRouter.post("/break-end", async (req, res) => {
     const { userId } = req.body;
 
     const now = new Date();
-    const attendance = await attendanceModel.findOne({
-      userId,
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const attendance = await attendanceModel
+      .findOne({
+        userId,
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
 
     if (!attendance || !attendance.breakStartTime) {
       return res.send(errorRes(400, "No active break to end"));
@@ -189,12 +250,14 @@ attendanceRouter.post("/check-out", async (req, res) => {
       req.body;
 
     const now = new Date();
-    const attendance = await attendanceModel.findOne({
-      userId,
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const attendance = await attendanceModel
+      .findOne({
+        userId,
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
 
     if (!attendance) {
       return res.send(errorRes(404, "Attendance record not found for today"));
@@ -218,7 +281,7 @@ attendanceRouter.post("/check-out", async (req, res) => {
     } else if (difference > 3 && difference < 7) {
       attendance.status = "half-day";
     } else if (difference > 7) {
-      attendance.status = "completed";
+      attendance.status = "present";
     }
     await attendance.save();
     return res.send(
@@ -240,12 +303,14 @@ attendanceRouter.post("/manual-entry", async (req, res) => {
     }
 
     const now = new Date();
-    const attendance = await attendanceModel.findOne({
-      userId,
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const attendance = await attendanceModel
+      .findOne({
+        userId,
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
 
     if (!attendance) {
       return res.send(errorRes(404, "Attendance record not found for today"));
@@ -280,12 +345,14 @@ attendanceRouter.post("/update-timeline", async (req, res) => {
     }
 
     const now = new Date();
-    const attendance = await attendanceModel.findOne({
-      userId,
-      day: now.getDate(),
-      month: now.getMonth() + 1,
-      year: now.getFullYear(),
-    });
+    const attendance = await attendanceModel
+      .findOne({
+        userId,
+        day: now.getDate(),
+        month: now.getMonth() + 1,
+        year: now.getFullYear(),
+      })
+      .populate(attendancePopulateOption);
 
     if (!attendance) {
       return res.send(errorRes(404, "Attendance record not found for today"));
@@ -316,7 +383,8 @@ attendanceRouter.get("/attendance/:id", async (req, res) => {
 
     const resp = await attendanceModel
       .find({ userId: id })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .populate(attendancePopulateOption);
     // .populate(attendancePopulateOption);
 
     return res.send(
@@ -468,5 +536,40 @@ attendanceRouter.post("/attendance-difference", async (req, res) => {
   const difference = calculateHoursDifferenceWithTZ(checkInTime);
   res.json({ data: difference });
 });
+
+attendanceRouter.post("/attendance-fill", async (req, res) => {
+  try {
+    const resp = await insertDailyAttendance();
+    return res.send({
+      total: resp?.length,
+      data: resp,
+    });
+  } catch (error) {
+    return res.send(error);
+  }
+});
+export const insertDailyAttendance = async () => {
+  try {
+    const today = new Date();
+    const formattedDate = moment
+      .tz("Asia/Kolkata")
+      .startOf("day")
+      .add(5, "hours")
+      .toDate();
+
+    const employees = await employeeModel.find({ status: "active" }, "_id");
+
+    const attendanceRecords = employees.map((employee) => ({
+      userId: employee._id,
+      day: formattedDate.getDay(),
+      month: formattedDate.getMonth() + 1,
+      year: formattedDate.getFullYear(),
+      status: "absent",
+    }));
+    return attendanceRecords;
+  } catch (error) {
+    return error;
+  }
+};
 
 export default attendanceRouter;
