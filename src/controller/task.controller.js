@@ -72,6 +72,12 @@ export const assignTask = async (req, res, next) => {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
     const assignDate = new Date();
+    if (!body.deadline) {
+      const now = new Date();
+      now.setHours(23, 59, 0, 0); // Set time to 11:59 PM
+      body.deadline = now;
+    }
+
     const newData = {
       ...body,
       assignTo: assignTo,
