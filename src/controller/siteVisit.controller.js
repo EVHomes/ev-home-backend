@@ -234,7 +234,7 @@ export const addSiteVisits = async (req, res) => {
   const {
     firstName,
     lastName,
-    email,
+    email, 
     phoneNumber,
     residence,
     projects,

@@ -35,6 +35,7 @@ import {
   getSiteVisitLeadByPhoneNumber,
   getLeadTeamLeaderReportingToGraph,
   triggerCycleChangeFunction,
+  getAssignedToSalesManger
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -62,6 +63,12 @@ leadRouter.get(
   // authenticateToken,
   getLeadsTeamLeader
 );
+
+leadRouter.get(
+  "/leads-sales-manager/:id",
+  // authenticateToken,
+getAssignedToSalesManger);
+
 
 leadRouter.get(
   "/leads-team-leader-reporting/:id",
