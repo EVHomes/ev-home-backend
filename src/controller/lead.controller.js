@@ -2270,6 +2270,11 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         stage: { $eq: "booking" },
         bookingStatus: { $eq: "booked" },
       };
+    } else if (status == "line-up") {
+      // console.log("booi pendding");
+      statusToFind = {
+        siteVisitInterested: true,
+      };
     }
 
     let orFilters = [
@@ -2407,6 +2412,14 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
       startDate: { $gte: sixMonthsAgo },
     });
 
+    const lineUpCount = await leadModel.countDocuments({
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+      siteVisitInterested: true,
+    });
+
     // const assignedCount = await leadModel.countDocuments({
     //   $and: [{ preSalesExecutive: { $ne: null } }],
     // });
@@ -2427,6 +2440,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         bookedCount,
         // assignedCount,
         rejectedCount,
+        lineUpCount,
         data: respCP,
       })
     );
