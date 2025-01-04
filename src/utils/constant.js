@@ -909,3 +909,6 @@ export const attendancePopulateOption = [
     ],
   },
 ];
+
+export const visitNotificationImage =
+  "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI";

@@ -62,6 +62,18 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
     let member = req.query.member;
+    let cycle = req.query.cycle;
+    let validity = req.query.validity;
+    let sort = req.query.sort;
+
+    const targetDate = validity
+      ? moment.tz(validity, "Asia/Kolkata")
+      : moment.tz("Asia/Kolkata");
+
+    // Get start and end of the target date
+    const startOfDay = targetDate.startOf("day").toDate(); // 00:00:00
+    const endOfDay = targetDate.endOf("day").toDate(); // 23:59:59
+
     let ids = [];
 
     if (member) {
@@ -76,7 +88,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     const isNumberQuery = !isNaN(query);
     const filterDate = new Date("2024-12-10");
     let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 20;
+    let limit = parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
 
     let statusToFind = null;
@@ -257,6 +269,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
       ...(member != null ? { taskRef: { $in: ids } } : null),
+      ...(cycle != null ? { "cycle.currentOrder": cycle } : null),
+      ...(validity != null
+        ? {
+            "cycle.validTill": {
+              $gte: startOfDay,
+              $lte: endOfDay,
+            },
+          }
+        : null),
     };
 
     // Add query search conditions (if applicable)
@@ -298,7 +319,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": -1 })
+      .sort({ "cycle.startDate": sort === "asc" ? 1 : -1 })
       .populate(leadPopulateOptions);
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
@@ -308,6 +329,12 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       {
         $facet: {
           totalItems: [{ $count: "count" }],
+          totalItemsCount: [
+            {
+              $match: baseFilter,
+            },
+            { $count: "count" },
+          ],
           pendingCount: [
             {
               $match: {
@@ -392,6 +419,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       {
         $addFields: {
           totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
           pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
           contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
           followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
@@ -414,6 +442,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           revisitCount: 1,
           visit2Count: 1,
           bookingCount: 1,
+          totalItemsCount: 1,
           // Include only the fields you need
         },
       },
@@ -429,7 +458,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       revisitCount = 0,
       visit2Count = 0,
       bookingCount = 0,
-
+      totalItemsCount = 0,
       // Add other counts as required
     } = counts[0] || {};
 
@@ -449,7 +478,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         visit2Count,
         revisitCount,
         bookingCount,
-        length: respLeads.length,
+        totalItemsCount,
         data: respLeads,
       })
     );
@@ -469,7 +498,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 //     const isNumberQuery = !isNaN(query);
 //     const filterDate = new Date("2024-12-10");
 //     let page = parseInt(req.query.page) || 1;
-//     let limit = parseInt(req.query.limit) || 20;
+//     let limit = parseInt(req.query.limit) || 10;
 //     let statusToFind = null;
 //     let walkinType = { leadType: { $ne: "walk-in" } };
 //     if (status === "visit2") {
@@ -762,7 +791,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     const isNumberQuery = !isNaN(query);
 
     let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 20;
+    let limit = parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
     let statusToFind = null;
     let walkinType = { leadType: { $ne: "walk-in" } };
@@ -1515,7 +1544,7 @@ export const getLeadsPreSalesExecutive = async (req, res, next) => {
     const isNumberQuery = !isNaN(query);
 
     let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 20;
+    let limit = parseInt(req.query.limit) || 10;
     let statusToFind = null;
     /*if (status === "visit-done") {
       statusToFind = { "visitStage.status": "done" };
@@ -5170,7 +5199,7 @@ export const triggerCycleChangeFunction = async () => {
                   validTill.setDate(validTill.getDate() + 7);
                   break;
                 case 4:
-                  validTill.setDate(validTill.getDate() + 5);
+                  validTill.setDate(validTill.getDate() + 3);
                   break;
                 default:
                   validTill.setDate(validTill.getDate() + 30);
@@ -5205,13 +5234,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          // matchedCount: bulkResult.matchedCount,
-          // modifiedCount: bulkResult.modifiedCount,
+          matchedCount: bulkResult.matchedCount,
+          modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),
