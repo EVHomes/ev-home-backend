@@ -550,12 +550,12 @@ attendanceRouter.post("/attendance-fill", async (req, res) => {
 });
 export const insertDailyAttendance = async () => {
   try {
-    const today = new Date();
-    const formattedDate = moment
-      .tz("Asia/Kolkata")
-      .startOf("day")
-      .add(5, "hours")
-      .toDate();
+    const formattedDate = new Date();
+    // const formattedDate = moment
+    //   .tz("Asia/Kolkata")
+    //   .startOf("day")
+    //   .add(5, "hours")
+    //   .toDate();
 
     const employees = await employeeModel.find({ status: "active" }, "_id");
 

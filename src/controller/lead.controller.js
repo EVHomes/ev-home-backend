@@ -65,6 +65,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let ids = [];
 
     if (member) {
+      console.log("entered member");
       const test = await taskModel.find({ assignTo: member }).select("_id");
       test.map((ele) => {
         ids.push(ele._id.toString());
@@ -79,20 +80,20 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let skip = (page - 1) * limit;
 
     let statusToFind = null;
-    let walkinType = { leadType: { $ne: "walk-in" } };
+    let walkinType = { leadType: { $eq: "walk-in" } };
 
-    if (status?.includes("visit2") && status != "") {
-      walkinType = {
-        $and: [
-          {
-            leadType: { $ne: "cp" },
-          },
-          {
-            leadType: { $ne: null },
-          },
-        ],
-      };
-    }
+    // if (status?.includes("visit2") && status != "") {
+    //   walkinType = {
+    //     $and: [
+    //       {
+    //         leadType: { $ne: "cp" },
+    //       },
+    //       {
+    //         leadType: { $ne: null },
+    //       },
+    //     ],
+    //   };
+    // }
     if (status === "booking-done" || status === "booking") {
       statusToFind = {
         stage: "booking",
@@ -179,15 +180,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = {
         teamLeader: { $eq: teamLeaderId },
         startDate: { $gte: filterDate },
-        stage: { $ne: "booking" },
+        bookingStatus: { $ne: "booked" },
 
         $or: [
           {
-            stage: { $ne: "booking" },
+            bookingStatus: { $ne: "booked" },
             visitStatus: "pending",
           },
           {
-            stage: { $ne: "booking" },
+            bookingStatus: { $ne: "booked" },
             revisitStatus: "pending",
           },
         ],
@@ -204,17 +205,17 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
         ],
-        ...walkinType,
+        // ...walkinType,
       };
     } else if (status === "followup") {
       statusToFind = {
         taskRef: { $ne: null },
-        ...walkinType,
+        // ...walkinType,
       };
     } else if (status === "not-followup") {
       statusToFind = {
         taskRef: { $eq: null },
-        ...walkinType,
+        // ...walkinType,
       };
     } else if (status === "visit2-revisit-done") {
       statusToFind = {
@@ -291,7 +292,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
       baseFilter.$or = searchConditions;
     }
-
+    // console.log(JSON.stringify(baseFilter, null, 2));
     // Fetch Leads
     const respLeads = await leadModel
       .find(baseFilter)
@@ -302,103 +303,135 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
-    // Calculate Counts
-    const totalItems = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      // stage: { $ne: "tagging-over" },
-      leadType: { $ne: null },
-      // ...(statusToFind != null ? statusToFind : null),
-    });
+    const counts = await leadModel.aggregate([
+      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+      {
+        $facet: {
+          totalItems: [{ $count: "count" }],
+          pendingCount: [
+            {
+              $match: {
+                $or: [
+                  { visitStatus: "pending", bookingStatus: { $ne: "booked" } },
+                  {
+                    revisitStatus: "pending",
+                    bookingStatus: { $ne: "booked" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          contactedCount: [
+            { $match: { contactedStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          followUpCount: [
+            { $match: { followupStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
+          visitCount: [
+            {
+              $match: {
+                stage: { $ne: "approval" },
+                stage: { $ne: "booking" },
+                $and: [
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          revisitCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  {
+                    revisitStatus: { $ne: null },
+                  },
+                  {
+                    revisitStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          visit2Count: [
+            {
+              $match: {
+                visitStatus: { $ne: "pending" },
+                leadType: { $eq: "walk-in" },
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCount: [
+            {
+              $match: {
+                bookingStatus: { $ne: "pending" },
+                stage: { $eq: "booking" },
+              },
+            },
+            { $count: "count" },
+          ],
 
-    const pendingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      $or: [
-        {
-          stage: { $ne: "booking" },
-          visitStatus: "pending",
+          // Add other count stages as required
         },
-        {
-          stage: { $ne: "booking" },
-          revisitStatus: "pending",
+      },
+      {
+        $addFields: {
+          totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
+          contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
+          followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
+          assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+          visitCount: { $arrayElemAt: ["$visitCount.count", 0] },
+          revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
+          visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
+          bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          // Add other fields similarly as required
         },
-      ],
-    });
-
-    const contactedCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      contactedStatus: { $ne: "pending" },
-      startDate: { $gte: filterDate },
-      ...walkinType,
-    });
-
-    const followUpCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      followupStatus: { $ne: "pending" },
-      startDate: { $gte: filterDate },
-      ...walkinType,
-    });
-
-    const assignedCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      preSalesExecutive: { $ne: null },
-      startDate: { $gte: filterDate },
-    });
-
-    const visitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      // visitStatus: { $ne: "pending" },
-      stage: { $ne: "approval" },
-      stage: { $ne: "booking" },
-      $and: [
-        {
-          visitStatus: { $ne: null },
+      },
+      {
+        $project: {
+          totalItems: 1,
+          pendingCount: 1,
+          contactedCount: 1,
+          followUpCount: 1,
+          assignedCount: 1,
+          visitCount: 1,
+          revisitCount: 1,
+          visit2Count: 1,
+          bookingCount: 1,
+          // Include only the fields you need
         },
-        {
-          visitStatus: { $ne: "pending" },
-        },
-      ],
-      ...walkinType,
+      },
+    ]);
 
-      // leadType: "cp",
-    });
+    const {
+      totalItems = 0,
+      pendingCount = 0,
+      contactedCount = 0,
+      followUpCount = 0,
+      assignedCount = 0,
+      visitCount = 0,
+      revisitCount = 0,
+      visit2Count = 0,
+      bookingCount = 0,
 
-    const revisitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      stage: "booking",
-      // bookingStatus: { $ne: "booked" },
-      // revisitStatus: { $ne: "pending" },
-      $and: [
-        {
-          revisitStatus: { $ne: null },
-        },
-        {
-          revisitStatus: { $ne: "pending" },
-        },
-      ],
-
-      ...walkinType,
-
-      // stage: { $eq: "revisit" },
-      // revisitStatus: { $eq: "pending" },
-      // ...walkinType,
-    });
-
-    const visit2Count = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      visitStatus: { $ne: "pending" },
-      leadType: { $eq: "walk-in" },
-    });
-
-    const bookingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      bookingStatus: { $ne: "pending" },
-      stage: { $eq: "booking" },
-    });
+      // Add other counts as required
+    } = counts[0] || {};
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -955,100 +988,135 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     // Calculate Counts
-    const totalItems = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      // ...(statusToFind != null ? statusToFind : null),
-    });
+    const counts = await leadModel.aggregate([
+      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+      {
+        $facet: {
+          totalItems: [{ $count: "count" }],
+          pendingCount: [
+            {
+              $match: {
+                $or: [
+                  { visitStatus: "pending", bookingStatus: { $ne: "booked" } },
+                  {
+                    revisitStatus: "pending",
+                    bookingStatus: { $ne: "booked" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          contactedCount: [
+            { $match: { contactedStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          followUpCount: [
+            { $match: { followupStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
+          visitCount: [
+            {
+              $match: {
+                stage: { $ne: "approval" },
+                stage: { $ne: "booking" },
+                $and: [
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          revisitCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  {
+                    revisitStatus: { $ne: null },
+                  },
+                  {
+                    revisitStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          visit2Count: [
+            {
+              $match: {
+                visitStatus: { $ne: "pending" },
+                leadType: { $eq: "walk-in" },
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCount: [
+            {
+              $match: {
+                bookingStatus: { $ne: "pending" },
+                stage: { $eq: "booking" },
+              },
+            },
+            { $count: "count" },
+          ],
 
-    const pendingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      $or: [
-        {
-          stage: { $ne: "booking" },
-          visitStatus: "pending",
+          // Add other count stages as required
         },
-        {
-          stage: { $ne: "booking" },
-          revisitStatus: "pending",
+      },
+      {
+        $addFields: {
+          totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
+          contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
+          followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
+          assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+          visitCount: { $arrayElemAt: ["$visitCount.count", 0] },
+          revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
+          visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
+          bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          // Add other fields similarly as required
         },
-      ],
-    });
-
-    const contactedCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      contactedStatus: { $ne: "pending" },
-      startDate: { $gte: filterDate },
-      ...walkinType,
-    });
-
-    const followUpCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      followupStatus: { $ne: "pending" },
-      startDate: { $gte: filterDate },
-      ...walkinType,
-    });
-
-    const assignedCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      preSalesExecutive: { $ne: null },
-      startDate: { $gte: filterDate },
-    });
-
-    const visitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      // visitStatus: { $ne: "pending" },
-      stage: { $ne: "approval" },
-      stage: { $ne: "booking" },
-      $and: [
-        {
-          visitStatus: { $ne: null },
+      },
+      {
+        $project: {
+          totalItems: 1,
+          pendingCount: 1,
+          contactedCount: 1,
+          followUpCount: 1,
+          assignedCount: 1,
+          visitCount: 1,
+          revisitCount: 1,
+          visit2Count: 1,
+          bookingCount: 1,
+          // Include only the fields you need
         },
-        {
-          visitStatus: { $ne: "pending" },
-        },
-      ],
-      ...walkinType,
+      },
+    ]);
 
-      // leadType: "cp",
-    });
+    const {
+      totalItems = 0,
+      pendingCount = 0,
+      contactedCount = 0,
+      followUpCount = 0,
+      assignedCount = 0,
+      visitCount = 0,
+      revisitCount = 0,
+      visit2Count = 0,
+      bookingCount = 0,
 
-    const revisitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      stage: "booking",
-      // bookingStatus: { $ne: "booked" },
-      // revisitStatus: { $ne: "pending" },
-      $and: [
-        {
-          revisitStatus: { $ne: null },
-        },
-        {
-          revisitStatus: { $ne: "pending" },
-        },
-      ],
-
-      ...walkinType,
-
-      // stage: { $eq: "revisit" },
-      // revisitStatus: { $eq: "pending" },
-      // ...walkinType,
-    });
-
-    const visit2Count = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      visitStatus: { $ne: "pending" },
-      leadType: { $eq: "walk-in" },
-    });
-
-    const bookingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-      bookingStatus: { $ne: "pending" },
-      stage: { $eq: "booking" },
-    });
+      // Add other counts as required
+    } = counts[0] || {};
 
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -1615,7 +1683,9 @@ export const searchLeads = async (req, res, next) => {
       }),
       ...(channelPartner ? { channelPartner: channelPartner } : {}),
       // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
-      ...(stage === "all" ? { stage: stage } : { leadType: { $ne: "walk-in" } }),
+      ...(stage === "all"
+        ? { stage: stage }
+        : { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
@@ -2051,7 +2121,9 @@ export const addLead = async (req, res, next) => {
       });
 
       if (todayLeadsCount >= 25) {
-        return res.send(errorRes(409, `You cannot share more than 25 leads in 1 day.`));
+        return res.send(
+          errorRes(409, `You cannot share more than 25 leads in 1 day.`)
+        );
       }
 
       const existingLeadForCP = await leadModel.findOne({
@@ -2205,7 +2277,8 @@ export const updateLead = async (req, res, next) => {
     );
 
     // Check if the lead was updated successfully
-    if (!updatedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!updatedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead updated successfully`, {
@@ -2275,7 +2348,8 @@ export const deleteLead = async (req, res, next) => {
     const deletedLead = await leadModel.findByIdAndDelete(id);
 
     // Check if the lead was found and deleted
-    if (!deletedLead) return res.send(errorRes(404, `Lead not found with ID: ${id}`));
+    if (!deletedLead)
+      return res.send(errorRes(404, `Lead not found with ID: ${id}`));
 
     return res.send(
       successRes(200, `Lead deleted successfully with ID: ${id}`, {
@@ -2297,7 +2371,8 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
 
-    if (!teamLeaderId) return res.send(errorRes(403, "teamLeaderId is required"));
+    if (!teamLeaderId)
+      return res.send(errorRes(403, "teamLeaderId is required"));
 
     const respLead = await leadModel.findById(id);
 
@@ -2367,7 +2442,9 @@ export const leadAssignToTeamLeader = async (req, res, next) => {
       // console.log("pass sent notification");
     }
 
-    return res.send(successRes(200, "Lead Assigned Successfully", { data: updatedLead }));
+    return res.send(
+      successRes(200, "Lead Assigned Successfully", { data: updatedLead })
+    );
   } catch (error) {
     return next(error);
   }
@@ -2568,7 +2645,11 @@ export const assignLeadToTeamLeader = async (req, res, next) => {
       .populate({
         path: "callHistory.caller",
         select: "-password -refreshToken",
-        populate: [{ path: "designation" }, { path: "department" }, { path: "division" }],
+        populate: [
+          { path: "designation" },
+          { path: "department" },
+          { path: "division" },
+        ],
       });
 
     const foundTLPlayerId = await oneSignalModel.findOne({
@@ -2705,7 +2786,8 @@ export const updateCallHistoryPreSales = async (req, res) => {
   const id = req.params.id;
   const user = req.user;
 
-  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } = body;
+  const { leadStage, remark, feedback, siteVisit, documentUrl, recordingUrl } =
+    body;
 
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
@@ -3114,7 +3196,11 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
       {
         $project: {
           teamLeader: {
-            $concat: ["$teamLeaderDetails.firstName", " ", "$teamLeaderDetails.lastName"],
+            $concat: [
+              "$teamLeaderDetails.firstName",
+              " ",
+              "$teamLeaderDetails.lastName",
+            ],
           },
           count: 1,
           interval,
@@ -3183,7 +3269,9 @@ export async function getAllLeadCountsFunnel(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res.status(400).json({ message: "Invalid year or month parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -3317,7 +3405,11 @@ export async function getAllLeadCountsFunnel(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -4145,7 +4237,9 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
       selectedMonth < 1 ||
       selectedMonth > 12
     ) {
-      return res.status(400).json({ message: "Invalid year or month parameter" });
+      return res
+        .status(400)
+        .json({ message: "Invalid year or month parameter" });
     }
 
     // Define match stage
@@ -4198,7 +4292,12 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
     }
 
     // Define all possible statuses for the funnel
-    const allStatuses = ["Booked", "Site Visit", "Leads Contacted", "Leads Received"];
+    const allStatuses = [
+      "Booked",
+      "Site Visit",
+      "Leads Contacted",
+      "Leads Received",
+    ];
 
     // Group stage by lead status and interval
     let groupStage = {
@@ -4275,7 +4374,11 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
         count: found ? found.count : 0,
         interval,
         year: found ? found.year : selectedYear,
-        month: found ? found.month : interval === "monthly" ? currentMonth : undefined,
+        month: found
+          ? found.month
+          : interval === "monthly"
+          ? currentMonth
+          : undefined,
         week: found ? found.week : undefined,
         quarter: found ? found.quarter : undefined,
         half: found ? found.half : undefined,
@@ -4290,7 +4393,8 @@ export async function getAllLeadCountsFunnelForPreSaleTL(req, res, next) {
 }
 
 export const getLeadByStartEndDate = async (req, res) => {
-  const { startDate, endDate, teamLeader, status, project, channelPartner } = req.body;
+  const { startDate, endDate, teamLeader, status, project, channelPartner } =
+    req.body;
 
   try {
     if (!startDate || !endDate)
@@ -4369,14 +4473,22 @@ export const generateInternalLeadPdf = async (req, res) => {
       .subtract(1, "day")
       .startOf("day")
       .toDate();
-    const endOfYesterday = moment().tz(timeZone).subtract(1, "day").endOf("day").toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
     console.log(startOfYesterday);
     console.log(endOfYesterday);
 
     console.log(
-      moment("2024-12-10T20:39:57.938+00:00").tz(timeZone).format("DD-MM-YYYY HH:mm")
+      moment("2024-12-10T20:39:57.938+00:00")
+        .tz(timeZone)
+        .format("DD-MM-YYYY HH:mm")
     );
-    console.log(moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
+    console.log(
+      moment(startOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm")
+    );
 
     console.log(moment(endOfYesterday).tz(timeZone).format("DD-MM-YYYY HH:mm"));
 
@@ -4430,7 +4542,11 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
           align: "left",
         })
-        .text(`Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`, 50, cardY + 15)
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
         .text(
           `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
           50,
@@ -4438,7 +4554,9 @@ export const generateInternalLeadPdf = async (req, res) => {
         )
         .text(
           `Alt Phone: ${
-            lead.altPhoneNumber ? lead.countryCode + " " + lead.altPhoneNumber : "N/A"
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
           }`,
           50,
           cardY + 45
@@ -4446,11 +4564,17 @@ export const generateInternalLeadPdf = async (req, res) => {
 
         .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
         .text(
-          `Projects: ${lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"}`,
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
           50,
           cardY + 75
         )
-        .text(`Requirement: ${lead.requirement?.join(", ") || "N/A"}`, 50, cardY + 90)
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
 
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
@@ -4481,7 +4605,9 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(
           `Assigned Date: ${
             lead.cycle?.startDate
-              ? moment(lead.cycle.startDate).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.cycle.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4490,7 +4616,9 @@ export const generateInternalLeadPdf = async (req, res) => {
         .text(
           `Deadline: ${
             lead.cycle?.validTill
-              ? moment(lead.cycle.validTill).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.cycle.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4528,7 +4656,11 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
       .subtract(1, "day")
       .startOf("day")
       .toDate();
-    const endOfYesterday = moment().tz(timeZone).subtract(1, "day").endOf("day").toDate();
+    const endOfYesterday = moment()
+      .tz(timeZone)
+      .subtract(1, "day")
+      .endOf("day")
+      .toDate();
 
     const leads = await leadModel
       .find({
@@ -4583,7 +4715,11 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(`Lead ${index + 1} out of ${leads.length}`, 50, cardY, {
           align: "left",
         })
-        .text(`Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`, 50, cardY + 15)
+        .text(
+          `Name: ${lead.firstName || "N/A"} ${lead.lastName || ""}`,
+          50,
+          cardY + 15
+        )
         .text(
           `Phone: ${lead.countryCode + " " + lead.phoneNumber || "N/A"}`,
           50,
@@ -4591,7 +4727,9 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         )
         .text(
           `Alt Phone: ${
-            lead.altPhoneNumber ? lead.countryCode + " " + lead.altPhoneNumber : "N/A"
+            lead.altPhoneNumber
+              ? lead.countryCode + " " + lead.altPhoneNumber
+              : "N/A"
           }`,
           50,
           cardY + 45
@@ -4599,23 +4737,31 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
 
         .text(`Email: ${lead.email || "N/A"}`, 50, cardY + 60)
         .text(
-          `Projects: ${lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"}`,
+          `Projects: ${
+            lead.project?.map((proj) => proj.name)?.join(", ") || "N/A"
+          }`,
           50,
           cardY + 75
         )
-        .text(`Requirement: ${lead.requirement?.join(", ") || "N/A"}`, 50, cardY + 90)
+        .text(
+          `Requirement: ${lead.requirement?.join(", ") || "N/A"}`,
+          50,
+          cardY + 90
+        )
 
         .text(`Status: ${getStatus1(lead) || "N/A"}`, 300, cardY + 15)
         .text(
           `Data Analyzer: ${
-            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName || "N/A"
+            lead.dataAnalyzer?.firstName + " " + lead.dataAnalyzer?.lastName ||
+            "N/A"
           }`,
           300,
           cardY + 30
         )
         .text(
           `Team Leader: ${
-            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName || "N/A"
+            lead.teamLeader?.firstName + " " + lead.teamLeader?.lastName ||
+            "N/A"
           }`,
           300,
           cardY + 45
@@ -4630,7 +4776,9 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(
           `Tagging Date: ${
             lead.startDate
-              ? moment(lead.startDate).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.startDate)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4639,7 +4787,9 @@ export const generateChannelPartnerLeadPdf = async (req, res) => {
         .text(
           `Valid Till: ${
             lead.validTill
-              ? moment(lead.validTill).tz(timeZone).format("DD-MM-YYYY hh:mm:ss a")
+              ? moment(lead.validTill)
+                  .tz(timeZone)
+                  .format("DD-MM-YYYY hh:mm:ss a")
               : "N/A"
           }`,
           300,
@@ -4738,7 +4888,8 @@ export const triggerCycleChange = async (req, res, next) => {
               // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
               // cCycle.oldTeamLeader = cCycle.teamLeader;
               // cCycle.lastIndex = lastIndex;
               // cCycle.nextIndex = lastIndex + 1;
@@ -4769,7 +4920,8 @@ export const triggerCycleChange = async (req, res, next) => {
               cCycle.lastIndex = lastIndex;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
               cCycle.lastIndex = lastIndex;
               cCycle.nextIndex = lastIndex + 1;
 
@@ -4977,7 +5129,8 @@ export const triggerCycleChangeFunction = async () => {
               cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5003,7 +5156,8 @@ export const triggerCycleChangeFunction = async () => {
               cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5027,7 +5181,9 @@ export const triggerCycleChangeFunction = async () => {
           // Explicitly handle year rollover
           const adjustedYear = validTill.getFullYear();
           if (adjustedYear > startDate.getFullYear()) {
-            console.log(`Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`);
+            console.log(
+              `Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`
+            );
             validTill.setFullYear(adjustedYear); // Explicitly set the year, even though it's already correct
           }
 
@@ -5050,7 +5206,8 @@ export const triggerCycleChangeFunction = async () => {
 
       if (bulkOperations.length > 0) {
         // const bulkResult = await leadModel.bulkWrite(bulkOperations);
-        const list = bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
+        const list =
+          bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
           // matchedCount: bulkResult.matchedCount,
@@ -5076,149 +5233,3 @@ export const triggerCycleChangeFunction = async () => {
     throw new Error("Internal Server Error");
   }
 };
-
-// export const triggerCycleChangeFunction = async () => {
-//   try {
-//     const currentDate = new Date();
-//     const filterDate = new Date("2024-12-10");
-
-//     // Fetch all leads whose cycles have expired
-//     const allCycleExpiredLeads = await leadModel.find({
-//       "cycle.validTill": { $lt: currentDate },
-//       startDate: { $gte: filterDate },
-//       bookingStatus: { $ne: "booked" },
-//     });
-
-//     if (allCycleExpiredLeads.length > 0) {
-//       // Fetch active team leaders sorted by createdAt
-//       const teamLeaders = [
-//         { _id: "ev15-deepak-karki" },
-//         { _id: "ev69-vicky-mane" },
-//         { _id: "ev70-jaspreet-arora" },
-//         { _id: "ev54-ranjna-gupta" },
-//       ];
-
-//       // Prepare bulk operations
-//       const bulkOperations = [];
-
-//       allCycleExpiredLeads.map((entry) => {
-//         const lastIndex = teamLeaders.findIndex(
-//           (ele) => ele?._id.toString() === entry?.cycle?.teamLeader?.toString()
-//         );
-//         const totalTeamLeader = teamLeaders.length;
-//         const cCycle = { ...entry.cycle }; // Clone cycle object
-
-//         const previousCycle = { ...cCycle }; // For cycle history
-//         const startDate = new Date(entry.cycle.validTill); // Current date
-//         const validTill = new Date(startDate);
-
-//         if (lastIndex !== -1) {
-//           // Logic for visit stage
-//           if (cCycle.stage === "visit") {
-//             if (cCycle.currentOrder >= totalTeamLeader) {
-//               validTill.setDate(validTill.getDate() + 150);
-//               cCycle.currentOrder = 1;
-//               cCycle.lastIndex = lastIndex;
-//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
-//               // cCycle.oldTeamLeader = cCycle.teamLeader; // Reset to first TL
-//             } else {
-//               cCycle.currentOrder += 1;
-//               cCycle.teamLeader =
-//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-//               // cCycle.oldTeamLeader = cCycle.teamLeader;
-//               // cCycle.lastIndex = lastIndex;
-//               // cCycle.nextIndex = lastIndex + 1;
-
-//               switch (cCycle.currentOrder) {
-//                 case 1:
-//                   validTill.setDate(validTill.getDate() + 15);
-//                   break;
-//                 case 2:
-//                   validTill.setDate(validTill.getDate() + 7);
-//                   break;
-//                 case 3:
-//                   validTill.setDate(validTill.getDate() + 3);
-//                   break;
-//                 case 4:
-//                   validTill.setDate(validTill.getDate() + 2);
-//                   break;
-//                 default:
-//                   validTill.setDate(validTill.getDate() + 15);
-//               }
-//             }
-//           } else if (cCycle.stage === "revisit") {
-//             // Logic for revisit stage
-//             if (cCycle.currentOrder >= totalTeamLeader) {
-//               validTill.setDate(validTill.getDate() + 150);
-//               cCycle.currentOrder = 1;
-//               cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
-//               cCycle.lastIndex = lastIndex;
-//             } else {
-//               cCycle.currentOrder += 1;
-//               cCycle.teamLeader =
-//                 teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-//               cCycle.lastIndex = lastIndex;
-//               cCycle.nextIndex = lastIndex + 1;
-
-//               switch (cCycle.currentOrder) {
-//                 case 1:
-//                   validTill.setDate(validTill.getDate() + 30);
-//                   break;
-//                 case 2:
-//                   validTill.setDate(validTill.getDate() + 15);
-//                   break;
-//                 case 3:
-//                   validTill.setDate(validTill.getDate() + 7);
-//                   break;
-//                 case 4:
-//                   validTill.setDate(validTill.getDate() + 5);
-//                   break;
-//                 default:
-//                   validTill.setDate(validTill.getDate() + 30);
-//               }
-//             }
-//           }
-
-//           cCycle.startDate = startDate;
-//           cCycle.validTill = validTill;
-
-//           // Add bulk update operation
-//           bulkOperations.push({
-//             updateOne: {
-//               filter: { _id: entry._id },
-//               update: {
-//                 teamLeader: cCycle.teamLeader,
-//                 $set: { cycle: cCycle },
-//                 $push: { cycleHistory: previousCycle }, // Add previous cycle to history
-//               },
-//             },
-//           });
-//         }
-//       });
-
-//       // Execute bulk update
-//       if (bulkOperations.length > 0) {
-//         // const bulkResult = await leadModel.bulkWrite(bulkOperations);
-//         // console.log("Bulk Update Result:", bulkResult);
-
-//         return {
-//           // matchedCount: bulkResult.matchedCount,
-//           // modifiedCount: bulkResult.modifiedCount,
-//           total: bulkOperations?.length,
-//           data: bulkOperations,
-//         };
-//       }
-//     }
-
-//     // If no leads need cycle changes
-//     return res.send(
-//       successRes(200, "No cycle changes needed", {
-//         data: [],
-//         totalItem: 0,
-//       })
-//     );
-//   } catch (error) {
-//     console.error("Error updating cycles:", error);
-//     return res.status(500).send({ message: "Internal Server Error", error });
-//   }
-// };
