@@ -51,6 +51,8 @@ import PDFDocument from "pdfkit";
 import siteVisitModel from "../../model/siteVisit.model.js";
 import { leadPopulateOptions } from "../../utils/constant.js";
 import { addSiteVisitsManual } from "../../controller/siteVisit.controller.js";
+import triggerHistoryModel from "../../model/triggerLog.model.js";
+import { errorRes, successRes } from "../../model/response.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -62,6 +64,35 @@ leadRouter.get(
   // authenticateToken,
   getLeadsTeamLeader
 );
+leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
+  let timeline = [];
+  const id = req.params.id;
+
+  try {
+    if (!id) return res.send(errorRes(401, "id required"));
+
+    const leadResp = await leadModel.findById(id);
+    timeline.push(...leadResp.cycleHistory, leadResp.cycle);
+    let newTimeLine = timeline.map((ele) => {
+      ele.validTill = moment(ele.validTill)
+        .tz("Asia/Kolkata")
+        .format("DD-MM-YYYY HH:mm");
+      ele.validTill2 = moment(ele.validTill)
+        .tz("Asia/Kolkata")
+        .format("DD-MM-YYYY HH:mm");
+
+      return ele;
+    });
+    return res.send(
+      successRes(200, "get 2", {
+        data: newTimeLine,
+      })
+    );
+  } catch (error) {
+    console.log(error);
+    return res.send(errorRes(500, "Internal Server Error"));
+  }
+});
 
 leadRouter.get(
   "/leads-team-leader-reporting/:id",
@@ -207,9 +238,20 @@ leadRouter.get("/lead-pdf-self", generateInternalLeadPdf);
 leadRouter.get("/lead-pdf-cp", generateChannelPartnerLeadPdf);
 leadRouter.get("/lead-trigger-cycle-change", triggerCycleChange);
 leadRouter.get("/lead-trigger-cycle--test", async (req, res) => {
-  const resp = await triggerCycleChangeFunction();
+  try {
+    const resp = await triggerCycleChangeFunction();
+    // await triggerHistoryModel.create({
+    //   date: new Date(),
+    //   changes: resp?.changes ?? [],
+    //   changesString: resp?.changesString ?? "",
+    //   totalTrigger: resp?.total ?? 0,
+    //   message: resp?.message ?? "",
+    // });
 
-  return res.send(resp);
+    return res.send(resp);
+  } catch (error) {
+    return res.send(error);
+  }
 });
 leadRouter.get("/lead-tagging-over-check", async (req, res) => {
   const date1 = new Date();

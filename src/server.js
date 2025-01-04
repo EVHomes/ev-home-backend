@@ -37,6 +37,7 @@ cron.schedule("0 9 * * *", async () => {
     //   "https://api.evhomes.tech/lead-trigger-cycle-change"
     // );
     const response = await triggerCycleChangeFunction();
+
     await triggerHistoryModel.create({
       date: new Date(),
       changes: response?.changes ?? [],
@@ -44,7 +45,6 @@ cron.schedule("0 9 * * *", async () => {
       totalTrigger: response?.total ?? 0,
       message: response?.message ?? "",
     });
-    console.log("API Response:", response.data);
   } catch (error) {
     console.error("Error making API call:", error.message);
   }
