@@ -26,15 +26,15 @@ export const attendanceSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: [
-      "absent",
-      "present",
-      "weekoff",
-      "on-leave",
-      "in-break",
-      "in-meeting",
-      "completed",
-    ],
+    // enum: [
+    //   "absent",
+    //   "present",
+    //   "weekoff",
+    //   "on-leave",
+    //   "in-break",
+    //   "in-meeting",
+    //   "completed",
+    // ],
     default: "absent",
   },
   checkInTime: {
