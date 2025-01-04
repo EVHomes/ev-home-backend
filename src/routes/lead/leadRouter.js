@@ -71,18 +71,21 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
   try {
     if (!id) return res.send(errorRes(401, "id required"));
 
-    const leadResp = await leadModel.findById(id);
+    const leadResp = await leadModel.findById(id).lean();
     timeline.push(...leadResp.cycleHistory, leadResp.cycle);
+
     let newTimeLine = timeline.map((ele) => {
-      ele.validTill = moment(ele.validTill)
+      // console.log(ele.validTill);
+      ele.validTillFormated = moment(ele.validTill)
         .tz("Asia/Kolkata")
         .format("DD-MM-YYYY HH:mm");
-      ele.validTill2 = moment(ele.validTill)
+      ele.startDateFormated = moment(ele.startDate)
         .tz("Asia/Kolkata")
         .format("DD-MM-YYYY HH:mm");
 
       return ele;
     });
+
     return res.send(
       successRes(200, "get 2", {
         data: newTimeLine,

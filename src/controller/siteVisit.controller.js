@@ -8,7 +8,10 @@ import leadModel from "../model/lead.model.js";
 import { sendNotificationWithImage } from "./oneSignal.controller.js";
 import oneSignalModel from "../model/oneSignal.model.js";
 import clientModel from "../model/client.model.js";
-import { siteVisitPopulateOptions } from "../utils/constant.js";
+import {
+  siteVisitPopulateOptions,
+  visitNotificationImage,
+} from "../utils/constant.js";
 Date.prototype.addDays = function (days) {
   const date = new Date(this); // Copy the current date
   date.setDate(this.getDate() + days); // Add the days
@@ -266,6 +269,8 @@ export const addSiteVisits = async (req, res) => {
     // console.log(body.date);
     // console.log(new Date().toISOString());
     // body.date = null;
+    const today = new Date();
+
     const newSiteVisit = await siteVisitModel.create({
       ...body,
       // date: new Date(),
@@ -305,7 +310,6 @@ export const addSiteVisits = async (req, res) => {
         //   await foundLead.save();
         // }
         console.log("lead is not null");
-        const today = new Date();
 
         if (visitType === "visit") {
           foundLead.visitStatus = "visited";
@@ -330,16 +334,24 @@ export const addSiteVisits = async (req, res) => {
           });
 
           if (foundTLPlayerId) {
+            const dta = await oneSignalModel.find({
+              $or: [
+                { docId: "ev89-narayan-jha" },
+                { docId: "ev88-pavan-ale" },
+                { docId: foundLead.teamLeader },
+              ],
+              // role: teamLeaderResp?.role,
+            });
+            let ids = dta.map((ele) => ele.playerId);
             // console.log(foundTLPlayerId);
 
             await sendNotificationWithImage({
-              playerIds: [foundTLPlayerId.playerId],
+              playerIds: [foundTLPlayerId?.playerId, ...ids],
               title: "Visit Done",
               message: `Visit done for ${foundLead.firstName ?? ""} ${
                 foundLead.lastName ?? ""
               }`,
-              imageUrl:
-                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+              imageUrl: visitNotificationImage,
             });
             // console.log("pass sent notification");
           }
@@ -370,16 +382,24 @@ export const addSiteVisits = async (req, res) => {
           });
 
           if (foundTLPlayerId) {
+            const dta = await oneSignalModel.find({
+              $or: [
+                { docId: "ev89-narayan-jha" },
+                { docId: "ev88-pavan-ale" },
+                { docId: foundLead.teamLeader },
+              ],
+              // role: teamLeaderResp?.role,
+            });
+            let ids = dta.map((ele) => ele.playerId);
             // console.log(foundTLPlayerId);
 
             await sendNotificationWithImage({
-              playerIds: [foundTLPlayerId.playerId],
+              playerIds: [foundTLPlayerId?.playerId, ...ids],
               title: "Virtual Meeting Done",
               message: `Virtual meeting done for ${foundLead.firstName ?? ""} ${
                 foundLead.lastName ?? ""
               }`,
-              imageUrl:
-                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+              imageUrl: visitNotificationImage,
             });
             // console.log("pass sent notification");
           }
@@ -399,16 +419,24 @@ export const addSiteVisits = async (req, res) => {
           });
 
           if (foundTLPlayerId) {
+            const dta = await oneSignalModel.find({
+              $or: [
+                { docId: "ev89-narayan-jha" },
+                { docId: "ev88-pavan-ale" },
+                { docId: foundLead.teamLeader },
+              ],
+              // role: teamLeaderResp?.role,
+            });
+            let ids = dta.map((ele) => ele.playerId);
             // console.log(foundTLPlayerId);
 
             await sendNotificationWithImage({
-              playerIds: [foundTLPlayerId.playerId],
+              playerIds: [foundTLPlayerId?.playerId, ...ids],
               title: "Revisit Done",
               message: `Revisit done for ${foundLead.firstName ?? ""} ${
                 foundLead.lastName ?? ""
               }`,
-              imageUrl:
-                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+              imageUrl: visitNotificationImage,
             });
             // console.log("pass sent notification");
           }
@@ -451,16 +479,24 @@ export const addSiteVisits = async (req, res) => {
           });
 
           if (foundTLPlayerId) {
+            const dta = await oneSignalModel.find({
+              $or: [
+                { docId: "ev89-narayan-jha" },
+                { docId: "ev88-pavan-ale" },
+                { docId: foundLead.teamLeader },
+              ],
+              // role: teamLeaderResp?.role,
+            });
+            let ids = dta.map((ele) => ele.playerId);
             // console.log(foundTLPlayerId);
 
             await sendNotificationWithImage({
-              playerIds: [foundTLPlayerId.playerId],
+              playerIds: [foundTLPlayerId?.playerId, ...ids],
               title: "Site Visit Done!",
               message: `Site visit is done for ${foundLead.firstName ?? ""} ${
                 foundLead.lastName ?? ""
               }`,
-              imageUrl:
-                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+              imageUrl: visitNotificationImage,
             });
             // console.log("pass sent notification");
           }
@@ -491,16 +527,24 @@ export const addSiteVisits = async (req, res) => {
           });
 
           if (foundTLPlayerId) {
+            const dta = await oneSignalModel.find({
+              $or: [
+                { docId: "ev89-narayan-jha" },
+                { docId: "ev88-pavan-ale" },
+                { docId: foundLead.teamLeader },
+              ],
+              // role: teamLeaderResp?.role,
+            });
+            let ids = dta.map((ele) => ele.playerId);
             // console.log(foundTLPlayerId);
 
             await sendNotificationWithImage({
-              playerIds: [foundTLPlayerId.playerId],
+              playerIds: [foundTLPlayerId?.playerId, ...ids],
               title: "virtual meeting",
               message: `virtual meeting for ${foundLead.firstName ?? ""} ${
                 foundLead.lastName ?? ""
               }`,
-              imageUrl:
-                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+              imageUrl: visitNotificationImage,
             });
             // console.log("pass sent notification");
           }
@@ -520,16 +564,24 @@ export const addSiteVisits = async (req, res) => {
           });
 
           if (foundTLPlayerId) {
+            const dta = await oneSignalModel.find({
+              $or: [
+                { docId: "ev89-narayan-jha" },
+                { docId: "ev88-pavan-ale" },
+                { docId: foundLead.teamLeader },
+              ],
+              // role: teamLeaderResp?.role,
+            });
+            let ids = dta.map((ele) => ele.playerId);
             // console.log(foundTLPlayerId);
 
             await sendNotificationWithImage({
-              playerIds: [foundTLPlayerId.playerId],
+              playerIds: [foundTLPlayerId?.playerId, ...ids],
               title: "Revisit Done",
               message: `Revisit done for ${foundLead.firstName ?? ""} ${
                 foundLead.lastName ?? ""
               }`,
-              imageUrl:
-                "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+              imageUrl: visitNotificationImage,
             });
             // console.log("pass sent notification");
           }
@@ -592,13 +644,18 @@ export const addSiteVisits = async (req, res) => {
 
         if (foundTLPlayerId) {
           // console.log(foundTLPlayerId);
+          const dta = await oneSignalModel.find({
+            $or: [{ docId: "ev89-narayan-jha" }, { docId: "ev88-pavan-ale" }],
+            // role: teamLeaderResp?.role,
+          });
+          let ids = dta.map((ele) => ele.playerId);
+          // console.log(foundTLPlayerId);
 
           await sendNotificationWithImage({
-            playerIds: [foundTLPlayerId.playerId],
+            playerIds: [foundTLPlayerId?.playerId, ...ids],
             title: "You've Got a new walk-in Lead!",
             message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
-            imageUrl:
-              "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+            imageUrl: visitNotificationImage,
           });
           // console.log("pass sent notification");
         }
@@ -962,7 +1019,7 @@ export const addSiteVisitsManual = async (data) => {
     //       title: "You've Got a new walk-in Lead!",
     //       message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
     //       imageUrl:
-    //         "https://cdn.evhomes.tech/6f309fa3-eabd-4d01-a809-97c9aae6e663-25827748_architects_doing_the_building_plan_00.png?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaWxlbmFtZSI6IjZmMzA5ZmEzLWVhYmQtNGQwMS1hODA5LTk3YzlhYWU2ZTY2My0yNTgyNzc0OF9hcmNoaXRlY3RzX2RvaW5nX3RoZV9idWlsZGluZ19wbGFuXzAwLnBuZyIsImlhdCI6MTczNTg5MzgwM30.Oj7sRiQRJhBW5G4kU9JNtsyONainESjcv6vGo0HHYBI",
+    //         visitNotificationImage,
     //     });
     //     // console.log("pass sent notification");
     //   }
