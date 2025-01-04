@@ -71,9 +71,23 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
   try {
     if (!id) return res.send(errorRes(401, "id required"));
 
-    const leadResp = await leadModel.findById(id).lean();
+    const leadResp = await leadModel
+      .findById(id)
+      .populate(leadPopulateOptions)
+      .lean();
+
+    const teamLeaders = [
+      { _id: "ev15-deepak-karki" },
+      { _id: "ev69-vicky-mane" },
+      { _id: "ev70-jaspreet-arora" },
+      { _id: "ev54-ranjna-gupta" },
+    ];
+
     timeline.push(...leadResp.cycleHistory, leadResp.cycle);
 
+    // if (timeline.length < 5) {
+
+    // }
     let newTimeLine = timeline.map((ele) => {
       // console.log(ele.validTill);
       ele.validTillFormated = moment(ele.validTill)
