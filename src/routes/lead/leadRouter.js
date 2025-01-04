@@ -35,6 +35,7 @@ import {
   getSiteVisitLeadByPhoneNumber,
   getLeadTeamLeaderReportingToGraph,
   triggerCycleChangeFunction,
+  getAssignedToSalesManger
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -96,6 +97,12 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
     return res.send(errorRes(500, "Internal Server Error"));
   }
 });
+
+leadRouter.get(
+  "/leads-sales-manager/:id",
+  // authenticateToken,
+getAssignedToSalesManger);
+
 
 leadRouter.get(
   "/leads-team-leader-reporting/:id",
