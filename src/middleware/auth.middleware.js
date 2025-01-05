@@ -13,7 +13,9 @@ export const authenticateToken = async (req, res, next) => {
     // console.log(`acces: ${accessToken} `);
     // console.log(`refresh: ${refreshToken} `);
     if (!accessToken) {
-      return res.status(401).json({ message: "No token provided" });
+      return res
+        .status(401)
+        .json({ message: "Your session has expired. Please log in again to continue." });
     }
 
     try {
@@ -40,7 +42,9 @@ export const authenticateToken = async (req, res, next) => {
       }
 
       if (!user) {
-        return res.send(errorRes(401, "No valid Session found"));
+        return res.send(
+          errorRes(401, "Your session has expired. Please log in again to continue.")
+        );
       }
 
       req.user = user;
@@ -49,7 +53,9 @@ export const authenticateToken = async (req, res, next) => {
       if (error.name === "TokenExpiredError") {
         // Token has expired, attempt to refresh
         if (!refreshToken) {
-          return res.send(errorRes(401, "Refresh token not found"));
+          return res.send(
+            errorRes(401, "Your session has expired. Please log in again to continue.")
+          );
         }
 
         try {
@@ -76,7 +82,9 @@ export const authenticateToken = async (req, res, next) => {
           }
 
           if (!user) {
-            return res.send(errorRes(401, "No valid Session found"));
+            return res.send(
+              errorRes(401, "Your session has expired. Please log in again to continue.")
+            );
           }
           const { password, ...userWithoutPassword } = user;
           const dataToken = {
@@ -98,10 +106,12 @@ export const authenticateToken = async (req, res, next) => {
           };
           return next();
         } catch (refreshError) {
-          return res.send(errorRes(401, "Invalid refresh token"));
+          return res.send(
+            errorRes(401, "Your session has expired. Please log in again to continue.")
+          );
         }
       }
-      return res.send(errorRes(401, "Invalid token"));
+      return res.send(errorRes(401, "Invalid credentials"));
     }
   } catch (error) {
     return res.send(errorRes(401, "Internal server error"));
