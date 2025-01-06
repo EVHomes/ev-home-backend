@@ -19,6 +19,7 @@ const ALLOWED_EMPLOYEE_FIELDS = [
   "countryCode",
   "phoneNumber",
   "isVerified",
+  "profilePic",
 ];
 
 // Middleware to validate and filter fields
