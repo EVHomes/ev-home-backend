@@ -445,6 +445,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
           visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
           bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
           // Add other fields similarly as required
         },
       },
