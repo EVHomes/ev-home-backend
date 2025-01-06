@@ -13,6 +13,7 @@ import {
   createJwtToken,
   encryptPassword,
   generateOTP,
+  verifyJwtToken,
 } from "../utils/helper.js";
 
 export const updateDesgEmp = async (req, res, next) => {
@@ -331,48 +332,42 @@ export const getEmployeeById = async (req, res, next) => {
 export const getEmployeeReAuth = async (req, res, next) => {
   try {
     const accessToken = req.headers["authorization"]?.split(" ")[1];
-    // const refreshToken = req.headers.refreshtoken?.split(" ")[1];
     const refreshToken = req.headers["x-refresh-token"]?.split(" ")[1];
-    // console.log(`acces: ${accessToken} `);
-    // console.log(`refresh: ${refreshToken} `);
+
     if (!accessToken) {
-      return res.status(401).json({ message: "No token provided" });
+      return res.send(
+        errorRes(
+          401,
+          "Your session has expired. Please log in again to continue."
+        )
+      );
     }
 
     try {
+      // Verify access token
       const decoded = verifyJwtToken(accessToken, config.SECRET_ACCESS_KEY);
-      let user = null;
-      if (decoded.data.role === "channel-partner") {
-        user = await cpModel.findById(decoded.data._id).lean();
 
-        if (!user) {
-          return res.send(errorRes(401, "Channel Partner not found"));
-        }
-      } else if (decoded.data.role === "employee") {
-        user = await employeeModel.findById(decoded.data._id).lean();
-
-        if (!user) {
-          return res.send(errorRes(401, "Channel Partner not found"));
-        }
-      } else if (decoded.data.role === "customer") {
-        user = await clientModel.findById(decoded.data._id).lean();
-
-        if (!user) {
-          return res.send(errorRes(401, "Channel Partner not found"));
-        }
-      }
+      const user = await employeeModel
+        .findById(decoded.data._id)
+        .select("-password -refreshToken")
+        .populate(employeePopulateOptions)
+        .lean();
 
       if (!user) {
-        return res.send(errorRes(401, "No valid Session found"));
+        return res.send(
+          errorRes(401, "Session Expired, Please log in again to continue.")
+        );
       }
 
       req.user = user;
-      return res.send(successRes(200, "re-login", { data: user }));
+      return res.send(successRes(200, "Authenticated", { data: user }));
     } catch (error) {
       if (error.name === "TokenExpiredError") {
-        // Token has expired, attempt to refresh
+        // Access token expired, attempt to refresh
         if (!refreshToken) {
-          return res.send(errorRes(401, "Refresh token not found"));
+          return res.send(
+            errorRes(401, "Session Expired, Please log in again to continue.")
+          );
         }
 
         try {
@@ -380,57 +375,76 @@ export const getEmployeeReAuth = async (req, res, next) => {
             refreshToken,
             config.SECRET_REFRESH_KEY
           );
-          let user = null;
-          if (decoded.data.role === "channel-partner") {
-            user = await cpModel.findById(decoded.data._id).lean();
-
-            if (!user) {
-              return res.send(errorRes(401, "Channel Partner not found"));
-            }
-          } else if (decoded.data.role === "employee") {
-            user = await employeeModel.findById(decoded.data._id).lean();
-
-            if (!user) {
-              return res.send(errorRes(401, "Channel Partner not found"));
-            }
-          } else if (decoded.data.role === "customer") {
-            user = await clientModel.findById(decoded.data._id).lean();
-
-            if (!user) {
-              return res.send(errorRes(401, "Channel Partner not found"));
-            }
-          }
+          const user = await employeeModel
+            .findById(decoded.data._id)
+            .select("-password -refreshToken")
+            .populate(employeePopulateOptions)
+            .lean();
 
           if (!user) {
-            return res.send(errorRes(401, "No valid Session found"));
+            return res.send(
+              errorRes(401, "Session Expired, Please log in again to continue.")
+            );
           }
-          const { password, ...userWithoutPassword } = user;
+
           const dataToken = {
             _id: user._id,
             email: user.email,
             role: user.role,
           };
 
+          // Generate a new access token
           const newAccessToken = createJwtToken(
             dataToken,
             config.SECRET_ACCESS_KEY,
             "15m"
           );
 
+          // Check if refresh token is about to expire (e.g., less than 1 day)
+          const refreshDecoded = verifyJwtToken(
+            refreshToken,
+            config.SECRET_REFRESH_KEY
+          );
+          // console.log(refreshDecoded);
+          const currentTime = Math.floor(Date.now() / 1000); // Current time in seconds
+          const timeLeft = refreshDecoded.exp - currentTime;
+
+          let newRefreshToken = refreshToken;
+          if (timeLeft < 24 * 60 * 60) {
+            // If less than 1 day left
+            newRefreshToken = createJwtToken(
+              dataToken,
+              config.SECRET_REFRESH_KEY,
+              "7d"
+            ); // Generate a new refresh token
+            res.setHeader("x-new-refresh-token", newRefreshToken); // Send new refresh token in response header
+          }
+
           res.setHeader("Authorization", `Bearer ${newAccessToken}`);
-          // res.setHeader("NewAccessToken", `Bearer ${newAccessToken}`);
-          req.user = {
-            ...userWithoutPassword,
-          };
-          return res.send(successRes(200, "re-login", { data: user }));
+          req.user = user;
+
+          return res.status(200).json(
+            successRes(200, "Token refreshed", {
+              data: user,
+              newRefreshToken:
+                timeLeft < 24 * 60 * 60 ? newRefreshToken : undefined, // Include new token if generated
+            })
+          );
         } catch (refreshError) {
-          return res.send(errorRes(401, "Invalid refresh token"));
+          console.log(refreshError);
+          return res.send(
+            errorRes(401, "Session Expired, Please log in again to continue.")
+          );
         }
       }
-      return res.send(errorRes(401, "Invalid token"));
+
+      return res.send(
+        errorRes(401, "Session Expired, Please log in again to continue.")
+      );
     }
   } catch (error) {
-    return res.send(errorRes(401, "Internal server error"));
+    console.error("Error during re-authentication:", error);
+    return res.send(errorRes(500, "Internal server error"));
   }
 };
 
