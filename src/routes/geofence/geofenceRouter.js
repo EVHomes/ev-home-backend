@@ -3,28 +3,32 @@ import {
   getGeofence,
   // getGeofenceById,
   addGeofence,
+  updateGeofence,
   deleteGeofence,
 } from "../../controller/geofence.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
 const geoRouter = Router();
+
 geoRouter.get(
   "/geofence",
   // authenticateToken,
   getGeofence
 );
-// geoRouter.get(
-//   "/geofence/:id",
-//   // authenticateToken,
-//   getGeofenceById
-// );
+
 geoRouter.post(
   "/geofence-add",
   // authenticateToken,
   addGeofence
 );
 
-geoRouter.delete("/upcomingProjects/:id", deleteGeofence);
+geoRouter.post(
+  "/geofence-update/:id",
+  // authenticateToken,
+  updateGeofence
+);
+
+geoRouter.delete("/geofence/:id", deleteGeofence);
 
 
 export default geoRouter;

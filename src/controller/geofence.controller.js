@@ -16,28 +16,8 @@ export const getGeofence = async (req, res) => {
   }
 };
 
-//GET BY ID
-// export const getGeofenceById = async (req, res) => {
-//     const id = req.params.id;
-//     try {
-//       if (!id) return res.send(errorRes(403, "id is required"));
-  
-//       const respGeo = await geofenceModel.findById(id);
-  
-//       if (!respGeo) return res.send(errorRes(404, `Department not found`));
-  
-//       return res.send(
-//         successRes(200, `Department Found`, {
-//           data: respGeo,
-//         })
-//       );
-//     } catch (error) {
-//       return res.send(errorRes(500, error));
-//     }
-//   };
-  
-  //add division
-  export const addGeofence = async (req, res) => {
+//add division
+export const addGeofence = async (req, res) => {
     const body = req.body;
 
     const {
@@ -64,7 +44,40 @@ export const getGeofence = async (req, res) => {
     }
   };
 
-   //DELETE PROJECTS
+export const updateGeofence = async (req, res) => {
+    const body = req.body;
+    const id = req.params.id;
+  
+    const {
+        address, name, latitude, longitude, radius, status
+    } = body; // Destructuring the body fields
+  
+    try {
+      // Validate the necessary fields
+      if (!id) return res.send(errorRes(403, "ID is required"));
+      if (!body) return res.send(errorRes(403, "Data is required"));
+     
+      const updatedgeofence = await geofenceModel.findByIdAndUpdate(
+        id, // Find by project ID
+        { ...body },
+        { new: true } // Return the updated document
+      );
+  
+      if (!updatedgeofence)
+        return res.send(errorRes(404, `Project not found with ID: ${id}`));
+  
+      // Send a success response
+      return res.send(
+        successRes(200, `Project updated successfully: ${name}`, {
+         data: updatedgeofence,
+        })
+      );
+    } catch (error) {
+      return res.send(errorRes(500, `Server error: ${error?.message}`));
+    }
+  };
+
+//DELETE PROJECTS
 export const deleteGeofence = async (req, res) => {
     const id = req.params.id;
   
