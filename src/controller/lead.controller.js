@@ -264,7 +264,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         leadType: { $eq: "walk-in" },
       };
     } else if (status == "line-up") {
-      // console.log("booi pendding");
+      console.log("line-up");
       statusToFind = {
         siteVisitInterested: true,
       };
@@ -320,7 +320,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
       baseFilter.$or = searchConditions;
     }
-    // console.log(JSON.stringify(baseFilter, null, 2));
+    console.log(JSON.stringify(baseFilter, null, 2));
     // Fetch Leads
     const respLeads = await leadModel
       .find(baseFilter)
@@ -5409,13 +5409,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          // matchedCount: bulkResult.matchedCount,
-          // modifiedCount: bulkResult.modifiedCount,
+          matchedCount: bulkResult.matchedCount,
+          modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),
