@@ -83,7 +83,7 @@ employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
 employeeRouter.post(
   "/employee-edit/:id",
   // authenticateToken,
-  validateEmployeeFields,
+
   editEmployeeById
 );
 

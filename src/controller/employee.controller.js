@@ -436,7 +436,8 @@ export const getEmployeeReAuth = async (req, res, next) => {
 
 export const editEmployeeById = async (req, res, next) => {
   const id = req.params.id;
-  const body = req.filteredBody;
+  const body = req.body;
+  const{profilPic}=body;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
     if (!body) return res.send(errorRes(403, "valid data is required"));
@@ -444,7 +445,10 @@ export const editEmployeeById = async (req, res, next) => {
 
     // return res.send(errorRes(404, `test success`));
     const respEmployee = await employeeModel
-      .findById(id)
+      .findByIdAndUpdate(id, { ...body },
+        { new: true } )
+      
+
       .select("-password -refreshToken")
       .populate(employeePopulateOptions);
 
