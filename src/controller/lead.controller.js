@@ -54,10 +54,6 @@ export const getAllLeads = async (req, res, next) => {
   }
 };
 
-
-
-
-
 export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
@@ -266,6 +262,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         ],
         // ...walkinType,
         leadType: { $eq: "walk-in" },
+      };
+    } else if (status == "line-up") {
+      // console.log("booi pendding");
+      statusToFind = {
+        siteVisitInterested: true,
       };
     }
 
@@ -493,9 +494,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   }
 };
 
-
 export const getAssignedToSalesManger = async (req, res, next) => {
-  const salesManagerId= req.params.id;
+  const salesManagerId = req.params.id;
 
   const respTeamLeader = await employeeModel.findById(salesManagerId);
   const teamLeaderId = respTeamLeader.reportingTo;
@@ -510,7 +510,9 @@ export const getAssignedToSalesManger = async (req, res, next) => {
 
     if (salesManagerId) {
       console.log("entered member");
-      const test = await taskModel.find({ assignTo: salesManagerId }).select("_id");
+      const test = await taskModel
+        .find({ assignTo: salesManagerId })
+        .select("_id");
       test.map((ele) => {
         ids.push(ele._id.toString());
       });
@@ -694,14 +696,14 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         leadType: { $eq: "walk-in" },
       };
     }
-console.log("yes2");
+    console.log("yes2");
     // Base Filter for Search and Leads Query
     let baseFilter = {
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
       ...(salesManagerId != null ? { taskRef: { $in: ids } } : null),
     };
-console.log(baseFilter);
+    console.log(baseFilter);
     // Add query search conditions (if applicable)
     if (query) {
       const searchConditions = [
@@ -748,7 +750,7 @@ console.log(baseFilter);
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     const counts = await leadModel.aggregate([
-      { $match: {teamLeader : teamLeaderId, startDate: { $gte: filterDate } } },
+      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
       {
         $facet: {
           totalItems: [{ $count: "count" }],
@@ -1379,6 +1381,11 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
         // ...walkinType,
         leadType: { $eq: "walk-in" },
       };
+    } else if (status == "line-up") {
+      // console.log("booi pendding");
+      statusToFind = {
+        siteVisitInterested: true,
+      };
     }
 
     // Base Filter for Search and Leads Query
@@ -1515,7 +1522,18 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             },
             { $count: "count" },
           ],
-
+          lineUpCount: [
+            {
+              $match: {
+                stage: { $ne: "tagging-over" },
+                leadType: { $ne: "walk-in" },
+                channelPartner: id,
+                startDate: { $gte: sixMonthsAgo },
+                siteVisitInterested: true,
+              },
+            },
+            { $count: "count" },
+          ],
           // Add other count stages as required
         },
       },
@@ -1530,6 +1548,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
           visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
           bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
           // Add other fields similarly as required
         },
       },
@@ -1544,6 +1563,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           revisitCount: 1,
           visit2Count: 1,
           bookingCount: 1,
+          lineUpCount: 1,
           // Include only the fields you need
         },
       },
@@ -1559,6 +1579,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       revisitCount = 0,
       visit2Count = 0,
       bookingCount = 0,
+      lineUpCount = 0,
 
       // Add other counts as required
     } = counts[0] || {};
@@ -1579,6 +1600,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
         visit2Count,
         revisitCount,
         bookingCount,
+        lineUpCount,
         length: respLeads.length,
         data: respLeads,
       })
@@ -5577,14 +5599,14 @@ export const triggerCycleChangeFunction = async () => {
         const totalTeamLeader = teamLeaders.length;
         const cCycle = { ...entry.cycle };
         const previousCycle = { ...cCycle };
-        const startDate = new Date(entry.cycle.validTill);
+        const startDate = new Date(entry.cycle.validTill.addDays(1));
         const validTill = new Date(startDate);
 
         if (lastIndex !== -1) {
           if (cCycle.stage === "visit") {
             if (cCycle.currentOrder >= totalTeamLeader) {
-              validTill.setDate(validTill.getDate() + 150);
-              cCycle.currentOrder = 1;
+              validTill.setMonth(validTill.getMonth() + 5);
+              cCycle.currentOrder += 1;
               cCycle.teamLeader = teamLeaders[0]?._id;
             } else {
               cCycle.currentOrder += 1;
@@ -5593,46 +5615,46 @@ export const triggerCycleChangeFunction = async () => {
 
               switch (cCycle.currentOrder) {
                 case 1:
-                  validTill.setDate(validTill.getDate() + 15);
+                  validTill.setDate(validTill.getDate() + 14);
                   break;
                 case 2:
-                  validTill.setDate(validTill.getDate() + 7);
+                  validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 3:
-                  validTill.setDate(validTill.getDate() + 3);
+                  validTill.setDate(validTill.getDate() + 2);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 1);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 14);
+              }
+            }
+          } else if (cCycle.stage === "revisit") {
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setMonth(validTill.getMonth() + 5);
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader = teamLeaders[0]?._id;
+            } else {
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 29);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 14);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 4:
                   validTill.setDate(validTill.getDate() + 2);
                   break;
                 default:
-                  validTill.setDate(validTill.getDate() + 15);
-              }
-            }
-          } else if (cCycle.stage === "revisit") {
-            if (cCycle.currentOrder >= totalTeamLeader) {
-              validTill.setDate(validTill.getDate() + 150);
-              cCycle.currentOrder = 1;
-              cCycle.teamLeader = teamLeaders[0]?._id;
-            } else {
-              cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
-
-              switch (cCycle.currentOrder) {
-                case 1:
-                  validTill.setDate(validTill.getDate() + 30);
-                  break;
-                case 2:
-                  validTill.setDate(validTill.getDate() + 15);
-                  break;
-                case 3:
-                  validTill.setDate(validTill.getDate() + 7);
-                  break;
-                case 4:
-                  validTill.setDate(validTill.getDate() + 3);
-                  break;
-                default:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
               }
             }
           }
@@ -5664,13 +5686,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          matchedCount: bulkResult.matchedCount,
-          modifiedCount: bulkResult.modifiedCount,
+          // matchedCount: bulkResult.matchedCount,
+          // modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),

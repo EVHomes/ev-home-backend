@@ -134,6 +134,7 @@ export const updateTask = async (req, res, next) => {
     leadStatus,
     taskCompleted,
   } = req.body;
+
   const taskId = req.params.id;
   const user = req.user;
   try {
@@ -169,7 +170,7 @@ export const updateTask = async (req, res, next) => {
     const statusValue = taskCompleted ? taskCompleted.toLowerCase() : "";
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {
-        completed: statusValue === "completed" ? true : false,
+        completed: true,
         completedDate: startDate,
       })
       .populate(taskPopulateOptions);
