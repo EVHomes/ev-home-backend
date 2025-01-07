@@ -13,9 +13,9 @@ export const authenticateToken = async (req, res, next) => {
     // console.log(`acces: ${accessToken} `);
     // console.log(`refresh: ${refreshToken} `);
     if (!accessToken) {
-      return res
-        .status(401)
-        .json({ message: "Your session has expired. Please log in again to continue." });
+      return res.status(401).json({
+        message: "Your session has expired. Please log in again to continue.",
+      });
     }
 
     try {
@@ -33,6 +33,9 @@ export const authenticateToken = async (req, res, next) => {
         if (!user) {
           return res.send(errorRes(401, "Channel Partner not found"));
         }
+        if (user.status != "active") {
+          return res.send(errorRes(401, "Unauthorized Access."));
+        }
       } else if (decoded.data.role === "customer") {
         user = await clientModel.findById(decoded.data._id).lean();
 
@@ -43,7 +46,10 @@ export const authenticateToken = async (req, res, next) => {
 
       if (!user) {
         return res.send(
-          errorRes(401, "Your session has expired. Please log in again to continue.")
+          errorRes(
+            401,
+            "Your session has expired. Please log in again to continue."
+          )
         );
       }
 
@@ -54,12 +60,18 @@ export const authenticateToken = async (req, res, next) => {
         // Token has expired, attempt to refresh
         if (!refreshToken) {
           return res.send(
-            errorRes(401, "Your session has expired. Please log in again to continue.")
+            errorRes(
+              401,
+              "Your session has expired. Please log in again to continue."
+            )
           );
         }
 
         try {
-          const decoded = verifyJwtToken(refreshToken, config.SECRET_REFRESH_KEY);
+          const decoded = verifyJwtToken(
+            refreshToken,
+            config.SECRET_REFRESH_KEY
+          );
           let user = null;
           if (decoded.data.role === "channel-partner") {
             user = await cpModel.findById(decoded.data._id).lean();
@@ -73,6 +85,10 @@ export const authenticateToken = async (req, res, next) => {
             if (!user) {
               return res.send(errorRes(401, "Channel Partner not found"));
             }
+
+            if (user.status != "active") {
+              return res.send(errorRes(401, "Unauthorized Access"));
+            }
           } else if (decoded.data.role === "customer") {
             user = await clientModel.findById(decoded.data._id).lean();
 
@@ -83,9 +99,13 @@ export const authenticateToken = async (req, res, next) => {
 
           if (!user) {
             return res.send(
-              errorRes(401, "Your session has expired. Please log in again to continue.")
+              errorRes(
+                401,
+                "Your session has expired. Please log in again to continue."
+              )
             );
           }
+
           const { password, ...userWithoutPassword } = user;
           const dataToken = {
             _id: user._id,
@@ -107,7 +127,10 @@ export const authenticateToken = async (req, res, next) => {
           return next();
         } catch (refreshError) {
           return res.send(
-            errorRes(401, "Your session has expired. Please log in again to continue.")
+            errorRes(
+              401,
+              "Your session has expired. Please log in again to continue."
+            )
           );
         }
       }

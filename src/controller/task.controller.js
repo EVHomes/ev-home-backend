@@ -27,6 +27,69 @@ export const getTask = async (req, res, next) => {
       }
     }
 
+    if (query) {
+      const isNumberQuery = !isNaN(query);
+      const searchConditions = [];
+
+      // Add search conditions based on the query type
+      if (!isNumberQuery) {
+        searchConditions.push(
+          { clientName: { $regex: query, $options: "i" } },
+          { firstName: { $regex: query, $options: "i" } },
+          { lastName: { $regex: query, $options: "i" } }
+        );
+      } else {
+        searchConditions.push({ someNumericField: Number(query) });
+      }
+
+      filter.$or = searchConditions;
+    }
+    const resp = await taskModel
+      .find(filter)
+      .populate(taskPopulateOptions)
+      .sort({ assignDate: -1 });
+
+    // .populate({
+    //   path: "lead",
+    //   select:"",
+    //   match: {
+    //     $or: [
+    //       { firstname: { $regex: query, $options: "i" } }, // Case-insensitive search
+    //       { lastname: { $regex: query, $options: "i" } },
+    //     ],
+    //   },
+    // });
+
+    // console.log(match);
+    return res.send(
+      successRes(200, "Get task", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getTaskReminders = async (req, res, next) => {
+  const id = req.params.id;
+  const type = req.query.type;
+  const query = req.query.query || "";
+
+  try {
+    if (!id) return res.send(errorRes(401, "No ID provided"));
+    const today = new Date();
+    let filter = { assignTo: id, reminderDate: { $gte: today } };
+
+    if (type) {
+      if (type == "completed") {
+        filter.completed = true;
+      } else if (type == "pending") {
+        filter.completed = false;
+      } else {
+        filter.type = type;
+      }
+    }
 
     if (query) {
       const isNumberQuery = !isNaN(query);
@@ -72,6 +135,24 @@ export const getTask = async (req, res, next) => {
   }
 };
 
+export const getTaskByid = async (req, res, next) => {
+  const id = req.params.id;
+
+  try {
+    if (!id) return res.send(errorRes(401, "No ID provided"));
+
+    const resp = await taskModel.findById(id).populate(taskPopulateOptions);
+
+    return res.send(
+      successRes(200, "Get task", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const getTaskTeam = async (req, res, next) => {
   const id = req.params.id;
   const type = req.query.type;
@@ -92,7 +173,6 @@ export const getTaskTeam = async (req, res, next) => {
       filter = { assignTo: { $in: ids } };
     }
     console.log(type);
-
 
     if (type) {
       if (type == "completed") {
