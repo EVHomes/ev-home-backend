@@ -59,13 +59,9 @@ const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
 
-leadRouter.get("/leads", authenticateToken,
-   getAllLeads);
-leadRouter.get(
-  "/leads-team-leader/:id",
-  // authenticateToken,
-  getLeadsTeamLeader
-);
+
+leadRouter.get("/leads", authenticateToken, getAllLeads);
+leadRouter.get("/leads-team-leader/:id", authenticateToken, getLeadsTeamLeader);
 
 leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
   let timeline = [];
@@ -128,24 +124,24 @@ leadRouter.get("/local-time-from-iso", async (req, res) => {
 
 leadRouter.get(
   "/leads-sales-manager/:id",
-  // authenticateToken,
+  authenticateToken,
   getAssignedToSalesManger
 );
 
 leadRouter.get(
   "/leads-team-leader-reporting/:id",
-  // authenticateToken,
+  authenticateToken,
   getLeadsTeamLeaderReportingTo
 );
 
 leadRouter.get(
   "/leads-team-leader-graph/:id",
-  // authenticateToken,
+  authenticateToken,
   getLeadTeamLeaderGraph
 );
 leadRouter.get(
   "/leads-team-leader-reporting-graph/:id",
-  // authenticateToken,
+  authenticateToken,
   getLeadTeamLeaderReportingToGraph
 );
 
@@ -156,22 +152,14 @@ leadRouter.post(
   authenticateToken,
   updateCallHistoryPreSales
 );
-leadRouter.get(
-  "/search-lead",
-  //  authenticateToken,
-  searchLeads
-);
+leadRouter.get("/search-lead", authenticateToken, searchLeads);
 leadRouter.get(
   "/search-lead-channel-partner/:id",
-  //  authenticateToken,
+  authenticateToken,
   searchLeadsChannelPartner
 );
 
-leadRouter.post(
-  "/lead-update-status/:id",
-  // authenticateToken,
-  leadUpdateStatus
-);
+leadRouter.post("/lead-update-status/:id", authenticateToken, leadUpdateStatus);
 
 leadRouter.get("/lead/:id", authenticateToken, getLeadById);
 
@@ -289,6 +277,46 @@ leadRouter.get("/lead-trigger-cycle--test", async (req, res) => {
     return res.send(resp);
   } catch (error) {
     return res.send(error);
+  }
+});
+leadRouter.get("/lead-trigger-cycle-5-fix", async (req, res) => {
+  try {
+    const lastCycleResp = await leadModel.find({
+      // approvalStatus: { $ne: null },
+      "cycle.currentOrder": { $eq: 1 },
+      // "cycle.currentOrder": { $gt: 1, $lt: 3 },
+      "cycle.stage": "visit",
+      visitStatus: "pending",
+      startDate: {
+        $gte: "2024-12-23T00:00:00Z",
+        $lt: "2024-12-23T23:59:00Z",
+      },
+      // "cycle.teamLeader": "ev15-deepak-karki",
+    });
+    // const lastCycleResp = await leadModel.find({
+    //   // approvalStatus: { $ne: null },
+    //   startDate: {
+    //     $eq: "2025-01-04T11:30:00.000+00:00",
+    //   },
+    //   // "cycle.teamLeader": "ev15-deepak-karki",
+    // });
+
+    //2025-01-04T11:30:00.000+00:00
+    // const fixedLeads = await Promise.all(
+    //   lastCycleResp.map(async (ele) => {
+    //     ele.cycle.teamLeader = ele.cycleHistory[0].teamLeader;
+    //     // await leadModel.findByIdAndUpdate(ele._id, {
+    //     //   "cycle.teamLeader": ele.cycleHistory[0].teamLeader,
+    //     //   teamLeader: ele.cycleHistory[0].teamLeader,
+    //     // });
+    //     return ele;
+    //   })
+    // );
+    return res.send(
+      successRes(200, "", { total: lastCycleResp.length, data: lastCycleResp })
+    );
+  } catch (error) {
+    return res.send(errorRes(200, error));
   }
 });
 leadRouter.get("/lead-tagging-over-check", async (req, res) => {
@@ -687,10 +715,7 @@ leadRouter.get("/removed-assigned", async (req, res) => {
 leadRouter.post("/lead-updates", async (req, res) => {
   const results = [];
   const dataTuPush = [];
-  const csvFilePath = path.join(
-    __dirname,
-    "missed_leads_14_narayan_04_01_25.csv"
-  );
+  const csvFilePath = path.join(__dirname, "year_issue_11.csv");
 
   const cpResp = await cpModel.find();
   const teamLeaders = await employeeModel.find({
