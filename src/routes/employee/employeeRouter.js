@@ -20,6 +20,7 @@ import {
   getReportingTo,
   getEmployeeReAuth,
   newPassword,
+  reAuthEmployee,
 } from "../../controller/employee.controller.js";
 import { validateEmployeeFields } from "../../middleware/employee.middleware.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
@@ -79,6 +80,8 @@ employeeRouter.post(
   registerEmployee
 );
 employeeRouter.post("/employee-login", validateEmployeeFields, loginEmployee);
+
+employeeRouter.post("/validate-employee-session", getEmployeeReAuth);
 
 employeeRouter.post(
   "/employee-edit/:id",

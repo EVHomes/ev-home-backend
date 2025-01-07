@@ -5,6 +5,7 @@ import { errorRes, successRes } from "../model/response.js";
 import taskModel from "../model/task.model.js";
 import { taskPopulateOptions } from "../utils/constant.js";
 import { sendNotificationWithImage } from "./oneSignal.controller.js";
+import employeeModel from "../model/employee.model.js";
 
 export const getTask = async (req, res, next) => {
   const id = req.params.id;
@@ -64,6 +65,77 @@ export const getTask = async (req, res, next) => {
   }
 };
 
+export const getTaskTeam = async (req, res, next) => {
+  const id = req.params.id;
+  const type = req.query.type;
+  const query = req.query.query || "";
+  const member = req.query.member;
+
+  try {
+    if (!id) return res.send(errorRes(401, "No ID provided"));
+
+    let filter = {};
+
+    if (member) {
+      filter = { assignTo: member };
+    } else {
+      const teams = await employeeModel.find({ reportingTo: id }).select("_id");
+      const ids = teams.map((ele) => ele._id);
+
+      filter = { assignTo: { $in: ids } };
+    }
+
+    if (type) {
+      filter.type = type;
+    }
+
+    if (query) {
+      const isNumberQuery = !isNaN(query);
+      const searchConditions = [];
+
+      // Add search conditions based on the query type
+      if (!isNumberQuery) {
+        searchConditions.push(
+          { clientName: { $regex: query, $options: "i" } },
+          { firstName: { $regex: query, $options: "i" } },
+          { lastName: { $regex: query, $options: "i" } }
+        );
+      } else {
+        searchConditions.push({ someNumericField: Number(query) });
+      }
+
+      filter.$or = searchConditions;
+    }
+
+    // console.log(JSON.stringify(filter, null, 2));
+    const resp = await taskModel
+      .find(filter)
+      .populate(taskPopulateOptions)
+      .sort({ assignDate: -1 });
+
+    // .populate({
+    //   path: "lead",
+    //   select:"",
+    //   match: {
+    //     $or: [
+    //       { firstname: { $regex: query, $options: "i" } }, // Case-insensitive search
+    //       { lastname: { $regex: query, $options: "i" } },
+    //     ],
+    //   },
+    // });
+
+    // console.log(match);
+    return res.send(
+      successRes(200, "Get task", {
+        total: resp.length,
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const assignTask = async (req, res, next) => {
   const body = req.body;
   const assignTo = req.params.id;
@@ -71,6 +143,7 @@ export const assignTask = async (req, res, next) => {
   try {
     if (!assignTo)
       return res.send(errorRes(401, "assign to assignTo required"));
+
     const assignDate = new Date();
     if (!body.deadline) {
       const now = new Date();
@@ -134,6 +207,7 @@ export const updateTask = async (req, res, next) => {
     leadStatus,
     taskCompleted,
   } = req.body;
+
   const taskId = req.params.id;
   const user = req.user;
   try {
@@ -169,7 +243,7 @@ export const updateTask = async (req, res, next) => {
     const statusValue = taskCompleted ? taskCompleted.toLowerCase() : "";
     const resp = await taskModel
       .findByIdAndUpdate(taskId, {
-        completed: statusValue === "completed" ? true : false,
+        completed: true,
         completedDate: startDate,
       })
       .populate(taskPopulateOptions);
