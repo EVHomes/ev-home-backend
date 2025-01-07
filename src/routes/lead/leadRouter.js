@@ -61,7 +61,11 @@ const leadRouter = Router();
 
 
 leadRouter.get("/leads", authenticateToken, getAllLeads);
-leadRouter.get("/leads-team-leader/:id", authenticateToken, getLeadsTeamLeader);
+leadRouter.get(
+  "/leads-team-leader/:id",
+  // authenticateToken,
+  getLeadsTeamLeader
+);
 
 leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
   let timeline = [];
@@ -283,16 +287,40 @@ leadRouter.get("/lead-trigger-cycle-5-fix", async (req, res) => {
   try {
     const lastCycleResp = await leadModel.find({
       // approvalStatus: { $ne: null },
-      "cycle.currentOrder": { $eq: 1 },
-      // "cycle.currentOrder": { $gt: 1, $lt: 3 },
+      // "cycle.currentOrder": { $eq: 2 },
+      "cycle.currentOrder": { $gt: 0, $lt: 3 },
       "cycle.stage": "visit",
       visitStatus: "pending",
       startDate: {
-        $gte: "2024-12-23T00:00:00Z",
-        $lt: "2024-12-23T23:59:00Z",
+        $gte: "2024-12-16T00:00:00Z",
+        $lt: "2025-01-02T23:59:00Z",
       },
+
+      // $expr: {
+      //   $eq: [{ $size: { $ifNull: ["$callHistory", []] } }, 0],
+      // },
+
       // "cycle.teamLeader": "ev15-deepak-karki",
     });
+    const test = await Promise.all(
+      lastCycleResp.map(async (ele) => {
+        let dateOld = new Date(ele.cycle.validTill);
+        dateOld.setDate(dateOld.getDate() - 1); // Use getDate() instead of getDay() to subtract 1 day
+        // await leadModel.findByIdAndUpdate(ele._id, {
+        //   "cycle.validTill": dateOld,
+        // });
+
+        return {
+          phone: ele.phoneNumber,
+          stage: ele.cycle.stage,
+          currentOrder: ele.cycle.currentOrder,
+          teamLeader: ele.cycle.teamLeader,
+          startDate: ele.cycle.startDate,
+          validTill: ele.cycle.validTill,
+          validTill2: dateOld,
+        };
+      })
+    );
     // const lastCycleResp = await leadModel.find({
     //   // approvalStatus: { $ne: null },
     //   startDate: {
@@ -312,9 +340,7 @@ leadRouter.get("/lead-trigger-cycle-5-fix", async (req, res) => {
     //     return ele;
     //   })
     // );
-    return res.send(
-      successRes(200, "", { total: lastCycleResp.length, data: lastCycleResp })
-    );
+    return res.send(successRes(200, "", { total: test.length, data: test }));
   } catch (error) {
     return res.send(errorRes(200, error));
   }
