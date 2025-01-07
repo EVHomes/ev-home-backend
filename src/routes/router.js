@@ -36,6 +36,7 @@ import auditSectionRouter from "./auditSection/auditSectionRouter.js";
 import shiftRouter from "./shift/shiftRouter.js";
 import faceIdRouter from "./faceId/faceIdRouter.js";
 import geoRouter from "./geofence/geofenceRouter.js";
+import feedbackEnquiryRouter from "./feedbackEnquiry/feedbackEnquiryRouter.js"
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -103,5 +104,6 @@ router.use(auditSectionRouter);
 router.use(shiftRouter);
 router.use(faceIdRouter);
 router.use(geoRouter);
+router.use(feedbackEnquiryRouter);
 
 export default router;

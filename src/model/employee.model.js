@@ -20,10 +20,8 @@ export const employeeSchema = new mongoose.Schema(
         message: (props) => `${props.value} is not a valid email.`,
       },
     },
-    profilePic: {
-      type: String,
-      default: null,
-    },
+    profilePic: { type: String, default: null },
+
     employeeId: {
       type: String,
       required: true,
