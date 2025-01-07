@@ -273,6 +273,35 @@ export const updateTask = async (req, res, next) => {
   }
 };
 
+export const updateTaskReminder = async (req, res, next) => {
+  const { remindMe, reminderDate, reminderDescription } = req.body;
+
+  const taskId = req.params.id;
+  try {
+    if (!taskId) return res.send(errorRes(401, "taskId required"));
+
+    const myTask = await taskModel.findById(taskId);
+
+    if (!myTask) return res.send(errorRes(404, "task not found"));
+
+    const resp = await taskModel
+      .findByIdAndUpdate(taskId, {
+        remindMe,
+        reminderDate,
+        reminderDescription,
+      })
+      .populate(taskPopulateOptions);
+
+    return res.send(
+      successRes(200, "Task updated", {
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export const updateFeedback = async (req, res, next) => {
   const {
     stage,
