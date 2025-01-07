@@ -18,8 +18,15 @@ export const getTask = async (req, res, next) => {
     let filter = { assignTo: id };
 
     if (type) {
-      filter.type = type;
+      if (type == "completed") {
+        filter.completed = true;
+      } else if (type == "pending") {
+        filter.completed = false;
+      } else {
+        filter.type = type;
+      }
     }
+
 
     if (query) {
       const isNumberQuery = !isNaN(query);
@@ -84,9 +91,17 @@ export const getTaskTeam = async (req, res, next) => {
 
       filter = { assignTo: { $in: ids } };
     }
+    console.log(type);
+
 
     if (type) {
-      filter.type = type;
+      if (type == "completed") {
+        filter.completed = true;
+      } else if (type == "pending") {
+        filter.completed = false;
+      } else {
+        filter.type = type;
+      }
     }
 
     if (query) {
@@ -107,7 +122,7 @@ export const getTaskTeam = async (req, res, next) => {
       filter.$or = searchConditions;
     }
 
-    // console.log(JSON.stringify(filter, null, 2));
+    console.log(JSON.stringify(filter, null, 2));
     const resp = await taskModel
       .find(filter)
       .populate(taskPopulateOptions)
