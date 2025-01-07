@@ -5322,6 +5322,7 @@ export const triggerCycleChangeFunction = async () => {
         const totalTeamLeader = teamLeaders.length;
         const cCycle = { ...entry.cycle };
         const previousCycle = { ...cCycle };
+        const firstTeamLeader = entry.callHistory[0].teamLeader;
         const startDate = new Date(entry.cycle.validTill.addDays(1));
         const validTill = new Date(startDate);
 
@@ -5330,11 +5331,11 @@ export const triggerCycleChangeFunction = async () => {
             if (cCycle.currentOrder >= totalTeamLeader) {
               validTill.setMonth(validTill.getMonth() + 5);
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[0]?._id;
+              cCycle.teamLeader = firstTeamLeader;
             } else {
               cCycle.currentOrder += 1;
               cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+                teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5357,11 +5358,11 @@ export const triggerCycleChangeFunction = async () => {
             if (cCycle.currentOrder >= totalTeamLeader) {
               validTill.setMonth(validTill.getMonth() + 5);
               cCycle.currentOrder += 1;
-              cCycle.teamLeader = teamLeaders[0]?._id;
+              cCycle.teamLeader = firstTeamLeader;
             } else {
               cCycle.currentOrder += 1;
               cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || teamLeaders[0]?._id;
+                teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5388,7 +5389,7 @@ export const triggerCycleChangeFunction = async () => {
             console.log(
               `Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`
             );
-            validTill.setFullYear(adjustedYear); // Explicitly set the year, even though it's already correct
+            validTill.setFullYear(adjustedYear);
           }
 
           cCycle.startDate = startDate;
