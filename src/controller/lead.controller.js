@@ -5322,7 +5322,8 @@ export const triggerCycleChangeFunction = async () => {
         const totalTeamLeader = teamLeaders.length;
         const cCycle = { ...entry.cycle };
         const previousCycle = { ...cCycle };
-        const firstTeamLeader = entry.callHistory[0].teamLeader;
+        const firstTeamLeader = entry.cycleHistory[0]?.teamLeader;
+        const lastTeamLeaderNext = teamLeaders[0]._id;
         const startDate = new Date(entry.cycle.validTill.addDays(1));
         const validTill = new Date(startDate);
 
@@ -5334,8 +5335,13 @@ export const triggerCycleChangeFunction = async () => {
               cCycle.teamLeader = firstTeamLeader;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+
+              if (lastIndex + 1 >= 4) {
+                cCycle.teamLeader = lastTeamLeaderNext;
+              } else {
+                cCycle.teamLeader =
+                  teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+              }
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -5399,6 +5405,8 @@ export const triggerCycleChangeFunction = async () => {
             updateOne: {
               filter: { _id: entry._id },
               update: {
+                // lastIndex,
+                // lastIndex2: lastIndex + 1,
                 teamLeader: cCycle.teamLeader,
                 taskRef: null,
                 $set: { cycle: cCycle },
@@ -5410,13 +5418,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          matchedCount: bulkResult.matchedCount,
-          modifiedCount: bulkResult.modifiedCount,
+          // matchedCount: bulkResult.matchedCount,
+          // modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),
