@@ -3,13 +3,15 @@ import mongoose from "mongoose";
 
 export const feedbackEnquirySchema = new mongoose.Schema(
   {
+    
     date: { type: Date, default: null },
     enquiryabout: {
       type: String,
       default: "Enquiry About",
     },
     leads: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
       ref: "leads",
     },
     channelPartner: {
