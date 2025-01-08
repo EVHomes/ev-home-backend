@@ -237,7 +237,7 @@ export const addSiteVisits = async (req, res) => {
   const {
     firstName,
     lastName,
-    email, 
+    email,
     phoneNumber,
     residence,
     projects,
@@ -352,6 +352,11 @@ export const addSiteVisits = async (req, res) => {
                 foundLead.lastName ?? ""
               }`,
               imageUrl: visitNotificationImage,
+              data: {
+                type: "lead",
+                id: foundLead?._id,
+                role: "channel-partner",
+              },
             });
             // console.log("pass sent notification");
           }
@@ -400,6 +405,11 @@ export const addSiteVisits = async (req, res) => {
                 foundLead.lastName ?? ""
               }`,
               imageUrl: visitNotificationImage,
+              data: {
+                type: "lead",
+                id: foundLead?._id,
+                role: "channel-partner",
+              },
             });
             // console.log("pass sent notification");
           }
@@ -437,6 +447,11 @@ export const addSiteVisits = async (req, res) => {
                 foundLead.lastName ?? ""
               }`,
               imageUrl: visitNotificationImage,
+              data: {
+                type: "lead",
+                id: foundLead?._id,
+                role: "channel-partner",
+              },
             });
             // console.log("pass sent notification");
           }
@@ -497,6 +512,11 @@ export const addSiteVisits = async (req, res) => {
                 foundLead.lastName ?? ""
               }`,
               imageUrl: visitNotificationImage,
+              data: {
+                type: "lead",
+                id: foundLead?._id,
+                role: "channel-partner",
+              },
             });
             // console.log("pass sent notification");
           }
@@ -545,6 +565,11 @@ export const addSiteVisits = async (req, res) => {
                 foundLead.lastName ?? ""
               }`,
               imageUrl: visitNotificationImage,
+              data: {
+                type: "lead",
+                id: foundLead?._id,
+                role: "channel-partner",
+              },
             });
             // console.log("pass sent notification");
           }
@@ -582,6 +607,11 @@ export const addSiteVisits = async (req, res) => {
                 foundLead.lastName ?? ""
               }`,
               imageUrl: visitNotificationImage,
+              data: {
+                type: "lead",
+                id: foundLead?._id,
+                role: "channel-partner",
+              },
             });
             // console.log("pass sent notification");
           }
@@ -605,7 +635,7 @@ export const addSiteVisits = async (req, res) => {
       validTill.setDate(validTill.getDate() + 30);
 
       if (source?.toLowerCase() === "walk-in") {
-        await leadModel.create({
+        const foundLead = await leadModel.create({
           leadType: source?.toLowerCase(),
           firstName: firstName,
           address: residence,
@@ -656,6 +686,12 @@ export const addSiteVisits = async (req, res) => {
             title: "You've Got a new walk-in Lead!",
             message: `A new lead has been assigned to you. Check the details and make contact to move things forward.`,
             imageUrl: visitNotificationImage,
+            data: {
+              type: "lead",
+              id: foundLead?._id,
+              role: "employee",
+              designation: "desg-sales-executive",
+            },
           });
           // console.log("pass sent notification");
         }

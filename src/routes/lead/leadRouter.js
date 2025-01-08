@@ -59,7 +59,6 @@ const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
 
-
 leadRouter.get("/leads", authenticateToken, getAllLeads);
 leadRouter.get(
   "/leads-team-leader/:id",
@@ -270,13 +269,13 @@ leadRouter.get("/lead-trigger-cycle-change", triggerCycleChange);
 leadRouter.get("/lead-trigger-cycle--test", async (req, res) => {
   try {
     const resp = await triggerCycleChangeFunction();
-    // await triggerHistoryModel.create({
-    //   date: new Date(),
-    //   changes: resp?.changes ?? [],
-    //   changesString: resp?.changesString ?? "",
-    //   totalTrigger: resp?.total ?? 0,
-    //   message: resp?.message ?? "",
-    // });
+    await triggerHistoryModel.create({
+      date: new Date(),
+      changes: resp?.changes ?? [],
+      changesString: resp?.changesString ?? "",
+      totalTrigger: resp?.total ?? 0,
+      message: resp?.message ?? "",
+    });
 
     return res.send(resp);
   } catch (error) {

@@ -1,6 +1,9 @@
 import { Router } from "express";
 import oneSignalModel from "../../model/oneSignal.model.js";
-import { sendNotificationWithImage } from "../../controller/oneSignal.controller.js";
+import {
+  sendNotificationWithImage,
+  sendNotificationWithInfo,
+} from "../../controller/oneSignal.controller.js";
 import leadModel from "../../model/lead.model.js";
 import { errorRes, successRes } from "../../model/response.js";
 import clientModel from "../../model/client.model.js";
@@ -99,7 +102,44 @@ notifyRouter.post("/send-notication-from-cp/:id", async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
-}
-);
+});
+
+notifyRouter.post("/send-notification-doc-id/:id", async (req, res, next) => {
+  const {
+    title,
+    message,
+    image,
+    templateName,
+    leadRef,
+    data: bData,
+  } = req.body;
+  const id = req.params.id;
+
+  try {
+    console.log(id);
+    console.log(req.body);
+    const foundTLPlayerId = await oneSignalModel.find({
+      docId: { $in: [id] },
+    });
+    console.log("passed note 5 ");
+
+    if (foundTLPlayerId.length > 0) {
+      // console.log(foundTLPlayerId);
+      const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+      await sendNotificationWithImage({
+        playerIds: getPlayerIds,
+        title: title,
+        imageUrl:
+          image ?? "https://cdn-icons-png.flaticon.com/512/12210/12210154.png",
+        message: message,
+        data: bData,
+      });
+    }
+    return res.send(successRes(200, "Notification sent"));
+  } catch (error) {
+    return next(error);
+  }
+});
 
 export default notifyRouter;
