@@ -9,7 +9,7 @@ const feedbackEnquiryRouter = Router();
 feedbackEnquiryRouter.get("/feedback-enquiry", getFeedbackEnquiry);
 
 
-feedbackEnquiryRouter.get("/feedback-qnuiry-id/:id",getFeedbackEnquiryById);
+feedbackEnquiryRouter.get("/feedback-enquiry-id/:id",getFeedbackEnquiryById);
 
 
 feedbackEnquiryRouter.post(
