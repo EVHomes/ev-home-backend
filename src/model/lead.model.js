@@ -40,7 +40,7 @@ const approvalSchema = new mongoose.Schema({
   employee: {
     type: String,
     ref: "employees",
-    required: true,
+    // required: true,
   },
   approvedAt: {
     type: Date,
@@ -52,20 +52,20 @@ const updateSchema = new mongoose.Schema({
   employee: {
     type: String,
     ref: "employees",
-    required: true,
+    // required: true,
   },
   updatedAt: {
     type: Date,
     default: Date.now,
   },
-  changes: { type: String, required: true },
+  changes: { type: String, default: "" },
   remark: { type: String, default: null },
 });
 const callHistorySchema = new mongoose.Schema({
   caller: {
     type: String,
     ref: "employees",
-    required: true,
+    // required: true,
   },
   callDate: {
     type: Date,
@@ -103,13 +103,13 @@ export const leadSchema = new mongoose.Schema(
       {
         type: String,
         ref: "ourProjects",
-        required: true,
+        // required: true,
       },
     ],
     requirement: [
       {
         type: String,
-        required: true,
+        // required: true,
       },
     ],
     firstName: { type: String, default: null },
@@ -159,12 +159,12 @@ export const leadSchema = new mongoose.Schema(
     stage: { type: String, default: "approval" },
     startDate: {
       type: Date,
-      required: true,
+      // required: true,
       default: Date.now,
     },
     validTill: {
       type: Date,
-      required: true,
+      // required: true,
       default: function () {
         let startDate = this.startDate || Date.now();
         let validTillDate = new Date(startDate);
