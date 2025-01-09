@@ -91,6 +91,10 @@ const callHistorySchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  interestedStatus: {
+    type: String,
+    default: null,
+  },
 });
 
 export const leadSchema = new mongoose.Schema(

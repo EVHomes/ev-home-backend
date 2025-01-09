@@ -325,6 +325,7 @@ export const updateTask = async (req, res, next) => {
             feedback: feedback ?? "",
             document: document,
             recording: recording,
+            interestedStatus: intrestedStatus,
           },
           updateHistory: {
             employee: user?._id,
@@ -416,6 +417,7 @@ export const updateFeedback = async (req, res, next) => {
           feedback: feedback ?? "",
           document: document,
           recording: recording,
+          interestedStatus: intrestedStatus,
         },
         updateHistory: {
           employee: user?._id,
