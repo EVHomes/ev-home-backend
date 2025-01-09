@@ -1185,6 +1185,21 @@ leadRouter.post("/lead-check-exist", async (req, res) => {
     });
 });
 
+leadRouter.get("/lead-trigger-h-1", async (req, res) => {
+  try {
+    const resp2 = await triggerHistoryModel
+      .findById("677f42b90a6cd2546178a434")
+      .populate("changes");
+    const filteredLeads = resp2.changes.filter(
+      (ele) =>
+        ele.cycle.teamLeader === "ev54-ranjna-gupta" &&
+        ele.cycle.currentOrder === 3
+    );
+    return res.send({
+      data: filteredLeads,
+    });
+  } catch (error) {}
+});
 // leadRouter.post("/visit-updates", async (req, res) => {
 //   const results = [];
 //   const dataTuPush = [];
