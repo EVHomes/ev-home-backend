@@ -113,6 +113,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
 
     timeline.push(...leadResp.cycleHistory, leadResp.cycle);
     let curreCycle = leadResp.cycle;
+
     for (let i = 0; i < 5; i++) {
       console.log(`${i} ok`);
       var currTimeline = timeline[i];
@@ -139,9 +140,9 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
         console.log(`${i} pass 4`);
 
         const firstTeamLeader =
-          leadResp.currentOrder > 1
-            ? leadResp.cycleHistory[0]?.teamLeader
-            : leadResp.cycle.teamLeader;
+          leadResp.currentOrder <= 1
+            ? leadResp.cycle.teamLeader
+            : timeline[0]?.teamLeader;
         console.log(`${i} pass 5`);
 
         const lastTeamLeaderNext = sortedTeamLeaders[0];
