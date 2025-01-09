@@ -5367,8 +5367,15 @@ export const triggerCycleChangeFunction = async () => {
               cCycle.teamLeader = firstTeamLeader;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+              if (lastIndex + 1 >= 4) {
+                cCycle.teamLeader = lastTeamLeaderNext;
+              } else {
+                cCycle.teamLeader =
+                  teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+              }
+
+              // cCycle.teamLeader =
+              //   teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
 
               switch (cCycle.currentOrder) {
                 case 1:
