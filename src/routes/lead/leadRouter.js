@@ -70,6 +70,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
   let timeline = [];
   const id = req.params.id;
 
+  let newTimeLine2 = [];
   try {
     if (!id) return res.send(errorRes(401, "id required"));
 
@@ -86,10 +87,120 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
     ];
 
     timeline.push(...leadResp.cycleHistory, leadResp.cycle);
+    for (let i = 0; i < 5; i++) {
+      console.log(`${i} ok`);
+      var currTimeline = timeline[i];
+      console.log(`${typeof currTimeline}`);
+      if (!currTimeline) {
+        console.log(`${i} pass 1`);
+        const lastIndex = teamLeaders.findIndex(
+          (ele) =>
+            ele?._id.toString() === leadResp?.cycle?.teamLeader?._id?.toString()
+        );
+        console.log(`${i} pass 2- ${lastIndex}`);
 
-    // if (timeline.length < 5) {
+        const totalTeamLeader = teamLeaders.length;
+        const cCycle = { ...leadResp.cycle };
+        console.log(`${i} pass 3`);
 
-    // }
+        const previousCycle = { ...cCycle };
+        console.log(`${i} pass 4`);
+
+        const firstTeamLeader = leadResp.cycleHistory[0]?.teamLeader;
+        console.log(`${i} pass 5`);
+
+        const lastTeamLeaderNext = teamLeaders[0]._id;
+        console.log(`${i} pass 6`);
+
+        const startDate = new Date(leadResp.cycle.validTill.addDays(1));
+        const startDate2 = new Date(leadResp.cycle.validTill);
+        console.log(`${i} pass 7`);
+
+        const validTill = new Date(startDate);
+        console.log(`${i} pass 8`);
+
+        if (lastIndex !== -1) {
+          console.log(`${i} pass 9 lastIndex not null`);
+
+          //TOFO:visit
+          if (cCycle.stage === "visit") {
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setMonth(validTill.getMonth() + 5);
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader = firstTeamLeader;
+            } else {
+              cCycle.currentOrder += 1;
+
+              if (lastIndex + 1 >= 4) {
+                cCycle.teamLeader = lastTeamLeaderNext;
+              } else {
+                cCycle.teamLeader =
+                  teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+              }
+
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 14);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 6);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 2);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 1);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 14);
+              }
+            }
+          } else if (cCycle.stage === "revisit") {
+            if (cCycle.currentOrder >= totalTeamLeader) {
+              validTill.setMonth(validTill.getMonth() + 5);
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader = firstTeamLeader;
+            } else {
+              cCycle.currentOrder += 1;
+              cCycle.teamLeader =
+                teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+
+              switch (cCycle.currentOrder) {
+                case 1:
+                  validTill.setDate(validTill.getDate() + 29);
+                  break;
+                case 2:
+                  validTill.setDate(validTill.getDate() + 14);
+                  break;
+                case 3:
+                  validTill.setDate(validTill.getDate() + 6);
+                  break;
+                case 4:
+                  validTill.setDate(validTill.getDate() + 2);
+                  break;
+                default:
+                  validTill.setDate(validTill.getDate() + 29);
+              }
+            }
+          }
+          // Explicitly handle year rollover
+          const adjustedYear = validTill.getFullYear();
+          if (adjustedYear > startDate.getFullYear()) {
+            console.log(
+              `Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`
+            );
+            validTill.setFullYear(adjustedYear);
+          }
+
+          cCycle.startDate = startDate;
+          cCycle.validTill = validTill;
+          console.log(`${i} - done`);
+          newTimeLine2.push(cCycle);
+        }
+      } else {
+        newTimeLine2.push(currTimeline);
+      }
+    }
     let newTimeLine = timeline.map((ele) => {
       // console.log(ele.validTill);
       ele.validTillFormated = moment(ele.validTill)
@@ -104,7 +215,8 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
 
     return res.send(
       successRes(200, "get 2", {
-        data: newTimeLine,
+        total: newTimeLine2.length,
+        data: newTimeLine2,
       })
     );
   } catch (error) {
