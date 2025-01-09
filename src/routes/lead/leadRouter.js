@@ -165,7 +165,7 @@ leadRouter.get(
 
 leadRouter.post("/lead-update-status/:id", authenticateToken, leadUpdateStatus);
 
-leadRouter.get("/lead/:id", authenticateToken, getLeadById);
+leadRouter.get("/lead/:id", /*authenticateToken,*/ getLeadById);
 
 leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
