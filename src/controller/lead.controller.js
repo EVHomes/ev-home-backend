@@ -5210,7 +5210,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
     });
     const visitDone = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
-
       channelPartner: id,
       visitStatus: { $ne: "pending" },
     });
@@ -5243,18 +5242,48 @@ export const getCpSalesFunnel = async (req, res, next) => {
       // callHistory: { $gte: 1 },
       followupStatus: { $eq: "followup" },
     });
+    const revisitDone = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
+      channelPartner: id,
+      // callHistory: { $gte: 1 },
+      revisitStatus: { $eq: "revisited" },
+    });
+    const approvalCount = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
+      channelPartner: id,
+      // callHistory: { $gte: 1 },
+      approvalStatus: { $eq: "approved" },
+    });
+    const rejectedCount = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
+      channelPartner: id,
+      // callHistory: { $gte: 1 },
+      approvalStatus: { $eq: "rejected" },
+    });
+    const pendingCount = await leadModel.countDocuments({
+      startDate: { $gte: sixMonthsAgo },
+      channelPartner: id,
+      // callHistory: { $gte: 1 },
+      approvalStatus: { $eq: "pending" },
+    });
+
+    // const booking=await leadModel.findById(_id).populate(leadPopulateOptions);
 
     // itreseted, not intrested
 
     return res.send({
       data: {
         bookingDone,
+        revisitDone,
         visitDone,
         contacted,
         received,
         interested,
         notInterested,
         followup,
+        approvalCount,
+        rejectedCount,
+        pendingCount,
       },
     });
   } catch (error) {
