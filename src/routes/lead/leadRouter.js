@@ -50,7 +50,10 @@ import leadModel from "../../model/lead.model.js";
 import moment from "moment-timezone";
 import PDFDocument from "pdfkit";
 import siteVisitModel from "../../model/siteVisit.model.js";
-import { leadPopulateOptions } from "../../utils/constant.js";
+import {
+  employeePopulateOptions,
+  leadPopulateOptions,
+} from "../../utils/constant.js";
 import { addSiteVisitsManual } from "../../controller/siteVisit.controller.js";
 import triggerHistoryModel from "../../model/triggerLog.model.js";
 import { errorRes, successRes } from "../../model/response.js";
@@ -85,8 +88,31 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
       { _id: "ev70-jaspreet-arora" },
       { _id: "ev54-ranjna-gupta" },
     ];
+    const teamLeadersIds = [
+      "ev15-deepak-karki",
+      "ev69-vicky-mane",
+      "ev70-jaspreet-arora",
+      "ev54-ranjna-gupta",
+    ];
+
+    const teamLeadersResp = await employeeModel
+      .find({ _id: { $in: teamLeadersIds } })
+      .select("firstName lastName")
+      .populate([
+        { path: "designation" },
+        {
+          path: "reportingTo",
+          select: "firstName lastName",
+          populate: [{ path: "designation" }],
+        },
+      ]);
+
+    const sortedTeamLeaders = teamLeadersIds.map((id) =>
+      teamLeadersResp.find((leader) => leader._id.toString() === id)
+    );
 
     timeline.push(...leadResp.cycleHistory, leadResp.cycle);
+    let curreCycle = leadResp.cycle;
     for (let i = 0; i < 5; i++) {
       console.log(`${i} ok`);
       var currTimeline = timeline[i];
@@ -95,25 +121,34 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
         console.log(`${i} pass 1`);
         const lastIndex = teamLeaders.findIndex(
           (ele) =>
-            ele?._id.toString() === leadResp?.cycle?.teamLeader?._id?.toString()
+            ele?._id.toString() === curreCycle?.teamLeader?._id?.toString() ||
+            ele?._id.toString() === curreCycle?.teamLeader?.toString()
         );
         console.log(`${i} pass 2- ${lastIndex}`);
 
         const totalTeamLeader = teamLeaders.length;
-        const cCycle = { ...leadResp.cycle };
+        let cCycle = { ...curreCycle };
+        // if (i > 1) {
+        //   console.log(newTimeLine2[i]);
+        //   cCycle = newTimeLine2[i];
+        // }
+
         console.log(`${i} pass 3`);
 
         const previousCycle = { ...cCycle };
         console.log(`${i} pass 4`);
 
-        const firstTeamLeader = leadResp.cycleHistory[0]?.teamLeader;
+        const firstTeamLeader =
+          leadResp.currentOrder > 1
+            ? leadResp.cycleHistory[0]?.teamLeader
+            : leadResp.cycle.teamLeader;
         console.log(`${i} pass 5`);
 
-        const lastTeamLeaderNext = teamLeaders[0]._id;
+        const lastTeamLeaderNext = sortedTeamLeaders[0];
         console.log(`${i} pass 6`);
 
-        const startDate = new Date(leadResp.cycle.validTill.addDays(1));
-        const startDate2 = new Date(leadResp.cycle.validTill);
+        const startDate = new Date(curreCycle.validTill.addDays(1));
+        const startDate2 = new Date(curreCycle.validTill);
         console.log(`${i} pass 7`);
 
         const validTill = new Date(startDate);
@@ -123,7 +158,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
           console.log(`${i} pass 9 lastIndex not null`);
 
           //TOFO:visit
-          if (cCycle.stage === "visit") {
+          if (cCycle?.stage === "visit") {
             if (cCycle.currentOrder >= totalTeamLeader) {
               validTill.setMonth(validTill.getMonth() + 5);
               cCycle.currentOrder += 1;
@@ -135,7 +170,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
                 cCycle.teamLeader = lastTeamLeaderNext;
               } else {
                 cCycle.teamLeader =
-                  teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+                  sortedTeamLeaders[lastIndex + 1] || firstTeamLeader;
               }
 
               switch (cCycle.currentOrder) {
@@ -195,7 +230,10 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
           cCycle.startDate = startDate;
           cCycle.validTill = validTill;
           console.log(`${i} - done`);
+          console.log(cCycle);
+
           newTimeLine2.push(cCycle);
+          curreCycle = cCycle;
         }
       } else {
         newTimeLine2.push(currTimeline);
