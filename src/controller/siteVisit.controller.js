@@ -232,6 +232,91 @@ export const getClosingManagerSiteVisitById = async (req, res, next) => {
   }
 };
 
+
+export const getTeamMemberSiteVisitById = async (req, res, next) => {
+  const id = req.params.id;
+  try {
+
+   
+    const respTeamMember = await employeeModel.findById(id);
+    const teamLeaderId = respTeamMember.reportingTo;
+
+    if (!id) return res.send(errorRes(401, "Id required"));
+
+    let query = req.query.query || "";
+    let page = parseInt(req.query.page) || 1; // Start from page 1
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+    const isNumberQuery = !isNaN(query);
+
+    let visitType = null;
+    let status = req.query.status?.toLowerCase();
+
+    if (status == "visit") {
+      visitType = { visitType: "visit" };
+    } else if (status == "revisit") {
+      visitType = { visitType: "revisit" };
+    } else if (status == "virtual-meeting") {
+      visitType = { visitType: "virtual-meeting" };
+    } else if (status == "walk-in") {
+      visitType = { source: "Walk-in" };
+    }
+
+    let searchFilter = {
+      ...(visitType != null ? visitType : null),
+      closingManager: { $eq: teamLeaderId },
+      $or: [
+        { firstName: new RegExp(query, "i") },
+        { lastName: new RegExp(query, "i") },
+        { email: new RegExp(query, "i") },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+      ].filter(Boolean),
+    };
+    const resp = await siteVisitModel
+      .find(searchFilter)
+      .sort({ date: -1 })
+
+      .skip(skip)
+      .limit(limit)
+      .populate(siteVisitPopulateOptions);
+
+    // Count the total items matching the filter
+    const totalItems = await siteVisitModel.countDocuments(searchFilter); // Count with the same filter
+    // const registrationDone = await siteVisitModel.countDocuments({
+    //   bookingStatus: "Registration Done",
+    // });
+    // const eoiRecieved = await postSaleLeadModel.countDocuments({
+    //   bookingStatus: "EOI Recieved",
+    // });
+    // const cancelled = await postSaleLeadModel.countDocuments({
+    //   bookingStatus: "Cancelled",
+    // });
+    const totalPages = Math.ceil(totalItems / limit);
+
+    return res.send(
+      successRes(200, "get site visit leads", {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+
 export const addSiteVisits = async (req, res) => {
   const body = req.body;
   const {

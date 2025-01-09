@@ -133,7 +133,7 @@ leadRouter.get(
 
 leadRouter.get(
   "/leads-team-leader-reporting/:id",
-  authenticateToken,
+  // authenticateToken,
   getLeadsTeamLeaderReportingTo
 );
 

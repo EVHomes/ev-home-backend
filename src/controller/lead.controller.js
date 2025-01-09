@@ -514,7 +514,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
   const respTeamLeader = await employeeModel.findById(salesManagerId);
   const teamLeaderId = respTeamLeader.reportingTo;
 
-  console.log(salesManagerId);
+  // console.log(salesManagerId);
   try {
     if (!salesManagerId) return res.send(errorRes(401, "id required"));
 
@@ -531,7 +531,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         ids.push(ele._id.toString());
       });
 
-      console.log(ids);
+      // console.log(ids);
     }
     const isNumberQuery = !isNaN(query);
     const filterDate = new Date("2024-12-10");
@@ -710,14 +710,14 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         leadType: { $eq: "walk-in" },
       };
     }
-    console.log("yes2");
+    // console.log("yes2");
     // Base Filter for Search and Leads Query
     let baseFilter = {
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
       ...(salesManagerId != null ? { taskRef: { $in: ids } } : null),
     };
-    console.log(baseFilter);
+    // console.log(baseFilter);
     // Add query search conditions (if applicable)
     if (query) {
       const searchConditions = [
@@ -879,7 +879,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
       },
     ]);
 
-    console.log(counts);
+    // console.log(counts);
     const {
       totalItems = 0,
       pendingCount = 0,
