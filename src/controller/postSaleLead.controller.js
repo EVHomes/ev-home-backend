@@ -472,13 +472,13 @@ export const deletePostSaleLeadBydId = async (req, res, next) => {
 export const getPostSaleLeadByFlat = async (req, res) => {
   try {
     const unitNo = req.query.unitNo;
-    const project=req.query.project;
-console.log(unitNo);
-console.log(project);
+    const project = req.query.project;
+    console.log(unitNo);
+    console.log(project);
     const respPayment = await postSaleLeadModel
-      .findOne({ unitNo: unitNo,project:project})
+      .findOne({ unitNo: unitNo, project: project })
       .populate(postSalePopulateOptions);
-console.log(respPayment);
+    // console.log(respPayment);
     return res.send(
       successRes(200, "Get Post Lead payment", {
         data: respPayment,
