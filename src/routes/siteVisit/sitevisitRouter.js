@@ -9,7 +9,8 @@ import {
   updateSiteVisits,
   verifySiteVisitOtp,
   getClosingManagerSiteVisitById,
-  getSiteVisitByPhoneNumber
+  getSiteVisitByPhoneNumber,
+  getTeamMemberSiteVisitById
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import path from "path";
@@ -43,6 +44,9 @@ siteVisitRouter.get(
   "/site-visit-closing-manager/:id",
   getClosingManagerSiteVisitById
 );
+
+siteVisitRouter.get("/site-visit-team-member/:id",getTeamMemberSiteVisitById);
+
 siteVisitRouter.post(
   "/site-visit-generate-otp",
   // authenticateToken,

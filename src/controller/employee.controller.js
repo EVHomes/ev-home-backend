@@ -505,6 +505,9 @@ export const getReportingTo = async (req, res, next) => {
   }
 };
 
+
+
+
 export const deleteEmployeeById = async (req, res, next) => {
   const id = req.params.id;
   try {
