@@ -276,11 +276,7 @@ leadRouter.get("/local-time-from-iso", async (req, res) => {
   );
 });
 
-leadRouter.get(
-  "/leads-sales-manager/:id",
-  authenticateToken,
-  getAssignedToSalesManger
-);
+leadRouter.get("/leads-sales-manager/:id", getAssignedToSalesManger);
 
 leadRouter.get(
   "/leads-team-leader-reporting/:id",

@@ -1,4 +1,3 @@
-import moment from "moment";
 import { errorRes, successRes } from "../model/response.js";
 import shiftModel from "../model/shift.model.js";
 
@@ -22,46 +21,42 @@ export const addShift = async (req, res, next) => {
     type,
     timeIn,
     timeOut,
-    graceTime,
-    gracePeriod,
-    multiTimeInOut,
-    shiftHours,
     workingHours,
-    breakTime,
+    graceTime,
+    status,
+    multiTimeInOut,
   } = req.body;
 
   try {
+    
     if (!shiftName) return res.send(errorRes(401, "Shift Name is required"));
-    if (!type) return res.send(errorRes(401, "Shift type is required"));
+    if (type === undefined || type === null)
+      return res.send(errorRes(401, "Shift type is required"));
     if (!timeIn) return res.send(errorRes(401, "timeIn is required"));
     if (!timeOut) return res.send(errorRes(401, "timeOut is required"));
-
-    // Calculate shift hours
-    const format = "HH:mm";
-    const timeInMoment = moment(timeIn, format);
-    const timeOutMoment = moment(timeOut, format);
-
-    // Adjust for shifts that cross midnight
-    if (timeOutMoment.isBefore(timeInMoment)) {
-      timeOutMoment.add(1, "day");
-    }
-
-    const duration = moment.duration(timeOutMoment.diff(timeInMoment));
-    const shiftHoursCalculated = duration.asHours();
+    if (!workingHours)
+      return res.send(errorRes(401, "workingHours is required"));
+    if (!graceTime)
+      return res.send(errorRes(401, "graceTime is required"));
 
     // Check if shift already exists
-    const oldShift = await shiftModel.findOne({ shiftName });
-    if (oldShift) return res.send(errorRes(401, "Shift Already Exist"));
+    const existingShift = await shiftModel.findOne({ shiftName });
+    if (existingShift) return res.send(errorRes(401, "Shift Already Exists"));
 
-    const newDesgId = "shift-" + shiftName?.replace(/\s+/g, "-").toLowerCase();
+    // Generate a unique shift ID
+    const shiftId = "shift-" + shiftName?.replace(/\s+/g, "-").toLowerCase();
 
-    // Create a new shift with calculated shift hours
+    // Create a new shift
     const newShift = await shiftModel.create({
-      ...req.body,
-      _id: newDesgId,
-      shiftHours: shiftHours ?? shiftHoursCalculated,
-      workingHours: workingHours ?? shiftHoursCalculated,
-      breakTime: breakTime ?? 60,
+      _id: shiftId,
+      shiftName,
+      type,
+      timeIn,
+      timeOut,
+      workingHours,
+      graceTime: graceTime ?? 0, 
+      status: status ?? true, 
+      multiTimeInOut: multiTimeInOut ?? false, 
     });
 
     return res.send(
@@ -78,13 +73,15 @@ export const getShiftById = async (req, res, next) => {
   const id = req.params.id;
 
   try {
-    if (!id) return res.send(errorRes(401, "id required"));
+    if (!id) return res.send(errorRes(401, "Shift ID is required"));
 
-    const resp = await shiftModel.findById(id);
+    const shift = await shiftModel.findById(id);
+
+    if (!shift) return res.send(errorRes(404, "Shift not found"));
 
     return res.send(
       successRes(200, "get shift", {
-        data: resp,
+        data: shift,
       })
     );
   } catch (error) {
