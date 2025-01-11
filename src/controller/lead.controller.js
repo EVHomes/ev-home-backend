@@ -1037,7 +1037,9 @@ export const getAssignedToSalesManger = async (req, res, next) => {
 
     if (salesManagerId) {
       console.log("entered member");
-      const test = await taskModel.find({ assignTo: salesManagerId }).select("_id");
+      const test = await taskModel
+        .find({ assignTo: salesManagerId })
+        .select("_id");
       test.map((ele) => {
         ids.push(ele._id.toString());
       });
@@ -1320,7 +1322,10 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             { $match: { followupStatus: { $ne: "pending" } } },
             { $count: "count" },
           ],
-          assignedCount: [{ $match: { taskRef: { $ne: null } } }, { $count: "count" }],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
           visitCount: [
             {
               $match: {
@@ -1753,7 +1758,10 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             { $match: { followupStatus: { $ne: "pending" } } },
             { $count: "count" },
           ],
-          assignedCount: [{ $match: { taskRef: { $ne: null } } }, { $count: "count" }],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
           visitCount: [
             {
               $match: {
@@ -5883,14 +5891,249 @@ export const get24hrLeadsNameList = async (req, res, next) => {
 
 export const triggerCycleChangeFunction = async () => {
   try {
-    const currentDate = new Date().addDays(1);
-    console.log(currentDate);
+    const currentDate = new Date();
+    // currentDate.setHours(currentDate.getHours() - 6);
+    const currentDate1 = new Date("2024-12-27T00:00:00.000Z");
+    const checkToDate = new Date("2024-12-27");
     const filterDate = new Date("2024-12-10");
 
-    const allCycleExpiredLeads = await leadModel.find({
-      "cycle.validTill": { $lt: currentDate },
+    const actualTriggerQuery = {
       startDate: { $gte: filterDate },
       bookingStatus: { $ne: "booked" },
+      "cycle.validTill": { $lte: currentDate },
+    };
+    console.log(actualTriggerQuery);
+    console.log(currentDate);
+    console.log(currentDate1);
+    console.log(filterDate);
+
+    const allCycleExpiredLeads = await leadModel.find({
+      ...actualTriggerQuery,
+      // _id: "67614fdcdee6926452248dd4",
+      // $and: [
+      //   {
+      //     "cycle.startDate": {
+      //       $gte: new Date("2024-12-26T00:00:00.000Z"),
+      //       $lte: new Date("2024-12-26T23:59:00.000Z"),
+      //     },
+      //   },
+      //   {
+      //     "cycle.validTill": { $lte: currentDate },
+      //   },
+      // ],
+      // // "cycle.currentOrder": 3,
+      // $and: [
+      //   { visitStatus: { $ne: "visited" } },
+      //   { visitStatus: { $ne: "virtual-meeting" } },
+      //   { visitStatus: { $ne: "revisited" } },
+      // ],
+      // startDate: { $gte: new Date("2024-12-10T00:00:00.000Z") },
+      // bookingStatus: { $ne: "booked" },
+      // "cycle.validTill": { $lte: new Date("2025-01-11T13:10:32.695Z") },
+      // "cycle.currentOrder": 4,
+      // $and: [
+      //   { visitStatus: { $ne: "visited" } },
+      //   { visitStatus: { $ne: "virtual-meeting" } },
+      // ],
+      // "cycleHistory.0.startDate": {
+      //   $gte: new Date("2024-12-13T00:00:25.214Z"),
+      //   $lte: new Date("2024-12-15T23:59:00.000Z"),
+      // },
+      // startDate: { $gte: new Date("2024-12-10T00:00:00.000Z") },
+      // bookingStatus: { $ne: "booked" },
+      // "cycle.validTill": { $lte: new Date("2025-01-11T13:10:32.695Z") },
+      // "cycle.currentOrder": 4,
+      // $and: [
+      //   { visitStatus: { $ne: "visited" } },
+      //   { visitStatus: { $ne: "virtual-meeting" } },
+      // ],
+      // approvalDate: {
+      //   $gte: new Date("2024-12-19T18:30:00.000+00:00"),
+      //   $lte: new Date("2024-12-19T18:30:00.000+00:00"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // visitStatus: { $ne: "virtual-meeting" },
+      // approvalDate: {
+      //   $gte: new Date("2024-12-16T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-16T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-17T12:01:00.000Z"),
+      //   $lte: new Date("2024-12-17T12:01:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-15T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-15T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-15T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-15T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-19T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-19T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-16T18:30:00.000+00:00"),
+      //   $lte: new Date("2024-12-16T18:30:00.000+00:00"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
+      // visitStatus: "pending",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-20T09:14:45.326Z"),
+      //   $lte: new Date("2024-12-20T12:17:23.211Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // visitStatus: "pending",
+      // approvalDate: {
+      //   $eq: new Date("2024-12-15T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-15T10:30:43.796Z"),
+      //   $lte: new Date("2024-12-15T16:23:01.945Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // visitStatus: "pending",
+      // visitStatus: { $ne: null },
+      // approvalDate: {
+      //   $gte: new Date("2024-12-16T15:42:34.673Z"),
+      //   $lte: new Date("2024-12-16T18:55:12.441Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-19T07:58:13.985Z"),
+      //   $lte: new Date("2024-12-19T18:14:58.834Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // "cycle.startDate": {
+      //   $gte: new Date("2024-12-26T12:01:00.000Z"),
+      //   $lte: new Date("2024-12-26T12:01:00.000Z"),
+      // },
+      // "cycle.teamLeader": "ev15-deepak-karki",
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // stage: "visit",
+      // visitStatus: { $ne: "virtual-meeting" },
+      // visitStatus: { $ne: "visited" },
+      // bookingStatus: { $ne: "booked" },
+      // "cycleHistory.0.startDate": {
+      //   $gte: new Date("2024-12-19T10:01:46.310Z"),
+      //   $lte: new Date("2024-12-19T17:39:44.889Z"),
+      // },
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // visitStatus: { $ne: "visited", $ne: "virtual-meeting" },
+      // "cycleHistory.0.startDate": {
+      //   $gte: new Date("2024-12-15T10:30:37.143Z"),
+      //   $lte: new Date("2024-12-15T16:10:28.867Z"),
+      // },
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // visitStatus: { $ne: null, $eq: "pending" },
+      // "cycleHistory.0.startDate": {
+      //   $gt: new Date("2024-12-15T10:28:39.605Z"),
+      //   $lt: new Date("2024-12-15T16:23:19.430Z"),
+      // },
+      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // visitStatus: { $ne: null, $eq: "pending" },
+      // "cycleHistory.0.startDate": {
+      //   $gt: new Date("2024-12-20T09:16:45.349Z"),
+      //   $lt: new Date("2024-12-20T11:24:22.813Z"),
+      // },
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // visitStatus: { $ne: null, $eq: "pending" },
+      // "cycle.startDate": {
+      //   $gt: new Date("2024-12-26T00:00:00.000Z"),
+      //   $lt: new Date("2024-12-26T12:02:00.000Z"),
+      // },
+      // teamLeader: "ev54-ranjna-gupta",
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // "cycle.currentOrder": 1,
+      // phoneNumber: 8850410939,
+      // teamLeader: "ev70-jaspreet-arora",
+      // "cycleHistory.0.startDate": {
+      //   $gt: new Date("2024-12-19T00:00:00.000Z"),
+      //   $lt: new Date("2024-12-19T23:59:00.000Z"),
+      // },
+      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
+      // bookingStatus: { $ne: "booked" },
+      // "cycle.teamLeader": "ev70-jaspreet-arora",
+      // "cycle.currentOrder": 3,
+      // "cycle.stage": "visit",
+      // visitStatus: "pending",
     });
 
     if (allCycleExpiredLeads.length > 0) {
@@ -5967,7 +6210,7 @@ export const triggerCycleChangeFunction = async () => {
 
               switch (cCycle.currentOrder) {
                 case 1:
-                  validTill.setDate(validTill.getDate() + 29);
+                  validTill.setDate(validTill.getDate() + 30);
                   break;
                 case 2:
                   validTill.setDate(validTill.getDate() + 14);
@@ -5979,7 +6222,7 @@ export const triggerCycleChangeFunction = async () => {
                   validTill.setDate(validTill.getDate() + 2);
                   break;
                 default:
-                  validTill.setDate(validTill.getDate() + 29);
+                  validTill.setDate(validTill.getDate() + 30);
               }
             }
           }
@@ -5999,6 +6242,7 @@ export const triggerCycleChangeFunction = async () => {
           bulkOperations.push({
             updateOne: {
               filter: { _id: entry._id },
+              // ok: entry?.cycleHistory[0],
               update: {
                 // lastIndex,
                 // lastIndex2: lastIndex + 1,
@@ -6013,13 +6257,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          // matchedCount: bulkResult.matchedCount,
-          // modifiedCount: bulkResult.modifiedCount,
+          matchedCount: bulkResult.matchedCount,
+          modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),
