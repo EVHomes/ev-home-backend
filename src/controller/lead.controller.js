@@ -5325,26 +5325,166 @@ export const get24hrLeadsNameList = async (req, res, next) => {
 
 export const triggerCycleChangeFunction = async () => {
   try {
-    const currentDate = new Date().addDays(1);
-    const currentDate1 = new Date("2024-01-10T23:59:00.000Z");
+    const currentDate = new Date();
+    // currentDate.setHours(currentDate.getHours() - 6);
+    const currentDate1 = new Date("2024-12-27T00:00:00.000Z");
     const checkToDate = new Date("2024-12-27");
-
-    console.log(currentDate);
-    console.log(currentDate1);
     const filterDate = new Date("2024-12-10");
 
-    const allCycleExpiredLeads = await leadModel.find({
-      $and: [
-        {
-          "cycle.validTill": { $gt: currentDate1 },
-        },
-        {
-          "cycle.validTill": { $lte: currentDate },
-        },
-      ],
+    const actualTriggerQuery = {
       startDate: { $gte: filterDate },
       bookingStatus: { $ne: "booked" },
+      "cycle.validTill": { $lte: currentDate },
+    };
+    console.log(actualTriggerQuery);
+    console.log(currentDate);
+    console.log(currentDate1);
+    console.log(filterDate);
 
+    const allCycleExpiredLeads = await leadModel.find({
+      ...actualTriggerQuery,
+      // _id: "67614fdcdee6926452248dd4",
+      // $and: [
+      //   {
+      //     "cycle.startDate": {
+      //       $gte: new Date("2024-12-26T00:00:00.000Z"),
+      //       $lte: new Date("2024-12-26T23:59:00.000Z"),
+      //     },
+      //   },
+      //   {
+      //     "cycle.validTill": { $lte: currentDate },
+      //   },
+      // ],
+      // // "cycle.currentOrder": 3,
+      // $and: [
+      //   { visitStatus: { $ne: "visited" } },
+      //   { visitStatus: { $ne: "virtual-meeting" } },
+      //   { visitStatus: { $ne: "revisited" } },
+      // ],
+      // startDate: { $gte: new Date("2024-12-10T00:00:00.000Z") },
+      // bookingStatus: { $ne: "booked" },
+      // "cycle.validTill": { $lte: new Date("2025-01-11T13:10:32.695Z") },
+      // "cycle.currentOrder": 4,
+      // $and: [
+      //   { visitStatus: { $ne: "visited" } },
+      //   { visitStatus: { $ne: "virtual-meeting" } },
+      // ],
+      // "cycleHistory.0.startDate": {
+      //   $gte: new Date("2024-12-13T00:00:25.214Z"),
+      //   $lte: new Date("2024-12-15T23:59:00.000Z"),
+      // },
+      // startDate: { $gte: new Date("2024-12-10T00:00:00.000Z") },
+      // bookingStatus: { $ne: "booked" },
+      // "cycle.validTill": { $lte: new Date("2025-01-11T13:10:32.695Z") },
+      // "cycle.currentOrder": 4,
+      // $and: [
+      //   { visitStatus: { $ne: "visited" } },
+      //   { visitStatus: { $ne: "virtual-meeting" } },
+      // ],
+      // approvalDate: {
+      //   $gte: new Date("2024-12-19T18:30:00.000+00:00"),
+      //   $lte: new Date("2024-12-19T18:30:00.000+00:00"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // visitStatus: { $ne: "virtual-meeting" },
+      // approvalDate: {
+      //   $gte: new Date("2024-12-16T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-16T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-17T12:01:00.000Z"),
+      //   $lte: new Date("2024-12-17T12:01:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-15T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-15T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-15T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-15T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-19T18:30:00.000Z"),
+      //   $lte: new Date("2024-12-19T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-16T18:30:00.000+00:00"),
+      //   $lte: new Date("2024-12-16T18:30:00.000+00:00"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
+      // visitStatus: "pending",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-20T09:14:45.326Z"),
+      //   $lte: new Date("2024-12-20T12:17:23.211Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:59:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // visitStatus: "pending",
+      // approvalDate: {
+      //   $eq: new Date("2024-12-15T18:30:00.000Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
+      // approvalDate: {
+      //   $gte: new Date("2024-12-15T10:30:43.796Z"),
+      //   $lte: new Date("2024-12-15T16:23:01.945Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev70-jaspreet-arora",
+      // visitStatus: "pending",
+      // visitStatus: { $ne: null },
+      // approvalDate: {
+      //   $gte: new Date("2024-12-16T15:42:34.673Z"),
+      //   $lte: new Date("2024-12-16T18:55:12.441Z"),
+      // },
+      // startDate: {
+      //   $gte: new Date("2024-12-10T00:00:00.000Z"),
+      // },
+      // leadType: "cp",
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
       // approvalDate: {
       //   $gte: new Date("2024-12-19T07:58:13.985Z"),
       //   $lte: new Date("2024-12-19T18:14:58.834Z"),
@@ -5354,7 +5494,6 @@ export const triggerCycleChangeFunction = async () => {
       // },
       // leadType: "cp",
       // "cycleHistory.0.teamLeader": "ev54-ranjna-gupta",
-
       // "cycle.startDate": {
       //   $gte: new Date("2024-12-26T12:01:00.000Z"),
       //   $lte: new Date("2024-12-26T12:01:00.000Z"),
@@ -5368,7 +5507,6 @@ export const triggerCycleChangeFunction = async () => {
       // visitStatus: { $ne: "virtual-meeting" },
       // visitStatus: { $ne: "visited" },
       // bookingStatus: { $ne: "booked" },
-
       // "cycleHistory.0.startDate": {
       //   $gte: new Date("2024-12-19T10:01:46.310Z"),
       //   $lte: new Date("2024-12-19T17:39:44.889Z"),
@@ -5379,7 +5517,6 @@ export const triggerCycleChangeFunction = async () => {
       // },
       // leadType: "cp",
       // visitStatus: { $ne: "visited", $ne: "virtual-meeting" },
-
       // "cycleHistory.0.startDate": {
       //   $gte: new Date("2024-12-15T10:30:37.143Z"),
       //   $lte: new Date("2024-12-15T16:10:28.867Z"),
@@ -5390,7 +5527,6 @@ export const triggerCycleChangeFunction = async () => {
       // },
       // leadType: "cp",
       // visitStatus: { $ne: null, $eq: "pending" },
-
       // "cycleHistory.0.startDate": {
       //   $gt: new Date("2024-12-15T10:28:39.605Z"),
       //   $lt: new Date("2024-12-15T16:23:19.430Z"),
@@ -5411,7 +5547,6 @@ export const triggerCycleChangeFunction = async () => {
       // },
       // leadType: "cp",
       // visitStatus: { $ne: null, $eq: "pending" },
-
       // "cycle.startDate": {
       //   $gt: new Date("2024-12-26T00:00:00.000Z"),
       //   $lt: new Date("2024-12-26T12:02:00.000Z"),
@@ -5541,6 +5676,7 @@ export const triggerCycleChangeFunction = async () => {
           bulkOperations.push({
             updateOne: {
               filter: { _id: entry._id },
+              // ok: entry?.cycleHistory[0],
               update: {
                 // lastIndex,
                 // lastIndex2: lastIndex + 1,
@@ -5555,13 +5691,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          // matchedCount: bulkResult.matchedCount,
-          // modifiedCount: bulkResult.modifiedCount,
+          matchedCount: bulkResult.matchedCount,
+          modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),

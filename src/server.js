@@ -30,25 +30,25 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Schedule a task to run at 9 AM daily and change cycle
-// cron.schedule("0 9 * * *", async () => {
-//   try {
-//     // Make the API call
-//     // const response = await axios.get(
-//     //   "https://api.evhomes.tech/lead-trigger-cycle-change"
-//     // );
-//     const response = await triggerCycleChangeFunction();
+cron.schedule("0 9 * * *", async () => {
+  try {
+    // Make the API call
+    // const response = await axios.get(
+    //   "https://api.evhomes.tech/lead-trigger-cycle-change"
+    // );
+    const response = await triggerCycleChangeFunction();
 
-//     await triggerHistoryModel.create({
-//       date: new Date(),
-//       changes: response?.changes ?? [],
-//       changesString: response?.changesString ?? "",
-//       totalTrigger: response?.total ?? 0,
-//       message: response?.message ?? "",
-//     });
-//   } catch (error) {
-//     console.error("Error making API call:", error.message);
-//   }
-// });
+    await triggerHistoryModel.create({
+      date: new Date(),
+      changes: response?.changes ?? [],
+      changesString: response?.changesString ?? "",
+      totalTrigger: response?.total ?? 0,
+      message: response?.message ?? "",
+    });
+  } catch (error) {
+    console.error("Error making API call:", error.message);
+  }
+});
 
 // Trigger at 5:30 AM
 cron.schedule("30 5 * * *", async () => {
