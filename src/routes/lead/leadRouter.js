@@ -50,10 +50,7 @@ import leadModel from "../../model/lead.model.js";
 import moment from "moment-timezone";
 import PDFDocument from "pdfkit";
 import siteVisitModel from "../../model/siteVisit.model.js";
-import {
-  employeePopulateOptions,
-  leadPopulateOptions,
-} from "../../utils/constant.js";
+import { employeePopulateOptions, leadPopulateOptions } from "../../utils/constant.js";
 import { addSiteVisitsManual } from "../../controller/siteVisit.controller.js";
 import triggerHistoryModel from "../../model/triggerLog.model.js";
 import { errorRes, successRes } from "../../model/response.js";
@@ -77,10 +74,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
   try {
     if (!id) return res.send(errorRes(401, "id required"));
 
-    const leadResp = await leadModel
-      .findById(id)
-      .populate(leadPopulateOptions)
-      .lean();
+    const leadResp = await leadModel.findById(id).populate(leadPopulateOptions).lean();
 
     const teamLeaders = [
       { _id: "ev15-deepak-karki" },
@@ -170,8 +164,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
               if (lastIndex + 1 >= 4) {
                 cCycle.teamLeader = lastTeamLeaderNext;
               } else {
-                cCycle.teamLeader =
-                  sortedTeamLeaders[lastIndex + 1] || firstTeamLeader;
+                cCycle.teamLeader = sortedTeamLeaders[lastIndex + 1] || firstTeamLeader;
               }
 
               switch (cCycle.currentOrder) {
@@ -198,8 +191,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
               cCycle.teamLeader = firstTeamLeader;
             } else {
               cCycle.currentOrder += 1;
-              cCycle.teamLeader =
-                teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
+              cCycle.teamLeader = teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
 
               switch (cCycle.currentOrder) {
                 case 1:
@@ -222,9 +214,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
           // Explicitly handle year rollover
           const adjustedYear = validTill.getFullYear();
           if (adjustedYear > startDate.getFullYear()) {
-            console.log(
-              `Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`
-            );
+            console.log(`Year adjusted: ${startDate.getFullYear()} -> ${adjustedYear}`);
             validTill.setFullYear(adjustedYear);
           }
 
@@ -284,11 +274,7 @@ leadRouter.get(
   getLeadsTeamLeaderReportingTo
 );
 
-leadRouter.get(
-  "/leads-team-leader-graph/:id",
-  authenticateToken,
-  getLeadTeamLeaderGraph
-);
+leadRouter.get("/leads-team-leader-graph/:id", authenticateToken, getLeadTeamLeaderGraph);
 leadRouter.get(
   "/leads-team-leader-reporting-graph/:id",
   authenticateToken,
@@ -297,11 +283,7 @@ leadRouter.get(
 
 leadRouter.get("/leads-pre-sales-executive/:id", getLeadsPreSalesExecutive);
 
-leadRouter.post(
-  "/lead-update-caller/:id",
-  authenticateToken,
-  updateCallHistoryPreSales
-);
+leadRouter.post("/lead-update-caller/:id", authenticateToken, updateCallHistoryPreSales);
 leadRouter.get("/search-lead", authenticateToken, searchLeads);
 leadRouter.get(
   "/search-lead-channel-partner/:id",
@@ -315,11 +297,7 @@ leadRouter.get("/lead/:id", authenticateToken, getLeadById);
 
 leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
-leadRouter.post(
-  "/lead-assign-tl/:id",
-  authenticateToken,
-  leadAssignToTeamLeader
-);
+leadRouter.post("/lead-assign-tl/:id", authenticateToken, leadAssignToTeamLeader);
 leadRouter.post("/lead-reject/:id", authenticateToken, rejectLeadById);
 
 leadRouter.post(
@@ -331,11 +309,7 @@ leadRouter.post(
 leadRouter.post("/leads-add", validateLeadsFields, addLead);
 leadRouter.post("/lead-update/:id", authenticateToken, updateLead);
 leadRouter.delete("/lead/:id", authenticateToken, deleteLead);
-leadRouter.get(
-  "/leads-exists/:phoneNumber",
-  authenticateToken,
-  checkLeadsExists
-);
+leadRouter.get("/leads-exists/:phoneNumber", authenticateToken, checkLeadsExists);
 
 //for data analyser
 leadRouter.get("/lead-count", getLeadCounts);
@@ -347,27 +321,18 @@ leadRouter.get(
   getLeadCountsByTeamLeaders
 );
 leadRouter.get("/lead-count-channel-partners", getLeadCountsByChannelPartner);
-leadRouter.get(
-  "/lead-count-channel-partners-id/:id",
-  getLeadCountsByChannelPartnerById
-);
+leadRouter.get("/lead-count-channel-partners-id/:id", getLeadCountsByChannelPartnerById);
 
 leadRouter.get("/lead-count-funnel", getAllLeadCountsFunnel);
 
 //pre sales team leader
-leadRouter.get(
-  "/lead-count-pre-sale-team-leader/:id",
-  getLeadCountsByTeamLeader
-);
+leadRouter.get("/lead-count-pre-sale-team-leader/:id", getLeadCountsByTeamLeader);
 
 leadRouter.get(
   "/lead-count-pre-sale-executive-for-pre-sale-tl",
   getLeadCountsByPreSaleExecutve
 );
-leadRouter.get(
-  "/lead-count-funnel-pre-sales-tl",
-  getAllLeadCountsFunnelForPreSaleTL
-);
+leadRouter.get("/lead-count-funnel-pre-sales-tl", getAllLeadCountsFunnelForPreSaleTL);
 
 leadRouter.post("/lead-by-start-end-date", getLeadByStartEndDate);
 leadRouter.get(
@@ -383,9 +348,7 @@ const parseDate = (dateString, timeString = "12:00:00") => {
   const [hours, minutes, seconds] = timeString.split(":").map(Number);
 
   // Create a new Date object with the specified date and time in UTC
-  const date = new Date(
-    Date.UTC(year, month - 1, day, hours, minutes, seconds)
-  );
+  const date = new Date(Date.UTC(year, month - 1, day, hours, minutes, seconds));
 
   // Adjust to IST by adding 5 hours and 30 minutes
   date.setUTCHours(date.getUTCHours() + 5);
@@ -416,13 +379,14 @@ leadRouter.get("/lead-trigger-cycle-change", triggerCycleChange);
 leadRouter.get("/lead-trigger-cycle--test", async (req, res) => {
   try {
     const resp = await triggerCycleChangeFunction();
-    // await triggerHistoryModel.create({
-    //   date: new Date(),
-    //   changes: resp?.changes ?? [],
-    //   changesString: resp?.changesString ?? "",
-    //   totalTrigger: resp?.total ?? 0,
-    //   message: resp?.message ?? "",
-    // });
+
+    await triggerHistoryModel.create({
+      date: new Date(),
+      changes: resp?.changes ?? [],
+      changesString: resp?.changesString ?? "",
+      totalTrigger: resp?.total ?? 0,
+      message: resp?.message ?? "",
+    });
 
     return res.send(resp);
   } catch (error) {
@@ -712,15 +676,11 @@ leadRouter.get("/lead-cycleHistory", async (req, res) => {
               return `"${lead.channelPartner || "NA"}"`;
 
             case "currentCycleTeamLeader":
-              return lead.cycle?.teamLeader
-                ? `"${lead.cycle.teamLeader}"`
-                : '""';
+              return lead.cycle?.teamLeader ? `"${lead.cycle.teamLeader}"` : '""';
             case "currentCycleStage":
               return lead.cycle?.stage ? `"${getStatus1(lead)}"` : '""';
             case "currentCycleOrder":
-              return lead.cycle?.currentOrder
-                ? `"${lead.cycle.currentOrder}"`
-                : '""';
+              return lead.cycle?.currentOrder ? `"${lead.cycle.currentOrder}"` : '""';
             case "currentCycleAssignDate":
               return lead.cycle?.startDate
                 ? `"${moment(lead.cycle.startDate)
@@ -806,13 +766,9 @@ leadRouter.get("/all-leads", async (req, res) => {
       bookingStatus: { $ne: "booked" },
     });
 
-    const cycleHistoryNotEmpty = allLeads.filter(
-      (el) => el.cycleHistory.length >= 3
-    );
+    const cycleHistoryNotEmpty = allLeads.filter((el) => el.cycleHistory.length >= 3);
 
-    const onlyWalkin = cycleHistoryNotEmpty.filter(
-      (el) => el.leadType === "walk-in"
-    );
+    const onlyWalkin = cycleHistoryNotEmpty.filter((el) => el.leadType === "walk-in");
     res.send({
       total: allLeads.length,
       cycleHLength: cycleHistoryNotEmpty.length,
@@ -930,9 +886,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
         } = row;
         let startDate = parseDate(Leadreceivedon, "6:00:00");
         let cycleStartDate = parseDate(leadAssignDate, "6:00:00");
-        let requirement = Requirement.replace(/\s+/g, "")
-          .toUpperCase()
-          ?.split(",");
+        let requirement = Requirement.replace(/\s+/g, "").toUpperCase()?.split(",");
         let projs = [];
         Project.split(",").map((ojk) => {
           // console.log(ojk);
@@ -946,15 +900,12 @@ leadRouter.post("/lead-updates", async (req, res) => {
 
         let newTeamleader =
           teamLeaders.find((tl) =>
-            tl.firstName
-              .toLowerCase()
-              .includes(Teamleader.split(" ")[0].toLowerCase())
+            tl.firstName.toLowerCase().includes(Teamleader.split(" ")[0].toLowerCase())
           )?._id ?? null;
 
         let channelPartner =
-          cpResp.find((cp) =>
-            cp.firmName.toLowerCase().includes(Cp.toLowerCase())
-          )?._id ?? null;
+          cpResp.find((cp) => cp.firmName.toLowerCase().includes(Cp.toLowerCase()))
+            ?._id ?? null;
 
         // if (Cp != "") {
         //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
@@ -970,9 +921,7 @@ leadRouter.post("/lead-updates", async (req, res) => {
         // }
 
         let dataAnalyzer = dataAnalyzers.find((dt) =>
-          dt.firstName
-            ?.toLowerCase()
-            ?.includes(anayl?.split(" ")[0]?.toLowerCase())
+          dt.firstName?.toLowerCase()?.includes(anayl?.split(" ")[0]?.toLowerCase())
         )?._id;
 
         i = i >= 1 ? 0 : 1;
@@ -1071,9 +1020,7 @@ leadRouter.post("/lead-check-exist", async (req, res) => {
         } = row;
         let startDate = parseDate(Leadreceivedon, "6:00:00");
         let cycleStartDate = parseDate(leadAssignDate, "6:00:00");
-        let requirement = Requirement.replace(/\s+/g, "")
-          .toUpperCase()
-          ?.split(",");
+        let requirement = Requirement.replace(/\s+/g, "").toUpperCase()?.split(",");
         let projs = [];
         Project.split(",").map((ojk) => {
           // console.log(ojk);
@@ -1087,15 +1034,12 @@ leadRouter.post("/lead-check-exist", async (req, res) => {
 
         let newTeamleader =
           teamLeaders.find((tl) =>
-            tl.firstName
-              .toLowerCase()
-              .includes(Teamleader.split(" ")[0].toLowerCase())
+            tl.firstName.toLowerCase().includes(Teamleader.split(" ")[0].toLowerCase())
           )?._id ?? null;
 
         let channelPartner =
-          cpResp.find((cp) =>
-            cp.firmName.toLowerCase().includes(Cp.toLowerCase())
-          )?._id ?? null;
+          cpResp.find((cp) => cp.firmName.toLowerCase().includes(Cp.toLowerCase()))
+            ?._id ?? null;
 
         // if (Cp != "") {
         //   const newCpId = Cp?.replace(/\s+/g, "-").toLowerCase();
@@ -1111,9 +1055,7 @@ leadRouter.post("/lead-check-exist", async (req, res) => {
         // }
 
         let dataAnalyzer = dataAnalyzers.find((dt) =>
-          dt.firstName
-            ?.toLowerCase()
-            ?.includes(anayl?.split(" ")[0]?.toLowerCase())
+          dt.firstName?.toLowerCase()?.includes(anayl?.split(" ")[0]?.toLowerCase())
         )?._id;
 
         i = i >= 1 ? 0 : 1;
@@ -1188,8 +1130,7 @@ leadRouter.get("/lead-trigger-h-1", async (req, res) => {
       .populate("changes");
     const filteredLeads = resp2.changes.filter(
       (ele) =>
-        ele.cycle.teamLeader === "ev54-ranjna-gupta" &&
-        ele.cycle.currentOrder === 3
+        ele.cycle.teamLeader === "ev54-ranjna-gupta" && ele.cycle.currentOrder === 3
     );
     return res.send({
       data: filteredLeads,
