@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import employeeModel from "../model/employee.model.js";
 
 export const shiftSchema = new mongoose.Schema(
   {
@@ -22,24 +23,30 @@ export const shiftSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    multiTimeInOut : {
-      type:Boolean,
+    multiTimeInOut: {
+      type: Boolean,
     },
     workingHours: {
-      type: Number, 
+      type: Number,
       required: true,
     },
     graceTime: {
-      type: Number, 
+      type: Number,
       default: 0,
     },
     status: {
-      type: String, 
-      default: 'Active',
+      type: String,
+      default: "Active",
     },
+    employees: [
+      {
+        type: String,
+        ref: "employees", // Reference to the employee model
+      },
+    ],
   },
   { timestamps: true }
 );
 
-const shiftModel = mongoose.model("shift", shiftSchema, "shifts");
+const shiftModel = mongoose.model("Shift", shiftSchema, "shifts");
 export default shiftModel;
