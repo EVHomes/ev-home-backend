@@ -287,7 +287,6 @@ leadRouter.post("/lead-update-caller/:id", authenticateToken, updateCallHistoryP
 leadRouter.get("/search-lead", authenticateToken, searchLeads);
 leadRouter.get(
   "/search-lead-channel-partner/:id",
-  authenticateToken,
   searchLeadsChannelPartner
 );
 
