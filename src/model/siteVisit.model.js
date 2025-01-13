@@ -47,6 +47,10 @@ export const siteVisitSchema = new mongoose.Schema(
       ref: "channelPartners",
       default: null,
     },
+    cpfeedback:{
+      type: String,
+      default: "",
+    },
     feedback: {
       type: String,
       default: "",
