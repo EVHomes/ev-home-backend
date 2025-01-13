@@ -5,7 +5,18 @@ import employeeModel from "../model/employee.model.js"; // Assuming you have an 
 
 export const getShifts = async (req, res, next) => {
   try {
-    const resp = await shiftModel.find();
+    const resp = await shiftModel.find().populate({
+      path: "employees",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+    });
 
     return res.send(
       successRes(200, "get shifts", {
@@ -246,7 +257,6 @@ export const addEmployeesToShift = async (req, res) => {
       return res.status(404).json({ message: "Shift not found." });
     }
 
-   
     const employees = await employeeModel.find({
       _id: { $in: employeeIds },
     });
@@ -257,7 +267,6 @@ export const addEmployeesToShift = async (req, res) => {
       });
     }
 
-    
     shift.employees = [...new Set([...shift.employees, ...employeeIds])];
 
     
@@ -286,7 +295,6 @@ export const removeEmployeeFromShift = async (req, res) => {
     if (!shift) {
       return res.status(404).json({ message: "Shift not found." });
     }
-
     
     const employeeIndex = shift.employees.indexOf(employeeId);
     if (employeeIndex !== -1) {
