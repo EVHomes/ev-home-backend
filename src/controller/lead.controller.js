@@ -2533,7 +2533,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     } else if (status === "pending") {
       statusToFind = {
         $and: [
-          {
+          { 
             approvalStatus: { $eq: "pending" },
           },
           {
@@ -2680,6 +2680,8 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         // { bookingStatus: { $ne: "booked" } },
       ],
     });
+
+
 
     const approvedCount = await leadModel.countDocuments({
       $and: [
@@ -5756,28 +5758,57 @@ export const getCpSalesFunnel = async (req, res, next) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(401, "channel partner required"));
+    let status = req.query.approvalStatus?.toLowerCase();
+    let stage = req.query.stage?.toLowerCase();
 
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 3);
 
     // Count the total items matching the filter
+    // const bookingDone = await leadModel.countDocuments({
+    //   startDate: { $gte: sixMonthsAgo },
+    //   channelPartner: id,
+    //   bookingStatus: { $eq: "booked" },
+    // });
+    const totalItems = await leadModel
+    .countDocuments({
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
+      channelPartner: id,
+      startDate: { $gte: sixMonthsAgo },
+    })
+    .sort({ startDate: -1 });
+    
     const bookingDone = await leadModel.countDocuments({
-      startDate: { $gte: sixMonthsAgo },
+      bookingStatus: "booked",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
       channelPartner: id,
-      bookingStatus: { $ne: "pending" },
+      startDate: { $gte: sixMonthsAgo },
     });
+
+
+    // const visitDone = await leadModel.countDocuments({
+    //   startDate: { $gte: sixMonthsAgo },
+    //   channelPartner: id,
+    //   visitStatus: { $eq: "visited" },
+    // });
+
     const visitDone = await leadModel.countDocuments({
-      startDate: { $gte: sixMonthsAgo },
+      visitStatus: "visited",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
       channelPartner: id,
-      visitStatus: { $ne: "pending" },
+      startDate: { $gte: sixMonthsAgo },
     });
+
     const contacted = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       callHistory: {
         $exists: true,
         $not: { $size: 0 },
-      },
+      }, 
     });
     const received = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
@@ -5794,36 +5825,79 @@ export const getCpSalesFunnel = async (req, res, next) => {
       channelPartner: id,
       clientInterestedStatus: { $eq: "not-interested" },
     });
+
     const followup = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
       channelPartner: id,
       // callHistory: { $gte: 1 },
       followupStatus: { $eq: "followup" },
     });
-    const revisitDone = await leadModel.countDocuments({
-      startDate: { $gte: sixMonthsAgo },
+
+    const revisitedCount = await leadModel.countDocuments({
+      revisitStatus: "revisited",
+      stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
       channelPartner: id,
-      // callHistory: { $gte: 1 },
-      revisitStatus: { $eq: "revisited" },
+      startDate: { $gte: sixMonthsAgo },
     });
+
+
+    // const revisitDone = await leadModel.countDocuments({
+    //   startDate: { $gte: sixMonthsAgo },
+    //   channelPartner: id,
+    //   // callHistory: { $gte: 1 },
+    //   revisitStatus: { $eq: "revisited" },
+    // });
+
     const approvalCount = await leadModel.countDocuments({
-      startDate: { $gte: sixMonthsAgo },
-      channelPartner: id,
-      // callHistory: { $gte: 1 },
-      approvalStatus: { $eq: "approved" },
+      $and: [
+        { approvalStatus: "approved" },
+        { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
+        { channelPartner: id },
+        { startDate: { $gte: sixMonthsAgo } },
+      ],
     });
+
+    // const approvalCount = await leadModel.countDocuments({
+    //   startDate: { $gte: sixMonthsAgo },
+    //   channelPartner: id,
+    //   // callHistory: { $gte: 1 },
+    //   approvalStatus: { $eq: "approved" },
+    // });
+
     const rejectedCount = await leadModel.countDocuments({
-      startDate: { $gte: sixMonthsAgo },
-      channelPartner: id,
-      // callHistory: { $gte: 1 },
-      approvalStatus: { $eq: "rejected" },
+      $and: [
+        { approvalStatus: "rejected" },
+        { stage: { $ne: "tagging-over" } },
+        { leadType: { $ne: "walk-in" } },
+        { channelPartner: id },
+        { startDate: { $gte: sixMonthsAgo } },
+      ],
     });
-    const pendingCount = await leadModel.countDocuments({
-      startDate: { $gte: sixMonthsAgo },
+
+    // const rejectedCount = await leadModel.countDocuments({
+    //   startDate: { $gte: sixMonthsAgo },
+    //   channelPartner: id,
+    //   // callHistory: { $gte: 1 },
+    //   approvalStatus: { $eq: "rejected" },
+    // });
+
+
+  const pendingCount = await leadModel.countDocuments({
+      // stage: { $ne: "tagging-over" },
+      leadType: { $ne: "walk-in" },
       channelPartner: id,
-      // callHistory: { $gte: 1 },
-      approvalStatus: { $eq: "pending" },
+      startDate: { $gte: sixMonthsAgo },
+      $and: [
+        { stage: "approval" },
+        { approvalStatus: "pending" },
+        // { visitStatus: "pending" },
+        // { revisitStatus: "pending" },
+        // { bookingStatus: { $ne: "booked" } },
+      ],
     });
+
 
     // const booking=await leadModel.findById(_id).populate(leadPopulateOptions);
 
@@ -5832,7 +5906,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
     return res.send({
       data: {
         bookingDone,
-        revisitDone,
+        revisitedCount,
         visitDone,
         contacted,
         received,
@@ -5842,6 +5916,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
         approvalCount,
         rejectedCount,
         pendingCount,
+        totalItems
       },
     });
   } catch (error) {
