@@ -64,6 +64,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let member = req.query.member;
     let cycle = req.query.cycle;
     let callData = req.query.callData;
+    let order= req.query.order;
+  let sortDirection = -1; 
     
     // let callDone =req.query.callDone;
 
@@ -279,7 +281,12 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "Call done") {
       console.log("call done");
-    } 
+    } else if(order=="Ascending" || order=="ascending"){
+      sortDirection = 1; 
+      console.log("ascending");
+    }else if(order=="Descending" || order=="descending"){
+      sortDirection=-1;
+    }
 
     // Base Filter for Search and Leads Query
     let baseFilter = {
@@ -343,16 +350,16 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
       baseFilter.$or = searchConditions;
     }
-    console.log(JSON.stringify(baseFilter, null, 2));
+    console.log(order);
+    console.log(sortDirection);
+    // console.log(JSON.stringify(baseFilter, null, 2));
     // Fetch Leads
     const respLeads = await leadModel
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": sort === "asc" ? 1 : -1 })
+      .sort({ "cycle.startDate": sortDirection }) 
       .populate(leadPopulateOptions);
-
-
 
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
@@ -573,6 +580,8 @@ export const getAssignedToSalesManger = async (req, res, next) => {
     let callData = req.query.callData;
     // let callDone =req.query.callDone;
     let validity = req.query.validity;
+    let order= req.query.order;
+  let sortDirection = -1; 
 
     const targetDate = validity
       ? moment.tz(validity, "Asia/Kolkata")
@@ -769,16 +778,26 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         // ...walkinType,
         leadType: { $eq: "walk-in" },
       };
-    } else if (
+    } 
+    
+    if (
       callData == "Call Not Received" ||
       callData == "call not received"
     ) {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "call Done") {
       console.log("call done");
+    } 
+    
+    if(order=="Ascending" || order=="ascending"){
+      sortDirection = 1; 
+      console.log("ascending");
+    }else if(order=="Descending" || order=="descending"){
+      sortDirection= -1;
     }
     // console.log("yes2");
     // Base Filter for Search and Leads Query
+    
     let baseFilter = {
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
@@ -829,14 +848,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
 
       baseFilter.$or = searchConditions;
     }
-
+    console.log(order);
+    console.log(sortDirection);
     // console.log(JSON.stringify(baseFilter, null, 2));
     // Fetch Leads
     const respLeads = await leadModel
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": -1 })
+      .sort({ "cycle.startDate": sortDirection }) 
       .populate(leadPopulateOptions);
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
@@ -1009,8 +1029,9 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
     let callData = req.query.callData;
-    let callDone = req.query.callDone;
     let validity = req.query.validity;
+  let order= req.query.order;
+    let sortDirection = -1; 
 
     const targetDate = validity
       ? moment.tz(validity, "Asia/Kolkata")
@@ -1209,6 +1230,11 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       console.log("call not received");
     } else if (callData == "Call Done") {
       console.log("call done");
+    }else if(order=="Ascending" || order=="ascending"){
+      sortDirection = 1; 
+      console.log("ascending");
+    }else if(order=="Descending" || order=="descendinh"){
+      sortDirection=-1;
     }
 
     // Base Filter for Search and Leads Query
@@ -1268,7 +1294,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": -1 })
+      .sort({ "cycle.startDate": sortDirection }) 
       .populate(leadPopulateOptions);
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
