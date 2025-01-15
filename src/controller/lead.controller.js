@@ -64,7 +64,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let member = req.query.member;
     let cycle = req.query.cycle;
     let callData = req.query.callData;
-    
+
     // let callDone =req.query.callDone;
 
     let validity = req.query.validity;
@@ -279,7 +279,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "Call done") {
       console.log("call done");
-    } 
+    }
 
     // Base Filter for Search and Leads Query
     let baseFilter = {
@@ -298,16 +298,16 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             },
           }
         : {}),
-        // ...(cyclehistory != null
-        //   ? {
-        //      $expr:{
-        //       $eq:[
-        //         {$arrayElemAt:["$cycleHistory.teamLeader", -1] },
-        //         cyclehistory,
-        //       ]
-        //      }
-        //     }
-        //   : {}),
+      // ...(cyclehistory != null
+      //   ? {
+      //      $expr:{
+      //       $eq:[
+      //         {$arrayElemAt:["$cycleHistory.teamLeader", -1] },
+      //         cyclehistory,
+      //       ]
+      //      }
+      //     }
+      //   : {}),
     };
     console.log(baseFilter);
     // Add query search conditions (if applicable)
@@ -351,9 +351,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .limit(limit)
       .sort({ "cycle.startDate": sort === "asc" ? 1 : -1 })
       .populate(leadPopulateOptions);
-
-
-
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
@@ -2084,7 +2081,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     } else if (status === "pending") {
       statusToFind = {
         $and: [
-          { 
+          {
             approvalStatus: { $eq: "pending" },
           },
           {
@@ -2231,8 +2228,6 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         // { bookingStatus: { $ne: "booked" } },
       ],
     });
-
-
 
     const approvedCount = await leadModel.countDocuments({
       $and: [
@@ -5322,14 +5317,14 @@ export const getCpSalesFunnel = async (req, res, next) => {
     //   bookingStatus: { $eq: "booked" },
     // });
     const totalItems = await leadModel
-    .countDocuments({
-      stage: { $ne: "tagging-over" },
-      leadType: { $ne: "walk-in" },
-      channelPartner: id,
-      startDate: { $gte: sixMonthsAgo },
-    })
-    .sort({ startDate: -1 });
-    
+      .countDocuments({
+        stage: { $ne: "tagging-over" },
+        leadType: { $ne: "walk-in" },
+        channelPartner: id,
+        startDate: { $gte: sixMonthsAgo },
+      })
+      .sort({ startDate: -1 });
+
     const bookingDone = await leadModel.countDocuments({
       bookingStatus: "booked",
       stage: { $ne: "tagging-over" },
@@ -5337,7 +5332,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
     });
-
 
     // const visitDone = await leadModel.countDocuments({
     //   startDate: { $gte: sixMonthsAgo },
@@ -5359,7 +5353,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
       callHistory: {
         $exists: true,
         $not: { $size: 0 },
-      }, 
+      },
     });
     const received = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
@@ -5391,7 +5385,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
     });
-
 
     // const revisitDone = await leadModel.countDocuments({
     //   startDate: { $gte: sixMonthsAgo },
@@ -5434,8 +5427,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
     //   approvalStatus: { $eq: "rejected" },
     // });
 
-
-  const pendingCount = await leadModel.countDocuments({
+    const pendingCount = await leadModel.countDocuments({
       // stage: { $ne: "tagging-over" },
       leadType: { $ne: "walk-in" },
       channelPartner: id,
@@ -5448,7 +5440,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
         // { bookingStatus: { $ne: "booked" } },
       ],
     });
-
 
     // const booking=await leadModel.findById(_id).populate(leadPopulateOptions);
 
@@ -5467,7 +5458,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
         approvalCount,
         rejectedCount,
         pendingCount,
-        totalItems
+        totalItems,
       },
     });
   } catch (error) {
@@ -5534,6 +5525,14 @@ export const triggerCycleChangeFunction = async () => {
 
     const allCycleExpiredLeads = await leadModel.find({
       ...actualTriggerQuery,
+
+      // approvalDate: {
+      //   $gte: new Date("2024-12-20T09:37:34.127Z"),
+      //   $lte: new Date("2024-12-20T11:13:28.380Z"),
+      // },
+      // "cycleHistory.0.teamLeader": "ev15-deepak-karki",
+      // leadType: "cp",
+      // "cycle.currentOrder": 2,
 
       // approvalDate: {
       //   $gte: new Date("2024-12-21T18:30:00.000Z"),

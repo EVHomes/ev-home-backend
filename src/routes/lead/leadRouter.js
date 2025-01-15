@@ -303,10 +303,7 @@ leadRouter.post(
   updateCallHistoryPreSales
 );
 leadRouter.get("/search-lead", authenticateToken, searchLeads);
-leadRouter.get(
-  "/search-lead-channel-partner/:id",
-  searchLeadsChannelPartner
-);
+leadRouter.get("/search-lead-channel-partner/:id", searchLeadsChannelPartner);
 
 leadRouter.post("/lead-update-status/:id", authenticateToken, leadUpdateStatus);
 
