@@ -19,6 +19,7 @@ import path from "path";
 import moment from "moment-timezone";
 import PDFDocument from "pdfkit";
 import taskModel from "../model/task.model.js";
+import { Console } from "console";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -64,9 +65,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let member = req.query.member;
     let cycle = req.query.cycle;
     let callData = req.query.callData;
-    let order= req.query.order;
-  let sortDirection = -1; 
-    
+    let order = req.query.order;
+    let sortDirection = -1;
+
     // let callDone =req.query.callDone;
 
     let validity = req.query.validity;
@@ -274,18 +275,25 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = {
         siteVisitInterested: true,
       };
-    } else if (
-      callData == "Call Not Received" ||
-      callData == "call not received"
-    ) {
+    } 
+    
+    if (callData == "Call Not Received" || callData == "call not received") {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "Call done") {
       console.log("call done");
-    } else if(order=="Ascending" || order=="ascending"){
-      sortDirection = 1; 
+    } else if (callData == "Call Cancelled" || callData == "call cancelled") {
+      console.log("Call Cancelled");
+    } else if (callData == "Call Busy") {
+      console.log("Call Busy");
+    } else if (callData == "Not Reachable") {
+      console.log("Not Reachable");
+    }
+
+    if (order == "Ascending" || order == "ascending") {
+      sortDirection = 1;
       console.log("ascending");
-    }else if(order=="Descending" || order=="descending"){
-      sortDirection=-1;
+    } else if (order == "Descending" || order == "descending") {
+      sortDirection = -1;
     }
 
     // Base Filter for Search and Leads Query
@@ -305,16 +313,16 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             },
           }
         : {}),
-        // ...(cyclehistory != null
-        //   ? {
-        //      $expr:{
-        //       $eq:[
-        //         {$arrayElemAt:["$cycleHistory.teamLeader", -1] },
-        //         cyclehistory,
-        //       ]
-        //      }
-        //     }
-        //   : {}),
+      // ...(cyclehistory != null
+      //   ? {
+      //      $expr:{
+      //       $eq:[
+      //         {$arrayElemAt:["$cycleHistory.teamLeader", -1] },
+      //         cyclehistory,
+      //       ]
+      //      }
+      //     }
+      //   : {}),
     };
     console.log(baseFilter);
     // Add query search conditions (if applicable)
@@ -358,9 +366,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": sortDirection }) 
+      .sort({ "cycle.startDate": sortDirection })
       .populate(leadPopulateOptions);
-
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
@@ -580,8 +587,8 @@ export const getAssignedToSalesManger = async (req, res, next) => {
     let callData = req.query.callData;
     // let callDone =req.query.callDone;
     let validity = req.query.validity;
-    let order= req.query.order;
-  let sortDirection = -1; 
+    let order = req.query.order;
+    let sortDirection = -1;
 
     const targetDate = validity
       ? moment.tz(validity, "Asia/Kolkata")
@@ -741,11 +748,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         taskRef: { $ne: null },
         // ...walkinType,
       };
+      
+      console.log("followup");
     } else if (status === "not-followup") {
       statusToFind = {
         taskRef: { $eq: null },
         // ...walkinType,
       };
+      
+      console.log("not followup");
     } else if (status === "visit2-revisit-done") {
       statusToFind = {
         stage: "booking",
@@ -778,27 +789,31 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         // ...walkinType,
         leadType: { $eq: "walk-in" },
       };
-    } 
-    
-    if (
-      callData == "Call Not Received" ||
-      callData == "call not received"
-    ) {
+    }
+
+    if (callData == "Call Not Received" || callData == "call not received") {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "call Done") {
       console.log("call done");
-    } 
-    
-    if(order=="Ascending" || order=="ascending"){
-      sortDirection = 1; 
+    } else if (callData == "Call Cancelled" || callData == "call cancelled") {
+      console.log("Call Cancelled");
+    } else if (callData == "Call Busy") {
+      console.log("Call Busy");
+    } else if (callData == "Not Reachable") {
+      console.log("Not Reachable");
+    }
+
+    if (order == "Ascending" || order == "ascending") {
+      sortDirection = 1;
       console.log("ascending");
-    }else if(order=="Descending" || order=="descending"){
-      sortDirection= -1;
+    } else if (order == "Descending" || order == "descending") {
+      sortDirection = -1;
     }
     // console.log("yes2");
     // Base Filter for Search and Leads Query
-    
+
     let baseFilter = {
+      teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
       ...(cycle != null ? { "cycle.currentOrder": cycle } : {}),
@@ -848,6 +863,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
 
       baseFilter.$or = searchConditions;
     }
+
     console.log(order);
     console.log(sortDirection);
     // console.log(JSON.stringify(baseFilter, null, 2));
@@ -856,7 +872,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": sortDirection }) 
+      .sort({ "cycle.startDate": sortDirection })
       .populate(leadPopulateOptions);
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
@@ -1030,8 +1046,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     let status = req.query.status?.toLowerCase();
     let callData = req.query.callData;
     let validity = req.query.validity;
-  let order= req.query.order;
-    let sortDirection = -1; 
+    let order = req.query.order;
+    let sortDirection = -1;
 
     const targetDate = validity
       ? moment.tz(validity, "Asia/Kolkata")
@@ -1223,18 +1239,27 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       statusToFind = {
         siteVisitInterested: true,
       };
-    } else if (
+    }
+    if (
       callData == "Call Not Received" ||
       callData == "call not received"
     ) {
       console.log("call not received");
     } else if (callData == "Call Done") {
       console.log("call done");
-    }else if(order=="Ascending" || order=="ascending"){
-      sortDirection = 1; 
+    } else if (callData == "Call Cancelled" || callData == "call cancelled") {
+      console.log("Call Cancelled");
+    } else if (callData == "Call Busy") {
+      console.log("Call Busy");
+    } else if (callData == "Not Reachable") {
+      console.log("Not Reachable");
+    }
+    
+  if (order == "Ascending" || order == "ascending") {
+      sortDirection = 1;
       console.log("ascending");
-    }else if(order=="Descending" || order=="descendinh"){
-      sortDirection=-1;
+    } else if (order == "Descending" || order == "descendinh") {
+      sortDirection = -1;
     }
 
     // Base Filter for Search and Leads Query
@@ -1294,7 +1319,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": sortDirection }) 
+      .sort({ "cycle.startDate": sortDirection })
       .populate(leadPopulateOptions);
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
@@ -2110,7 +2135,7 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     } else if (status === "pending") {
       statusToFind = {
         $and: [
-          { 
+          {
             approvalStatus: { $eq: "pending" },
           },
           {
@@ -2257,8 +2282,6 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
         // { bookingStatus: { $ne: "booked" } },
       ],
     });
-
-
 
     const approvedCount = await leadModel.countDocuments({
       $and: [
@@ -5348,14 +5371,14 @@ export const getCpSalesFunnel = async (req, res, next) => {
     //   bookingStatus: { $eq: "booked" },
     // });
     const totalItems = await leadModel
-    .countDocuments({
-      stage: { $ne: "tagging-over" },
-      leadType: { $ne: "walk-in" },
-      channelPartner: id,
-      startDate: { $gte: sixMonthsAgo },
-    })
-    .sort({ startDate: -1 });
-    
+      .countDocuments({
+        stage: { $ne: "tagging-over" },
+        leadType: { $ne: "walk-in" },
+        channelPartner: id,
+        startDate: { $gte: sixMonthsAgo },
+      })
+      .sort({ startDate: -1 });
+
     const bookingDone = await leadModel.countDocuments({
       bookingStatus: "booked",
       stage: { $ne: "tagging-over" },
@@ -5363,7 +5386,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
     });
-
 
     // const visitDone = await leadModel.countDocuments({
     //   startDate: { $gte: sixMonthsAgo },
@@ -5385,7 +5407,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
       callHistory: {
         $exists: true,
         $not: { $size: 0 },
-      }, 
+      },
     });
     const received = await leadModel.countDocuments({
       startDate: { $gte: sixMonthsAgo },
@@ -5417,7 +5439,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
       channelPartner: id,
       startDate: { $gte: sixMonthsAgo },
     });
-
 
     // const revisitDone = await leadModel.countDocuments({
     //   startDate: { $gte: sixMonthsAgo },
@@ -5460,8 +5481,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
     //   approvalStatus: { $eq: "rejected" },
     // });
 
-
-  const pendingCount = await leadModel.countDocuments({
+    const pendingCount = await leadModel.countDocuments({
       // stage: { $ne: "tagging-over" },
       leadType: { $ne: "walk-in" },
       channelPartner: id,
@@ -5474,7 +5494,6 @@ export const getCpSalesFunnel = async (req, res, next) => {
         // { bookingStatus: { $ne: "booked" } },
       ],
     });
-
 
     // const booking=await leadModel.findById(_id).populate(leadPopulateOptions);
 
@@ -5493,7 +5512,7 @@ export const getCpSalesFunnel = async (req, res, next) => {
         approvalCount,
         rejectedCount,
         pendingCount,
-        totalItems
+        totalItems,
       },
     });
   } catch (error) {
