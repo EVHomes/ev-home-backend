@@ -4,7 +4,10 @@ import { errorRes, successRes } from "../model/response.js";
 
 export const getContest= async (req, res) => {
   try {
-    const respDept = await contestModel.find();
+    const respDept = await contestModel.find().populate({
+      select:"",
+      path:"event"
+    });
 
     return res.send(
       successRes(200, "Get Contest Applicants", {
@@ -18,12 +21,11 @@ export const getContest= async (req, res) => {
 
 export const addContest = async (req, res) => {
   const body = req.body;
-  const { firstName, lastName, dateOfRegister, phoneNumber,validTill } = body;
-
+  const { firstName, lastName, phoneNumber,photoUrl, event } = body;
+console.log("yes");
   try {
     if (!firstName) return res.send(errorRes(403, "first name is required"));
     if (!lastName) return res.send(errorRes(403, "last name is required"));
-    if (!dateOfRegister) return res.send(errorRes(403, "date is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "phone number is required"));
   //  if(!validTill) return res.send(errorRes(403, "End Date is required"));
@@ -31,15 +33,19 @@ export const addContest = async (req, res) => {
     const newContest = await contestModel.create({
       firstName: firstName,
       lastName: lastName,
-      dateOfRegister: dateOfRegister,
       phoneNumber: phoneNumber,
-      
+      photoUrl:photoUrl,
+      event: event
     });
+
+    const newPopulatedContest = await newContest.populate({select:"",path:"event"})
+
+    console.log("yes2");
     await newContest.save();
 
     return res.send(
       successRes(200, `Contest applicant added successfully: ${firstName}${lastName}`, {
-        data: newContest,
+        data: newPopulatedContest,
       })
     );
   } catch (error) {
@@ -48,33 +54,7 @@ export const addContest = async (req, res) => {
 };
 
 
-export const createEvent = async (req, res) => {
-  const body = req.body;
-  const { dateOfRegister,validTill,event } = body;
 
-
-  try {
-    if (!dateOfRegister) return res.send(errorRes(403, "date is required"));
-    if(!event) return res.send(errorRes(403, "Event is required"));
-
-    const newContest = await contestModel.create({
-      firstName: firstName,
-      lastName: lastName,
-      dateOfRegister: dateOfRegister,
-      phoneNumber: phoneNumber,
-      
-    });
-    await newContest.save();
-
-    return res.send(
-      successRes(200, `Contest applicant added successfully: ${firstName}${lastName}`, {
-        data: newContest,
-      })
-    );
-  } catch (error) {
-    return res.send(errorRes(500, error));
-  }
-};
 
 // export const generateContestOtp = async (req, res, next) => {
 //   const {firstName, lastName, phoneNumber} = req.body;
