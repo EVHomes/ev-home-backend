@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
+import { type } from "os";
 
 export const eventSchema = new mongoose.Schema({
+    _id: {
+        type: String,
+        required: true,
+      },
     startDate: {
         type: Date,
         required: true,
@@ -13,6 +18,10 @@ export const eventSchema = new mongoose.Schema({
         type:String,
         default:null,
       },
+      remark:{
+        type:String,
+        default:null,
+      }
 
 });
 
