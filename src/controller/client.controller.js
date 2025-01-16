@@ -11,6 +11,7 @@ import {
   generateOTP,
 } from "../utils/helper.js";
 import { clientPopulateOptions } from "../utils/constant.js";
+import axios from "axios";
 
 //GET BY ALL
 export const getClients = async (req, res) => {
@@ -124,17 +125,20 @@ export const registerClient = async (req, res, next) => {
       );
     }
     const validateFields = validateRegisterClientFields(body, res);
+
     if (!validateFields)
       return res.send(errorRes(400, "All field is required."));
 
     const oldUser = await clientModel
       .findOne({
-        email: email,
+        $or: [{ email: email }, { phoneNumber: phoneNumber }],
       })
       .lean();
 
     if (oldUser) {
-      return res.send(errorRes(400, "Client already exist with this email"));
+      return res.send(
+        errorRes(400, "Client already exist with this credential")
+      );
     }
 
     const hashPassword = await encryptPassword(password);
@@ -240,17 +244,108 @@ export const loginClient = async (req, res, next) => {
   }
 };
 
+export const generateClientOtp = async (req, res, next) => {
+  const { phoneNumber } = req.body;
+  let url;
+  try {
+    const clientResp = await clientModel.findOne({ phoneNumber: phoneNumber });
+
+    if (!clientResp) return res.send(errorRes(401, "no account found"));
+
+    const findOldOtp = await otpModel.findOne({
+      phoneNumber: phoneNumber,
+      docId: clientResp?._id,
+      type: "client_login",
+      message: "client Verification Code",
+    });
+
+    if (findOldOtp) {
+      // if (
+      //   project?.toLowerCase() === "project-ev-10-marina-bay-vashi-sector-10"
+      // ) {
+      url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
+        `+91${phoneNumber}`
+      )}&name=${clientResp?.firstName} ${
+        clientResp?.lastName
+      }&project=EV&closingManager=EV&otp=${findOldOtp.otp}`;
+      // } else {
+      //   url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=${encodeURIComponent(
+      //     `+91${phoneNumber}`
+      //   )}&name=${clientResp?.firstName} ${
+      //     clientResp?.lastName
+      //   }&project=${project}&closingManager= &otp=${findOldOtp.otp}`;
+      // }
+      const resp = await axios.post(url);
+      console.log(resp);
+      return res.send(
+        successRes(200, "otp Sent to Client", {
+          data: findOldOtp,
+        })
+      );
+    }
+
+    const newOtp = generateOTP(4);
+    const newOtpModel = new otpModel({
+      otp: newOtp,
+      docId: clientResp?._id,
+      phoneNumber: phoneNumber,
+      type: "client_login",
+      message: "client Verification Code",
+    });
+
+    const savedOtp = await newOtpModel.save();
+    url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
+      `+91${phoneNumber}`
+    )}&name=${clientResp?.firstName} ${
+      clientResp?.lastName
+    }&project=EV&closingManager=EV&otp=${newOtp}`;
+
+    // if (project?.toLowerCase() === "project-ev-10-marina-bay-vashi-sector-10") {
+    //   url = `https://hooks.zapier.com/hooks/catch/9993809/2r64nmh?phoneNumber=${encodeURIComponent(
+    //     `+91${phoneNumber}`
+    //   )}&name=${clientResp?.firstName} ${clientResp?.lastName}&project= &closingManager= &otp=${newOtp}`;
+    // } else {
+    //   url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=${encodeURIComponent(
+    //     `+91${phoneNumber}`
+    //   )}&name=${clientResp?.firstName} ${clientResp?.lastName}&project=${project}&closingManager=&otp=${newOtp}`;
+    // }
+
+    const resp = await axios.post(url);
+    console.log(resp);
+
+    return res.send(
+      successRes(200, "otp Sent to Client", {
+        data: savedOtp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
 //client login using phone
 export const loginPhone = async (req, res, next) => {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, otp } = req.body;
 
   try {
-    if (!phoneNumber) {
-      return res.status(403).send({
-        success: false,
-        message: "Phone number is required",
-      });
+    if (!otp) {
+      return res.send(errorRes(403, "Invalid Otp"));
     }
+
+    if (!phoneNumber) {
+      return res.send(errorRes(403, "Phone number is required"));
+    }
+    const otpExist = await otpModel.findOne({
+      phoneNumber: phoneNumber,
+    });
+
+    if (!otpExist) return res.send(errorRes(404, "Otp is Expired"));
+
+    if (otp != otpExist.otp)
+      return res.send(errorRes(401, "Otp Didn't matched"));
+
+    await otpExist.deleteOne();
+
     const clientDb = await clientModel
       .findOne({ phoneNumber: phoneNumber })
       .populate(clientPopulateOptions);
@@ -260,7 +355,6 @@ export const loginPhone = async (req, res, next) => {
         errorRes(400, "Client not found with given phone Number")
       );
     }
-    console.log(clientDb.closingManager);
 
     const { password: dbPassword, ...userWithoutPhone } = clientDb._doc;
     const dataToken = {
@@ -284,13 +378,13 @@ export const loginPhone = async (req, res, next) => {
 
     await clientDb.save();
 
-    return res.status(200).send({
-      success: true,
-      message: "Client login successful",
-      data: userWithoutPhone,
-      accessToken,
-      refreshToken,
-    });
+    return res.send(
+      successRes(200, "Login Successful", {
+        data: userWithoutPhone,
+        accessToken,
+        refreshToken,
+      })
+    );
   } catch (error) {
     return next(error);
   }
