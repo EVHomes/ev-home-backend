@@ -275,8 +275,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = {
         siteVisitInterested: true,
       };
-    } 
-    
+    }
+
     if (callData == "Call Not Received" || callData == "call not received") {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "Call done") {
@@ -369,15 +369,17 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .sort({ "cycle.startDate": sortDirection })
       .populate(leadPopulateOptions);
 
-      // Extract teamLeader from cycleHistory based on currentOrder
-  const leadsWithTeamLeader = respLeads.map(lead => {
-  const currentOrder = lead.cycle.currentOrder;
-  const cycleHistoryEntry = lead.cycleHistory.find(entry => entry.currentOrder === currentOrder);
-  return {
-    ...lead.toObject(), 
-    teamLeader: cycleHistoryEntry ? cycleHistoryEntry.teamLeader : null, // Get teamLeader from cycleHistory
-  };
-});
+    // Extract teamLeader from cycleHistory based on currentOrder
+    const leadsWithTeamLeader = respLeads.map((lead) => {
+      const currentOrder = lead.cycle.currentOrder;
+      const cycleHistoryEntry = lead.cycleHistory.find(
+        (entry) => entry.currentOrder === currentOrder
+      );
+      return {
+        ...lead.toObject(),
+        teamLeader: cycleHistoryEntry ? cycleHistoryEntry.teamLeader : null, // Get teamLeader from cycleHistory
+      };
+    });
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
@@ -758,14 +760,14 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         taskRef: { $ne: null },
         // ...walkinType,
       };
-      
+
       console.log("followup");
     } else if (status === "not-followup") {
       statusToFind = {
         taskRef: { $eq: null },
         // ...walkinType,
       };
-      
+
       console.log("not followup");
     } else if (status === "visit2-revisit-done") {
       statusToFind = {
@@ -823,7 +825,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
     // Base Filter for Search and Leads Query
 
     let baseFilter = {
-        teamLeader: { $eq: teamLeaderId },
+      teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
       ...(cycle != null ? { "cycle.currentOrder": cycle } : {}),
@@ -1250,10 +1252,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
         siteVisitInterested: true,
       };
     }
-    if (
-      callData == "Call Not Received" ||
-      callData == "call not received"
-    ) {
+    if (callData == "Call Not Received" || callData == "call not received") {
       console.log("call not received");
     } else if (callData == "Call Done") {
       console.log("call done");
@@ -1264,8 +1263,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     } else if (callData == "Not Reachable") {
       console.log("Not Reachable");
     }
-    
-  if (order == "Ascending" || order == "ascending") {
+
+    if (order == "Ascending" || order == "ascending") {
       sortDirection = 1;
       console.log("ascending");
     } else if (order == "Descending" || order == "descendinh") {

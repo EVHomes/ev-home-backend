@@ -15,7 +15,8 @@ export const getTask = async (req, res, next) => {
   try {
     if (!id) return res.send(errorRes(401, "No ID provided"));
 
-    let filter = { assignTo: id };
+    const now = new Date();
+    let filter = { assignTo: id, deadline: { $gt: now } };
 
     if (type) {
       if (type == "completed") {
@@ -140,7 +141,6 @@ export const getTaskByid = async (req, res, next) => {
 
   try {
     if (!id) return res.send(errorRes(401, "No ID provided"));
-
     const resp = await taskModel.findById(id).populate(taskPopulateOptions);
 
     return res.send(
@@ -161,8 +161,9 @@ export const getTaskTeam = async (req, res, next) => {
 
   try {
     if (!id) return res.send(errorRes(401, "No ID provided"));
+    const now = new Date();
 
-    let filter = {};
+    let filter = { deadline: { $gt: now } };
 
     if (member) {
       filter = { assignTo: member };
@@ -202,24 +203,11 @@ export const getTaskTeam = async (req, res, next) => {
       filter.$or = searchConditions;
     }
 
-    console.log(JSON.stringify(filter, null, 2));
     const resp = await taskModel
       .find(filter)
       .populate(taskPopulateOptions)
       .sort({ assignDate: -1 });
 
-    // .populate({
-    //   path: "lead",
-    //   select:"",
-    //   match: {
-    //     $or: [
-    //       { firstname: { $regex: query, $options: "i" } }, // Case-insensitive search
-    //       { lastname: { $regex: query, $options: "i" } },
-    //     ],
-    //   },
-    // });
-
-    // console.log(match);
     return res.send(
       successRes(200, "Get task", {
         total: resp.length,
