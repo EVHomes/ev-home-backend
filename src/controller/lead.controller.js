@@ -64,9 +64,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let member = req.query.member;
     let cycle = req.query.cycle;
     let callData = req.query.callData;
-    let order= req.query.order;
-  let sortDirection = -1; 
-    
+    let order = req.query.order;
+    let sortDirection = -1;
+    console.log(member);
     // let callDone =req.query.callDone;
 
     let validity = req.query.validity;
@@ -274,18 +274,25 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       statusToFind = {
         siteVisitInterested: true,
       };
-    } else if (
-      callData == "Call Not Received" ||
-      callData == "call not received"
-    ) {
+    } 
+    
+    if (callData == "Call Not Received" || callData == "call not received") {
       console.log("call not received");
     } else if (callData == "Call Done" || callData == "Call done") {
       console.log("call done");
-    } else if(order=="Ascending" || order=="ascending"){
-      sortDirection = 1; 
+    } else if (callData == "Call Cancelled" || callData == "call cancelled") {
+      console.log("Call Cancelled");
+    } else if (callData == "Call Busy") {
+      console.log("Call Busy");
+    } else if (callData == "Not Reachable") {
+      console.log("Not Reachable");
+    }
+
+    if (order == "Ascending" || order == "ascending") {
+      sortDirection = 1;
       console.log("ascending");
-    }else if(order=="Descending" || order=="descending"){
-      sortDirection=-1;
+    } else if (order == "Descending" || order == "descending") {
+      sortDirection = -1;
     }
 
     // Base Filter for Search and Leads Query
@@ -305,16 +312,16 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             },
           }
         : {}),
-        // ...(cyclehistory != null
-        //   ? {
-        //      $expr:{
-        //       $eq:[
-        //         {$arrayElemAt:["$cycleHistory.teamLeader", -1] },
-        //         cyclehistory,
-        //       ]
-        //      }
-        //     }
-        //   : {}),
+      // ...(cyclehistory != null
+      //   ? {
+      //      $expr:{
+      //       $eq:[
+      //         {$arrayElemAt:["$cycleHistory.teamLeader", -1] },
+      //         cyclehistory,
+      //       ]
+      //      }
+      //     }
+      //   : {}),
     };
     console.log(baseFilter);
     // Add query search conditions (if applicable)
@@ -358,9 +365,8 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .find(baseFilter)
       .skip(skip)
       .limit(limit)
-      .sort({ "cycle.startDate": sortDirection }) 
+      .sort({ "cycle.startDate": sortDirection })
       .populate(leadPopulateOptions);
-
 
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
