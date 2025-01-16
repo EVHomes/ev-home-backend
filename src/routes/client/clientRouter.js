@@ -10,8 +10,8 @@ import {
   loginClient,
   searchClients,
   loginPhone,
-
-  newPasswordClient
+  newPasswordClient,
+  generateClientOtp,
 } from "../../controller/client.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateClientFields } from "../../middleware/client.middleware.js";
@@ -23,11 +23,11 @@ clientRouter.get("/search-client", authenticateToken, searchClients);
 clientRouter.get("/client:/id", authenticateToken, getClientById);
 clientRouter.post(
   "/client-register",
-  // validateClientFields,  
+  // validateClientFields,
   registerClient
 );
 clientRouter.post("/client-login", validateClientFields, loginClient);
-clientRouter.post("/client-phoneLogin",validateClientFields,loginPhone);
+clientRouter.post("/client-phoneLogin", validateClientFields, loginPhone);
 
 clientRouter.post(
   "/client-edit/:id",
@@ -47,7 +47,9 @@ clientRouter.post(
   resetPasswordClient
 );
 
-clientRouter.post("/client-new-password/:id",newPasswordClient);
+clientRouter.post("/client-otp-generate", generateClientOtp);
+
+clientRouter.post("/client-new-password/:id", newPasswordClient);
 clientRouter.post("/client-update/:id", authenticateToken, updateClient);
 clientRouter.delete("/client/:id", authenticateToken, deleteClient);
 
