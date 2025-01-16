@@ -5554,16 +5554,9 @@ export const get24hrLeadsNameList = async (req, res, next) => {
 
 export const triggerCycleChangeFunction = async () => {
   try {
-    // const currentDate = new Date();
-    // currentDate.setHours(currentDate.getHours() - 6);
     const filterDate = new Date("2024-12-10");
     const timeZone = "Asia/Kolkata";
 
-    // const startOfYesterday = moment()
-    //   .tz(timeZone)
-    //   .subtract(1, "day")
-    //   .startOf("day")
-    //   .toDate();
     const endOfYesterday = moment()
       .tz(timeZone)
       .subtract(1, "day")
@@ -5579,18 +5572,6 @@ export const triggerCycleChangeFunction = async () => {
 
     const allCycleExpiredLeads = await leadModel.find({
       ...actualTriggerQuery,
-
-      // approvalDate: {
-      //   $gte: new Date("2024-12-21T18:30:00.000Z"),
-      //   $lte: new Date("2024-12-22T18:29:00.000Z"),
-      // },
-      // "cycleHistory.0.teamLeader": "ev69-vicky-mane",
-      // "cycle.currentOrder": 2,
-      // $and: [
-      //   { visitStatus: { $ne: "visited" } },
-      //   { visitStatus: { $ne: "virtual-meeting" } },
-      //   { visitStatus: { $ne: "revisited" } },
-      // ],
     });
 
     if (allCycleExpiredLeads.length > 0) {
@@ -5662,9 +5643,6 @@ export const triggerCycleChangeFunction = async () => {
                   teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
               }
 
-              // cCycle.teamLeader =
-              //   teamLeaders[lastIndex + 1]?._id || firstTeamLeader;
-
               switch (cCycle.currentOrder) {
                 case 1:
                   validTill.setDate(validTill.getDate() + 30);
@@ -5699,10 +5677,7 @@ export const triggerCycleChangeFunction = async () => {
           bulkOperations.push({
             updateOne: {
               filter: { _id: entry._id },
-              // ok: entry?.cycleHistory[0],
               update: {
-                // lastIndex,
-                // lastIndex2: lastIndex + 1,
                 teamLeader: cCycle.teamLeader,
                 taskRef: null,
                 $set: { cycle: cCycle },
