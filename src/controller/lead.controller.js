@@ -61,7 +61,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
-    let member = req.query.member;
+    let member = req.query.member ? req.query.member.split(","):null;
     let cycle = req.query.cycle;
     let callData = req.query.callData;
     
@@ -82,9 +82,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
 
     // console.log(query,status,member,ids);
 
-    if (member) {
+    if (member && member.length > 0) {
       console.log("entered member");
-      const test = await taskModel.find({ assignTo: member }).select("_id");
+      const test = await taskModel.find({ assignTo: {$in: member} }).select("_id");
       test.map((ele) => {
         ids.push(ele._id.toString());
       });
@@ -561,7 +561,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
         ids.push(ele._id.toString());
       });
 
-      // console.log(ids);
+      //console.log("members",ids);
     }
     const isNumberQuery = !isNaN(query);
     const filterDate = new Date("2024-12-10");
