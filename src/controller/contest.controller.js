@@ -18,7 +18,7 @@ export const getContest= async (req, res) => {
 
 export const addContest = async (req, res) => {
   const body = req.body;
-  const { firstName, lastName, dateOfRegister, phoneNumber } = body;
+  const { firstName, lastName, dateOfRegister, phoneNumber,validTill } = body;
 
   try {
     if (!firstName) return res.send(errorRes(403, "first name is required"));
@@ -26,12 +26,14 @@ export const addContest = async (req, res) => {
     if (!dateOfRegister) return res.send(errorRes(403, "date is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "phone number is required"));
+  //  if(!validTill) return res.send(errorRes(403, "End Date is required"));
 
     const newContest = await contestModel.create({
       firstName: firstName,
       lastName: lastName,
       dateOfRegister: dateOfRegister,
       phoneNumber: phoneNumber,
+      
     });
     await newContest.save();
 
@@ -45,6 +47,34 @@ export const addContest = async (req, res) => {
   }
 };
 
+
+export const createEvent = async (req, res) => {
+  const body = req.body;
+  const { dateOfRegister,validTill,event } = body;
+
+
+  try {
+    if (!dateOfRegister) return res.send(errorRes(403, "date is required"));
+    if(!event) return res.send(errorRes(403, "Event is required"));
+
+    const newContest = await contestModel.create({
+      firstName: firstName,
+      lastName: lastName,
+      dateOfRegister: dateOfRegister,
+      phoneNumber: phoneNumber,
+      
+    });
+    await newContest.save();
+
+    return res.send(
+      successRes(200, `Contest applicant added successfully: ${firstName}${lastName}`, {
+        data: newContest,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, error));
+  }
+};
 
 // export const generateContestOtp = async (req, res, next) => {
 //   const {firstName, lastName, phoneNumber} = req.body;
