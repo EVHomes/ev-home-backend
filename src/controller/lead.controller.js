@@ -369,6 +369,16 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       .sort({ "cycle.startDate": sortDirection })
       .populate(leadPopulateOptions);
 
+      // Extract teamLeader from cycleHistory based on currentOrder
+  const leadsWithTeamLeader = respLeads.map(lead => {
+  const currentOrder = lead.cycle.currentOrder;
+  const cycleHistoryEntry = lead.cycleHistory.find(entry => entry.currentOrder === currentOrder);
+  return {
+    ...lead.toObject(), 
+    teamLeader: cycleHistoryEntry ? cycleHistoryEntry.teamLeader : null, // Get teamLeader from cycleHistory
+  };
+});
+
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     const counts = await leadModel.aggregate([
@@ -562,7 +572,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
         bookingCount,
         totalItemsCount,
         lineUpCount,
-        data: respLeads,
+        data: leadsWithTeamLeader,
       })
     );
   } catch (error) {
@@ -813,7 +823,7 @@ export const getAssignedToSalesManger = async (req, res, next) => {
     // Base Filter for Search and Leads Query
 
     let baseFilter = {
-      teamLeader: { $eq: teamLeaderId },
+        teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
       ...(statusToFind != null ? statusToFind : null),
       ...(cycle != null ? { "cycle.currentOrder": cycle } : {}),
