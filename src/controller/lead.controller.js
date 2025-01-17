@@ -219,13 +219,18 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       };
     } else if (status === "visit2") {
       statusToFind = {
-        visitStatus: { $ne: "pending" },
         $and: [
+          {
+            visitStatus: { $ne: "pending" },
+          },
           {
             stage: { $ne: "tagging-over" },
           },
           {
             stage: { $ne: "approval" },
+          },
+          {
+            leadType: "walk-in",
           },
         ],
         // ...walkinType,
@@ -252,6 +257,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           {
             revisitStatus: { $ne: "pending" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
 
         // ...walkinType,
@@ -267,6 +275,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           },
           {
             visitStatus: { $ne: "pending" },
+          },
+          {
+            leadType: "walk-in",
           },
         ],
         // ...walkinType,
@@ -762,6 +773,9 @@ export const getAssignedToSalesManger = async (req, res, next) => {
           {
             stage: { $ne: "approval" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
         // ...walkinType,
       };
@@ -791,10 +805,13 @@ export const getAssignedToSalesManger = async (req, res, next) => {
           {
             revisitStatus: { $ne: "pending" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
 
         // ...walkinType,
-        leadType: { $eq: "walk-in" },
+        // leadType: { $eq: "walk-in" },
       };
     } else if (status === "visit2-visit-done" || status === "visit2") {
       statusToFind = {
@@ -807,9 +824,12 @@ export const getAssignedToSalesManger = async (req, res, next) => {
           {
             visitStatus: { $ne: "pending" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
         // ...walkinType,
-        leadType: { $eq: "walk-in" },
+        // leadType: { $eq: "walk-in" },
       };
     }
 
@@ -1219,8 +1239,11 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           {
             stage: { $ne: "approval" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
-        ...walkinType,
+        // ...walkinType,
       };
     } else if (status === "followup") {
       statusToFind = {
@@ -1244,10 +1267,13 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           {
             revisitStatus: { $ne: "pending" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
 
         // ...walkinType,
-        leadType: { $eq: "walk-in" },
+        // leadType: { $eq: "walk-in" },
       };
     } else if (status === "visit2-visit-done" || status === "visit2") {
       statusToFind = {
@@ -1260,9 +1286,12 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           {
             visitStatus: { $ne: "pending" },
           },
+          {
+            leadType: "walk-in",
+          },
         ],
         // ...walkinType,
-        leadType: { $eq: "walk-in" },
+        // leadType: { $eq: "walk-in" },
       };
     } else if (status == "line-up") {
       // console.log("booi pendding");
