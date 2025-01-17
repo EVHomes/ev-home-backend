@@ -1,5 +1,7 @@
+import clientModel from "../model/client.model.js";
 import contestModel from "../model/contest.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { encryptPassword } from "../utils/helper.js";
 
 export const getContest = async (req, res) => {
   try {
@@ -37,13 +39,21 @@ export const addContest = async (req, res) => {
       // photoUrl:photoUrl,
       // event: event
     });
+    if (email) {
+      const hashPassword = await encryptPassword(
+        phoneNumber?.toString() ?? "123456"
+      );
 
-    const newPopulatedContest = await newContest.populate({
-      select: "",
-      path: "event",
-    });
+      const newClient = new clientModel({
+        ...body,
+        password: hashPassword,
+      });
+      const savedClient = await newClient.save();
+    }
 
-    console.log("yes2");
+    const newPopulatedContest = await newContest.populate("event");
+
+    // console.log("yes2");
     await newContest.save();
 
     return res.send(
