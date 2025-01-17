@@ -91,3 +91,26 @@ export const getEvent= async (req, res) => {
       return res.send(errorRes(500, error));
     }
   };
+
+
+  export const deleteEvent = async (req, res) => {
+    const body = req.body;
+    const { id } = req.params;
+    try {
+      if (!id) return res.send(errorRes(403, "id is required"));
+      // if (!body) return res.send(errorRes(403, "data is required"));
+  
+      const deleteEvent = await eventModel.findByIdAndDelete(id);
+  
+      if (!deleteEvent)
+        return res.send(errorRes(402, `event not deleted: `));
+  
+      return res.send(
+        successRes(200, `event deleted successfully`, {
+          deleteEvent,
+        })
+      );
+    } catch (error) {
+      return res.send(errorRes(500, error));
+    }
+  };
