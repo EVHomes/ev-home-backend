@@ -19,5 +19,5 @@ export const contestSchema = new mongoose.Schema(
 );
 
 // Create the model
-const contestModel = mongoose.model("Contest", contestSchema, "Contests");
+const contestModel = mongoose.model("Contest", contestSchema, "contests");
 export default contestModel;
