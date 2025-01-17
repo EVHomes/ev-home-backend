@@ -156,9 +156,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           {
             visitStatus: { $ne: "pending" },
           },
+          {
+            leadType: { $ne: "walk-in" },
+          },
         ],
         // ...walkinType,
-        leadType: { $ne: "walk-in" },
       };
     } else if (status === "revisit-pending") {
       statusToFind = {
@@ -1654,14 +1656,23 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
     /* --new graphs -- */
     const visitCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      visitStatus: { $ne: "pending" },
-      leadType: { $ne: "walk-in" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
-        },
+      // visitStatus: { $ne: "pending" },
+      // leadType: { $ne: "walk-in" },
+      $and: [
         {
           stage: { $ne: "approval" },
+        },
+        {
+          stage: { $ne: "booking" },
+        },
+        {
+          visitStatus: { $ne: null },
+        },
+        {
+          visitStatus: { $ne: "pending" },
+        },
+        {
+          leadType: "cp",
         },
       ],
     });

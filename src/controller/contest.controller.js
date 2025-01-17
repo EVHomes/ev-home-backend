@@ -39,17 +39,17 @@ export const addContest = async (req, res) => {
       // photoUrl:photoUrl,
       // event: event
     });
-    if (email) {
-      const hashPassword = await encryptPassword(
-        phoneNumber?.toString() ?? "123456"
-      );
+    // if (email) {
+    //   const hashPassword = await encryptPassword(
+    //     phoneNumber?.toString() ?? "123456"
+    //   );
 
-      const newClient = new clientModel({
-        ...body,
-        password: hashPassword,
-      });
-      const savedClient = await newClient.save();
-    }
+    //   const newClient = new clientModel({
+    //     ...body,
+    //     password: hashPassword,
+    //   });
+    //   const savedClient = await newClient.save();
+    // }
 
     const newPopulatedContest = await newContest.populate("event");
 
