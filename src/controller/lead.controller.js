@@ -5577,7 +5577,7 @@ export const triggerCycleChangeFunction = async () => {
       bookingStatus: { $ne: "booked" },
       "cycle.validTill": { $lte: endOfYesterday },
     };
-    console.log(actualTriggerQuery);
+    // console.log(actualTriggerQuery);
 
     const allCycleExpiredLeads = await leadModel.find({
       ...actualTriggerQuery,
