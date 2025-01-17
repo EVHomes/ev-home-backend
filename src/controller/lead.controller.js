@@ -1654,81 +1654,257 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
     //   })) || 0;
 
     /* --new graphs -- */
-    const visitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      // visitStatus: { $ne: "pending" },
-      // leadType: { $ne: "walk-in" },
-      $and: [
-        {
-          stage: { $ne: "approval" },
-        },
-        {
-          stage: { $ne: "booking" },
-        },
-        {
-          visitStatus: { $ne: null },
-        },
-        {
-          visitStatus: { $ne: "pending" },
-        },
-        {
-          leadType: "cp",
-        },
-      ],
-    });
+    // const visitCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   // visitStatus: { $ne: "pending" },
+    //   // leadType: { $ne: "walk-in" },
+    //   $and: [
+    //     {
+    //       stage: { $ne: "approval" },
+    //     },
+    //     {
+    //       stage: { $ne: "booking" },
+    //     },
+    //     {
+    //       visitStatus: { $ne: null },
+    //     },
+    //     {
+    //       visitStatus: { $ne: "pending" },
+    //     },
+    //     {
+    //       leadType: "cp",
+    //     },
+    //   ],
+    // });
 
-    const revisitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      revisitStatus: { $ne: "pending" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
-        },
-        {
-          stage: { $ne: "approval" },
-        },
-      ],
-    });
-    const visit2Count = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      visitStatus: { $ne: "pending" },
-      leadType: { $eq: "walk-in" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
-        },
-        {
-          stage: { $ne: "approval" },
-        },
-      ],
-    });
+    // const revisitCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   revisitStatus: { $ne: "pending" },
+    //   $or: [
+    //     {
+    //       stage: { $ne: "tagging-over" },
+    //     },
+    //     {
+    //       stage: { $ne: "approval" },
+    //     },
+    //   ],
+    // });
+    // const visit2Count = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   visitStatus: { $ne: "pending" },
+    //   leadType: { $eq: "walk-in" },
+    //   $or: [
+    //     {
+    //       stage: { $ne: "tagging-over" },
+    //     },
+    //     {
+    //       stage: { $ne: "approval" },
+    //     },
+    //   ],
+    // });
 
-    const bookingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      stage: "booking",
-      // bookingStatus: { $ne: "pending" },
-      $and: [
-        {
-          bookingStatus: { $ne: null },
-        },
-        {
-          bookingStatus: { $ne: "pending" },
-        },
-      ],
-    });
+    // const bookingCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   stage: "booking",
+    //   // bookingStatus: { $ne: "pending" },
+    //   $and: [
+    //     {
+    //       bookingStatus: { $ne: null },
+    //     },
+    //     {
+    //       bookingStatus: { $ne: "pending" },
+    //     },
+    //   ],
+    // });
 
-    const pendingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      bookingStatus: { $ne: "booked" },
-      $or: [
-        {
-          visitStatus: "pending",
+    // const pendingCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   bookingStatus: { $ne: "booked" },
+    //   $or: [
+    //     {
+    //       visitStatus: "pending",
+    //     },
+    //     {
+    //       revisitStatus: "pending",
+    //     },
+    //   ],
+    // });
+
+    const counts = await leadModel.aggregate([
+      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+      {
+        $facet: {
+          totalItems: [{ $count: "count" }],
+          totalItemsCount: [{ $count: "count" }],
+          pendingCount: [
+            {
+              $match: {
+                $or: [
+                  { visitStatus: "pending", bookingStatus: { $ne: "booked" } },
+                  {
+                    revisitStatus: "pending",
+                    bookingStatus: { $ne: "booked" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          contactedCount: [
+            { $match: { contactedStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          followUpCount: [
+            { $match: { followupStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
+          visitCount: [
+            {
+              $match: {
+                $and: [
+                  {
+                    stage: { $ne: "approval" },
+                  },
+                  {
+                    stage: { $ne: "booking" },
+                  },
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                  {
+                    leadType: "cp",
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          revisitCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  {
+                    revisitStatus: { $ne: null },
+                  },
+                  {
+                    revisitStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          visit2Count: [
+            {
+              $match: {
+                $and: [
+                  {
+                    stage: { $ne: "approval" },
+                  },
+                  {
+                    stage: { $ne: "booking" },
+                  },
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                  {
+                    leadType: { $eq: "walk-in" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCount: [
+            {
+              $match: {
+                stage: "booking",
+                // bookingStatus: { $ne: "pending" },
+                $and: [
+                  {
+                    bookingStatus: { $ne: null },
+                  },
+                  {
+                    bookingStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          lineUpCount: [
+            {
+              $match: {
+                stage: { $ne: "tagging-over" },
+                leadType: { $ne: "walk-in" },
+                siteVisitInterested: true,
+              },
+            },
+            { $count: "count" },
+          ],
+
+          // Add other count stages as required
         },
-        {
-          revisitStatus: "pending",
+      },
+      {
+        $addFields: {
+          totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
+          pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
+          contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
+          followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
+          assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+          visitCount: { $arrayElemAt: ["$visitCount.count", 0] },
+          revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
+          visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
+          bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
+          // Add other fields similarly as required
         },
-      ],
-    });
+      },
+      {
+        $project: {
+          totalItems: 1,
+          pendingCount: 1,
+          contactedCount: 1,
+          followUpCount: 1,
+          assignedCount: 1,
+          visitCount: 1,
+          revisitCount: 1,
+          visit2Count: 1,
+          bookingCount: 1,
+          totalItemsCount: 1,
+          lineUpCount: 1,
+          // Include only the fields you need
+        },
+      },
+    ]);
+
+    const {
+      totalItems = 0,
+      pendingCount = 0,
+      contactedCount = 0,
+      followUpCount = 0,
+      assignedCount = 0,
+      visitCount = 0,
+      revisitCount = 0,
+      visit2Count = 0,
+      bookingCount = 0,
+      totalItemsCount = 0,
+      lineUpCount = 0,
+      // Add other counts as required
+    } = counts[0] || {};
 
     // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
     // const visitToBookingCount =
@@ -1775,110 +1951,181 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
         startDate: { $gte: filterDate },
       })) || 0;
 
-    // const bookingCount =
-    //   (await leadModel.countDocuments({
-    //     teamLeader: { $eq: teamLeaderId },
-    //     bookingStatus: { $ne: "pending" },
-    //   })) || 0;
+    const counts = await leadModel.aggregate([
+      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+      {
+        $facet: {
+          totalItems: [{ $count: "count" }],
+          totalItemsCount: [{ $count: "count" }],
+          pendingCount: [
+            {
+              $match: {
+                $or: [
+                  { visitStatus: "pending", bookingStatus: { $ne: "booked" } },
+                  {
+                    revisitStatus: "pending",
+                    bookingStatus: { $ne: "booked" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          contactedCount: [
+            { $match: { contactedStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          followUpCount: [
+            { $match: { followupStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
+          visitCount: [
+            {
+              $match: {
+                $and: [
+                  {
+                    stage: { $ne: "approval" },
+                  },
+                  {
+                    stage: { $ne: "booking" },
+                  },
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                  {
+                    leadType: "cp",
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          revisitCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  {
+                    revisitStatus: { $ne: null },
+                  },
+                  {
+                    revisitStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          visit2Count: [
+            {
+              $match: {
+                $and: [
+                  {
+                    stage: { $ne: "approval" },
+                  },
+                  {
+                    stage: { $ne: "booking" },
+                  },
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                  {
+                    leadType: { $eq: "walk-in" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCount: [
+            {
+              $match: {
+                stage: "booking",
+                // bookingStatus: { $ne: "pending" },
+                $and: [
+                  {
+                    bookingStatus: { $ne: null },
+                  },
+                  {
+                    bookingStatus: { $ne: "pending" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          lineUpCount: [
+            {
+              $match: {
+                stage: { $ne: "tagging-over" },
+                leadType: { $ne: "walk-in" },
+                siteVisitInterested: true,
+              },
+            },
+            { $count: "count" },
+          ],
 
-    // const visitCount =
-    //   (await leadModel.countDocuments({
-    //     teamLeader: { $eq: teamLeaderId },
-    //     visitStatus: { $ne: "pending" },
-    //   })) || 0;
-
-    // const revisitCount =
-    //   (await leadModel.countDocuments({
-    //     teamLeader: { $eq: teamLeaderId },
-
-    //     revisitStatus: { $ne: "pending" },
-    //   })) || 0;
-
-    /* --new graphs -- */
-    const visitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-
-      visitStatus: { $ne: "pending" },
-      leadType: { $ne: "walk-in" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
+          // Add other count stages as required
         },
-        {
-          stage: { $ne: "approval" },
+      },
+      {
+        $addFields: {
+          totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
+          pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
+          contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
+          followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
+          assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+          visitCount: { $arrayElemAt: ["$visitCount.count", 0] },
+          revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
+          visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
+          bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
+          // Add other fields similarly as required
         },
-      ],
-    });
+      },
+      {
+        $project: {
+          totalItems: 1,
+          pendingCount: 1,
+          contactedCount: 1,
+          followUpCount: 1,
+          assignedCount: 1,
+          visitCount: 1,
+          revisitCount: 1,
+          visit2Count: 1,
+          bookingCount: 1,
+          totalItemsCount: 1,
+          lineUpCount: 1,
+          // Include only the fields you need
+        },
+      },
+    ]);
 
-    const revisitCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-
-      revisitStatus: { $ne: "pending" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
-        },
-        {
-          stage: { $ne: "approval" },
-        },
-      ],
-    });
-    const visit2Count = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-
-      visitStatus: { $ne: "pending" },
-      leadType: { $eq: "walk-in" },
-      $or: [
-        {
-          stage: { $ne: "tagging-over" },
-        },
-        {
-          stage: { $ne: "approval" },
-        },
-      ],
-    });
-
-    const bookingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-
-      stage: "booking",
-      // bookingStatus: { $ne: "pending" },
-      $and: [
-        {
-          bookingStatus: { $ne: null },
-        },
-        {
-          bookingStatus: { $ne: "pending" },
-        },
-      ],
-    });
-
-    const pendingCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
-
-      bookingStatus: { $ne: "booked" },
-      $or: [
-        {
-          visitStatus: "pending",
-        },
-        {
-          revisitStatus: "pending",
-        },
-      ],
-    });
-
-    // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
-    // const visitToBookingCount =
-    //   visitCount > 0 ? (bookingCount * 100) / visitCount : 0;
-    // const revisitToBookingCount =
-    //   revisitCount > 0 ? (bookingCount * 100) / revisitCount : 0;
-    // const leadToBookingCount =
-    //   leadCount > 0 ? (bookingCount * 100) / leadCount : 0;
+    const {
+      totalItems = 0,
+      pendingCount = 0,
+      contactedCount = 0,
+      followUpCount = 0,
+      assignedCount = 0,
+      visitCount = 0,
+      revisitCount = 0,
+      visit2Count = 0,
+      bookingCount = 0,
+      totalItemsCount = 0,
+      lineUpCount = 0,
+      // Add other counts as required
+    } = counts[0] || {};
 
     return res.send(
       successRes(200, "graphs", {
