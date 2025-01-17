@@ -1352,11 +1352,166 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     // Calculate Counts
+    // const counts = await leadModel.aggregate([
+    //   { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+    //   {
+    //     $facet: {
+    //       totalItems: [{ $count: "count" }],
+    //       pendingCount: [
+    //         {
+    //           $match: {
+    //             $or: [
+    //               { visitStatus: "pending", bookingStatus: { $ne: "booked" } },
+    //               {
+    //                 revisitStatus: "pending",
+    //                 bookingStatus: { $ne: "booked" },
+    //               },
+    //             ],
+    //           },
+    //         },
+    //         { $count: "count" },
+    //       ],
+    //       contactedCount: [
+    //         { $match: { contactedStatus: { $ne: "pending" } } },
+    //         { $count: "count" },
+    //       ],
+    //       followUpCount: [
+    //         { $match: { followupStatus: { $ne: "pending" } } },
+    //         { $count: "count" },
+    //       ],
+    //       assignedCount: [
+    //         { $match: { taskRef: { $ne: null } } },
+    //         { $count: "count" },
+    //       ],
+    //       visitCount: [
+    //         {
+    //           $match: {
+    //             stage: { $ne: "approval" },
+    //             stage: { $ne: "booking" },
+    //             $and: [
+    //               {
+    //                 visitStatus: { $ne: null },
+    //               },
+    //               {
+    //                 visitStatus: { $ne: "pending" },
+    //               },
+    //             ],
+    //           },
+    //         },
+    //         { $count: "count" },
+    //       ],
+    //       revisitCount: [
+    //         {
+    //           $match: {
+    //             stage: "booking",
+    //             $and: [
+    //               {
+    //                 revisitStatus: { $ne: null },
+    //               },
+    //               {
+    //                 revisitStatus: { $ne: "pending" },
+    //               },
+    //             ],
+    //           },
+    //         },
+    //         { $count: "count" },
+    //       ],
+    //       visit2Count: [
+    //         {
+    //           $match: {
+    //             visitStatus: { $ne: "pending" },
+    //             leadType: { $eq: "walk-in" },
+    //           },
+    //         },
+    //         { $count: "count" },
+    //       ],
+    //       bookingCount: [
+    //         {
+    //           $match: {
+    //             stage: "booking",
+    //             // bookingStatus: { $ne: "pending" },
+    //             $and: [
+    //               {
+    //                 bookingStatus: { $ne: null },
+    //               },
+    //               {
+    //                 bookingStatus: { $ne: "pending" },
+    //               },
+    //             ],
+    //           },
+    //         },
+    //         { $count: "count" },
+    //       ],
+    //       lineUpCount: [
+    //         {
+    //           $match: {
+    //             stage: { $ne: "tagging-over" },
+    //             leadType: { $ne: "walk-in" },
+    //             siteVisitInterested: true,
+    //           },
+    //         },
+    //         { $count: "count" },
+    //       ],
+    //       // Add other count stages as required
+    //     },
+    //   },
+    //   {
+    //     $addFields: {
+    //       totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+    //       pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
+    //       contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
+    //       followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
+    //       assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+    //       visitCount: { $arrayElemAt: ["$visitCount.count", 0] },
+    //       revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
+    //       visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
+    //       bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+    //       lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
+    //       // Add other fields similarly as required
+    //     },
+    //   },
+    //   {
+    //     $project: {
+    //       totalItems: 1,
+    //       pendingCount: 1,
+    //       contactedCount: 1,
+    //       followUpCount: 1,
+    //       assignedCount: 1,
+    //       visitCount: 1,
+    //       revisitCount: 1,
+    //       visit2Count: 1,
+    //       bookingCount: 1,
+    //       lineUpCount: 1,
+    //       // Include only the fields you need
+    //     },
+    //   },
+    // ]);
+
+    // const {
+    //   totalItems = 0,
+    //   pendingCount = 0,
+    //   contactedCount = 0,
+    //   followUpCount = 0,
+    //   assignedCount = 0,
+    //   visitCount = 0,
+    //   revisitCount = 0,
+    //   visit2Count = 0,
+    //   bookingCount = 0,
+    //   lineUpCount = 0,
+
+    //   // Add other counts as required
+    // } = counts[0] || {};
     const counts = await leadModel.aggregate([
       { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
       {
         $facet: {
           totalItems: [{ $count: "count" }],
+          totalItemsCount: [
+            {
+              $match: baseFilter,
+            },
+            { $count: "count" },
+          ],
           pendingCount: [
             {
               $match: {
@@ -1386,14 +1541,21 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           visitCount: [
             {
               $match: {
-                stage: { $ne: "approval" },
-                stage: { $ne: "booking" },
                 $and: [
+                  {
+                    stage: { $ne: "approval" },
+                  },
+                  {
+                    stage: { $ne: "booking" },
+                  },
                   {
                     visitStatus: { $ne: null },
                   },
                   {
                     visitStatus: { $ne: "pending" },
+                  },
+                  {
+                    leadType: "cp",
                   },
                 ],
               },
@@ -1419,8 +1581,23 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           visit2Count: [
             {
               $match: {
-                visitStatus: { $ne: "pending" },
-                leadType: { $eq: "walk-in" },
+                $and: [
+                  {
+                    stage: { $ne: "approval" },
+                  },
+                  {
+                    stage: { $ne: "booking" },
+                  },
+                  {
+                    visitStatus: { $ne: null },
+                  },
+                  {
+                    visitStatus: { $ne: "pending" },
+                  },
+                  {
+                    leadType: { $eq: "walk-in" },
+                  },
+                ],
               },
             },
             { $count: "count" },
@@ -1452,12 +1629,14 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             },
             { $count: "count" },
           ],
+
           // Add other count stages as required
         },
       },
       {
         $addFields: {
           totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
           pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
           contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
           followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
@@ -1481,6 +1660,7 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           revisitCount: 1,
           visit2Count: 1,
           bookingCount: 1,
+          totalItemsCount: 1,
           lineUpCount: 1,
           // Include only the fields you need
         },
@@ -1497,8 +1677,8 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
       revisitCount = 0,
       visit2Count = 0,
       bookingCount = 0,
+      totalItemsCount = 0,
       lineUpCount = 0,
-
       // Add other counts as required
     } = counts[0] || {};
 
