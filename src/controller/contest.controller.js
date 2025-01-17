@@ -22,7 +22,7 @@ export const getContest = async (req, res) => {
 
 export const addContest = async (req, res) => {
   const body = req.body;
-  const { firstName, lastName, phoneNumber, photoUrl, event } = body;
+  const { firstName, lastName, phoneNumber, photoUrl, thumbnail, event } = body;
   console.log("yes");
   try {
     if (!firstName) return res.send(errorRes(403, "first name is required"));
