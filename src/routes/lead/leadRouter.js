@@ -286,7 +286,7 @@ leadRouter.get(
 
 leadRouter.get(
   "/leads-team-leader-graph/:id",
-  authenticateToken,
+  // authenticateToken,
   getLeadTeamLeaderGraph
 );
 leadRouter.get(

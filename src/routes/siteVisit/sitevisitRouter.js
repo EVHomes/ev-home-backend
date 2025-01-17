@@ -10,7 +10,8 @@ import {
   verifySiteVisitOtp,
   getClosingManagerSiteVisitById,
   getSiteVisitByPhoneNumber,
-  getTeamMemberSiteVisitById
+  getTeamMemberSiteVisitById,
+  getSiteVisitHistoryByPhone,
 } from "../../controller/siteVisit.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import path from "path";
@@ -33,7 +34,11 @@ siteVisitRouter.get(
   getSiteVisits
 );
 siteVisitRouter.get("/siteVisit/:id", authenticateToken, getSiteVisitsById);
-siteVisitRouter.get("/siteVisit-phoneNumber/:phoneNumber",getSiteVisitByPhoneNumber);
+siteVisitRouter.get(
+  "/siteVisit-phoneNumber/:phoneNumber",
+  getSiteVisitByPhoneNumber
+);
+siteVisitRouter.post("/site-visits-by-phone", getSiteVisitHistoryByPhone);
 
 siteVisitRouter.post(
   "/siteVisits-add",
@@ -45,7 +50,7 @@ siteVisitRouter.get(
   getClosingManagerSiteVisitById
 );
 
-siteVisitRouter.get("/site-visit-team-member/:id",getTeamMemberSiteVisitById);
+siteVisitRouter.get("/site-visit-team-member/:id", getTeamMemberSiteVisitById);
 
 siteVisitRouter.post(
   "/site-visit-generate-otp",
