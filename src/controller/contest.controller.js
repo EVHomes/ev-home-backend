@@ -1,12 +1,13 @@
+import clientModel from "../model/client.model.js";
 import contestModel from "../model/contest.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import { encryptPassword } from "../utils/helper.js";
 
-
-export const getContest= async (req, res) => {
+export const getContest = async (req, res) => {
   try {
     const respDept = await contestModel.find().populate({
-      select:"",
-      path:"event"
+      select: "",
+      path: "event",
     });
 
     return res.send(
@@ -21,40 +22,53 @@ export const getContest= async (req, res) => {
 
 export const addContest = async (req, res) => {
   const body = req.body;
-  const { firstName, lastName, phoneNumber,photoUrl, event } = body;
-console.log("yes");
+  const { firstName, lastName, phoneNumber, photoUrl, event } = body;
+  console.log("yes");
   try {
     if (!firstName) return res.send(errorRes(403, "first name is required"));
     if (!lastName) return res.send(errorRes(403, "last name is required"));
     if (!phoneNumber)
       return res.send(errorRes(403, "phone number is required"));
-  //  if(!validTill) return res.send(errorRes(403, "End Date is required"));
+    //  if(!validTill) return res.send(errorRes(403, "End Date is required"));
 
     const newContest = await contestModel.create({
-      firstName: firstName,
-      lastName: lastName,
-      phoneNumber: phoneNumber,
-      photoUrl:photoUrl,
-      event: event
+      ...body,
+      // firstName: firstName,
+      // lastName: lastName,
+      // phoneNumber: phoneNumber,
+      // photoUrl:photoUrl,
+      // event: event
     });
+    if (email) {
+      const hashPassword = await encryptPassword(
+        phoneNumber?.toString() ?? "123456"
+      );
 
-    const newPopulatedContest = await newContest.populate({select:"",path:"event"})
+      const newClient = new clientModel({
+        ...body,
+        password: hashPassword,
+      });
+      const savedClient = await newClient.save();
+    }
 
-    console.log("yes2");
+    const newPopulatedContest = await newContest.populate("event");
+
+    // console.log("yes2");
     await newContest.save();
 
     return res.send(
-      successRes(200, `Contest applicant added successfully: ${firstName}${lastName}`, {
-        data: newPopulatedContest,
-      })
+      successRes(
+        200,
+        `Contest applicant added successfully: ${firstName}${lastName}`,
+        {
+          data: newPopulatedContest,
+        }
+      )
     );
   } catch (error) {
     return res.send(errorRes(500, error));
   }
 };
-
-
-
 
 // export const generateContestOtp = async (req, res, next) => {
 //   const {firstName, lastName, phoneNumber} = req.body;

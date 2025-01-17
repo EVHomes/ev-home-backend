@@ -38,24 +38,27 @@ export const addPayment = async (req, res) => {
     cgst,
   } = body;
 
+  // console.log(body);
+
   try {
     if (!body) return res.send(errorRes(403, "data is required"));
     //   if (!department) return res.send(errorRes(403, "department is required"));
     const newPayment = await paymentModel.create({
-      projects: projects,
-      customerName: customerName,
-      phoneNumber: phoneNumber,
-      dateOfAmtReceive: dateOfAmtReceive,
-      receiptNo: receiptNo,
-      account: account,
-      paymentMode: paymentMode,
-      transactionId: transactionId,
-      flatNo: flatNo,
-      amtReceived: amtReceived,
-      bookingAmt: bookingAmt,
-      stampDuty: stampDuty,
-      tds: tds,
-      cgst: cgst,
+      ...body,
+      // projects: projects,
+      // customerName: customerName,
+      // phoneNumber: phoneNumber,
+      // dateOfAmtReceive: dateOfAmtReceive,
+      // receiptNo: receiptNo,
+      // account: account,
+      // paymentMode: paymentMode,
+      // transactionId: transactionId,
+      // flatNo: flatNo,
+      // amtReceived: amtReceived,
+      // bookingAmt: bookingAmt,
+      // stampDuty: stampDuty,
+      // tds: tds,
+      // cgst: cgst,
     });
     await newPayment.save();
     const respP = await paymentModel
@@ -68,6 +71,7 @@ export const addPayment = async (req, res) => {
       })
     );
   } catch (error) {
+    console.log(error);
     return res.send(errorRes(500, error));
   }
 };
