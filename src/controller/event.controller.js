@@ -17,18 +17,23 @@ export const getEvent= async (req, res) => {
   
   export const addEvent = async (req, res) => {
     const body = req.body;
-    const { startDate,validTill,event } = body;
+    const { startDate,validTill,event,remark } = body;
   
     try {
       if (!startDate) return res.send(errorRes(403, "Start Date is required"));
       if (!event)
         return res.send(errorRes(403, "Event is required"));
-    //  if(!validTill) return res.send(errorRes(403, "End Date is required"));
-  
+      const currentYear = new Date().getFullYear(); 
+      console.log(currentYear);
+      const newEventId = "event-" + event?.replace(/\s+/g, "-").toLowerCase() + "-"+currentYear;
+      console.log(newEventId);
+
       const newEvent = await eventModel.create({
+        _id: newEventId,
         startDate:startDate,
         validTill:validTill,
         event:event,
+        remark:remark,
         
       });
       await newEvent.save();
@@ -55,6 +60,31 @@ export const getEvent= async (req, res) => {
       return res.send(
         successRes(200, `Event Found`, {
           data: respDiv,
+        })
+      );
+    } catch (error) {
+      return res.send(errorRes(500, error));
+    }
+  };
+
+
+  export const updateEvent = async (req, res) => {
+    const body = req.body;
+    const id = req.params.id;
+    const { startDate,validTill,event } = body;
+    try {
+      if (!id) return res.send(errorRes(403, "id is required"));
+   
+      const updatedEvent = await eventModel.findByIdAndUpdate(
+        id,
+     ...body,
+        { new: true }
+      );
+      if (!updatedEvent)
+        return res.send(errorRes(402, `event not updated: ${event}`));
+      return res.send(
+        successRes(200, `event updated successfully: ${event}`, {
+          data: updatedEvent,
         })
       );
     } catch (error) {
