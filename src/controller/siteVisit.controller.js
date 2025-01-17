@@ -84,6 +84,32 @@ export const getSiteVisitByPhoneNumber = async (req, res) => {
   }
 };
 
+export const getSiteVisitHistoryByPhone = async (req, res) => {
+  const phoneNumber = req.body.phoneNumber;
+  try {
+    if (!phoneNumber) return res.send(errorRes(403, "id is required"));
+
+    const respSite = await siteVisitModel
+      .find({ phoneNumber: phoneNumber })
+      .populate(siteVisitPopulateOptions)
+      .sort({ date: 1 });
+
+    if (!respSite)
+      return res.send(
+        successRes(404, `Site vist not found with id:${phoneNumber}`, {
+          data: respSite,
+        })
+      );
+    return res.send(
+      successRes(200, "lead by id", {
+        data: respSite,
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, `server error:${error?.message}`));
+  }
+};
+
 export const searchSiteVisits = async (req, res, next) => {
   try {
     let query = req.query.query || "";
@@ -232,12 +258,9 @@ export const getClosingManagerSiteVisitById = async (req, res, next) => {
   }
 };
 
-
 export const getTeamMemberSiteVisitById = async (req, res, next) => {
   const id = req.params.id;
   try {
-
-   
     const respTeamMember = await employeeModel.findById(id);
     const teamLeaderId = respTeamMember.reportingTo;
 
@@ -315,7 +338,6 @@ export const getTeamMemberSiteVisitById = async (req, res, next) => {
     return next(error);
   }
 };
-
 
 export const addSiteVisits = async (req, res) => {
   const body = req.body;

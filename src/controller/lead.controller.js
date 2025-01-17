@@ -487,8 +487,16 @@ export const getLeadsTeamLeader = async (req, res, next) => {
           bookingCount: [
             {
               $match: {
-                bookingStatus: { $ne: "pending" },
-                stage: { $eq: "booking" },
+                stage: "booking",
+                // bookingStatus: { $ne: "pending" },
+                $and: [
+                  {
+                    bookingStatus: { $ne: null },
+                  },
+                  {
+                    bookingStatus: { $ne: "pending" },
+                  },
+                ],
               },
             },
             { $count: "count" },
@@ -965,8 +973,16 @@ export const getAssignedToSalesManger = async (req, res, next) => {
           bookingCount: [
             {
               $match: {
-                bookingStatus: { $ne: "pending" },
-                stage: { $eq: "booking" },
+                stage: "booking",
+                // bookingStatus: { $ne: "pending" },
+                $and: [
+                  {
+                    bookingStatus: { $ne: null },
+                  },
+                  {
+                    bookingStatus: { $ne: "pending" },
+                  },
+                ],
               },
             },
             { $count: "count" },
@@ -1410,8 +1426,16 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
           bookingCount: [
             {
               $match: {
-                bookingStatus: { $ne: "pending" },
-                stage: { $eq: "booking" },
+                stage: "booking",
+                // bookingStatus: { $ne: "pending" },
+                $and: [
+                  {
+                    bookingStatus: { $ne: null },
+                  },
+                  {
+                    bookingStatus: { $ne: "pending" },
+                  },
+                ],
               },
             },
             { $count: "count" },
@@ -1670,13 +1694,14 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
 
     const bookingCount = await leadModel.countDocuments({
       teamLeader: { $eq: teamLeaderId },
-      bookingStatus: { $ne: "pending" },
-      $or: [
+      stage: "booking",
+      // bookingStatus: { $ne: "pending" },
+      $and: [
         {
-          stage: { $ne: "tagging-over" },
+          bookingStatus: { $ne: null },
         },
         {
-          stage: { $ne: "approval" },
+          bookingStatus: { $ne: "pending" },
         },
       ],
     });
@@ -1809,14 +1834,14 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
       teamLeader: { $eq: teamLeaderId },
       startDate: { $gte: filterDate },
 
-      bookingStatus: { $ne: "pending" },
-      stage: { $eq: "booking" },
-      $or: [
+      stage: "booking",
+      // bookingStatus: { $ne: "pending" },
+      $and: [
         {
-          stage: { $ne: "tagging-over" },
+          bookingStatus: { $ne: null },
         },
         {
-          stage: { $ne: "approval" },
+          bookingStatus: { $ne: "pending" },
         },
       ],
     });
