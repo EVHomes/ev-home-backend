@@ -399,13 +399,13 @@ leadRouter.get("/lead-trigger-cycle--test", async (req, res) => {
   try {
     const resp = await triggerCycleChangeFunction();
 
-    // await triggerHistoryModel.create({
-    //   date: new Date(),
-    //   changes: resp?.changes ?? [],
-    //   changesString: resp?.changesString ?? "",
-    //   totalTrigger: resp?.total ?? 0,
-    //   message: resp?.message ?? "",
-    // });
+    await triggerHistoryModel.create({
+      date: new Date(),
+      changes: resp?.changes ?? [],
+      changesString: resp?.changesString ?? "",
+      totalTrigger: resp?.total ?? 0,
+      message: resp?.message ?? "",
+    });
 
     return res.send(resp);
   } catch (error) {

@@ -6111,7 +6111,7 @@ export const triggerCycleChangeFunction = async () => {
       bookingStatus: { $ne: "booked" },
       "cycle.validTill": { $lte: endOfYesterday },
     };
-    // console.log(actualTriggerQuery);
+    console.log(actualTriggerQuery);
 
     const allCycleExpiredLeads = await leadModel.find({
       ...actualTriggerQuery,
@@ -6232,13 +6232,13 @@ export const triggerCycleChangeFunction = async () => {
       });
 
       if (bulkOperations.length > 0) {
-        // const bulkResult = await leadModel.bulkWrite(bulkOperations);
+        const bulkResult = await leadModel.bulkWrite(bulkOperations);
         const list =
           bulkOperations.map((ele) => ele?.updateOne?.filter?._id) ?? [];
 
         return {
-          // matchedCount: bulkResult.matchedCount,
-          // modifiedCount: bulkResult.modifiedCount,
+          matchedCount: bulkResult.matchedCount,
+          modifiedCount: bulkResult.modifiedCount,
           total: bulkOperations.length,
           changes: list,
           changesString: JSON.stringify(bulkOperations),
