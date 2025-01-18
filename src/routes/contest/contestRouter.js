@@ -7,8 +7,6 @@ import {
 } from "../../controller/contest.controller.js";
 import { validateContestFields } from "../../middleware/contest.middleware.js";
 
-
-
 const contestRouter = Router();
 contestRouter.get("/contest",getContest);
 contestRouter.post(
@@ -18,6 +16,7 @@ contestRouter.post(
 );
 contestRouter.post("/contest-byPhone",getContestById);
 
+contestRouter.get("/contest-id/:id",getContestById)
 // contest.post(
 //   "/contest-otp",
 //   // authenticateToken,

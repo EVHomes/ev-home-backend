@@ -44,6 +44,7 @@ export const getContestById = async (req, res, next) => {
 
 export const addContest = async (req, res) => {
   const body = req.body;
+
   const { firstName, lastName, phoneNumber, email, photoUrl, thumbnail, event } = body;
 
   console.log("Received Data:", body);

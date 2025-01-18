@@ -115,6 +115,13 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     //     ],
     //   };
     // }
+
+
+    const interval = req.query.interval ; 
+    const currentDate = new Date();
+    let startDate, endDate;
+
+  
     if (status === "booking-done" || status === "booking") {
       statusToFind = {
         stage: "booking",
@@ -309,10 +316,34 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       sortDirection = -1;
     }
 
+
+
+    
+    if(interval=="monthly") {
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    }
+    else if(interval=="quarterly") {
+      const quarter = Math.floor(currentDate.getMonth() / 3);
+      startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+      endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
+    }else if(interval=="semi-annually"){
+      const half = Math.floor(currentDate.getMonth() / 6);
+      startDate = new Date(currentDate.getFullYear(), half * 6, 1);
+      endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
+    }
+    else if(interval=="annually") {
+      startDate = new Date(currentDate.getFullYear(), 0, 1);
+      endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
+    }
     // Base Filter for Search and Leads Query
     let baseFilter = {
       teamLeader: { $eq: teamLeaderId },
-      startDate: { $gte: filterDate },
+      startDate: { 
+        $gte: filterDate, 
+       ...(interval &&{ $gte: startDate,  
+        $lt: endDate} )    
+      },
       ...(statusToFind != null ? statusToFind : null),
       ...(member != null ? { taskRef: { $in: ids } } : null),
       ...(cycle != null ? { "cycle.currentOrder": cycle } : {}),
@@ -397,7 +428,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     const counts = await leadModel.aggregate([
-      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+      { $match: { teamLeader: teamLeaderId, 
+        startDate: { 
+          $gte: filterDate, 
+         ...(interval &&{ $gte: startDate,  
+          $lt: endDate} ) }}},
       {
         $facet: {
           totalItems: [{ $count: "count" }],
@@ -602,6 +637,11 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
+
+
 
 export const getAssignedToSalesManger = async (req, res, next) => {
   const salesManagerId = req.params.id;
@@ -3963,6 +4003,8 @@ export async function getLeadCountsByTeamLeaders(req, res, next) {
         $gte: startOfQuarter,
         $lt: endOfQuarter,
       };
+      console.log(startOfQuarter);
+      console.log(endOfQuarter);
     } else if (interval === "semi-annually") {
       const isFirstHalf = selectedMonth <= 6;
       const startOfHalf = new Date(selectedYear, isFirstHalf ? 0 : 6, 1);
