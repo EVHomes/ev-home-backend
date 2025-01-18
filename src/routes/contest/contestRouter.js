@@ -2,11 +2,10 @@ import { Router } from "express";
 import {
   addContest,
  
-  getContest
+  getContest,
+  getContestById
 } from "../../controller/contest.controller.js";
 import { validateContestFields } from "../../middleware/contest.middleware.js";
-
-
 
 const contestRouter = Router();
 contestRouter.get("/contest",getContest);
@@ -16,6 +15,7 @@ contestRouter.post(
   addContest
 );
 
+contestRouter.get("/contest-id/:id",getContestById)
 // contest.post(
 //   "/contest-otp",
 //   // authenticateToken,
