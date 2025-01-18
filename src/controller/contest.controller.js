@@ -20,112 +20,66 @@ export const getContest = async (req, res) => {
   }
 };
 
-export const addContest = async (req, res) => {
-  const body = req.body;
-  const { firstName, lastName, phoneNumber, photoUrl, thumbnail, event,email } = body;
-  console.log("yes");
-  try {
-    if (!firstName) return res.send(errorRes(403, "first name is required"));
-    if (!lastName) return res.send(errorRes(403, "last name is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "phone number is required"));
-    //  if(!validTill) return res.send(errorRes(403, "End Date is required"));
-
-    const newContest = await contestModel.create({
-      ...body,
-   
-    });
-    if (email) {
-      const hashPassword = await encryptPassword(
-        phoneNumber?.toString() ?? "123456"
-      );
-
-      const newClient = new clientModel({
-        ...body,
-        password: hashPassword,
-      });
-      const savedClient = await newClient.save();
-    }
-
-    const newPopulatedContest = await newContest.populate("event");
-
-    // console.log("yes2");
-    await newContest.save();
-
-    return res.send(
-      successRes(
-        200,
-        `Contest applicant added successfully: ${firstName}${lastName}`,
-        {
-          data: newPopulatedContest,
-        }
-      )
-    );
-  } catch (error) {
-    return res.send(errorRes(500, error));
-  }
-};
-
-
-// export const getContestById = async (req, res) => {
-
-//   const id = req.params.id;
-//   try {
-//     if (!id) return res.send(errorRes(403, "id is required"));
-
-//     const respContest = await clientModel.findById(id);
-
-//     if (!respContest)
-//       return res.send(
-//         successRes(404, `Details not found`, {
-//           data: respContest,
-//         })
-//       );
-
-//     return res.send(
-//       successRes(200, `get details`, {
-//         data: respContest,
-//       })
-//     );
-//   } catch (error) {
-//     return res.send(errorRes(500, error));
-//   }
-// };
-
-
 export const getContestById = async (req, res, next) => {
-  const id = req.params.id;
+  const phoneNumber = req.body.phoneNumber;
+  const email = req.body.email;
   try {
-    if (!id) return res.send(errorRes(403, "id is required"));
-    const respContest = await contestModel.findById(id);
+    // if (!id) return res.send(errorRes(403, "phoneNumber is required"));
+    const respContest = await contestModel.find({$or:[{phoneNumber}, {email}]}).populate({
+      select: "",
+      path: "event",
+    });
 
-    if (!respContest) return errorRes(404, "No lead found");
-
-    const similarContest = await contestModel
-      .find({
-        $and: [
-          {
-            $or: [
-              { phoneNumber: respContest.phoneNumber },
-            ],
-          },
-          { _id: { $ne: id } },
-        ],
-      })
-      .populate({
-        select: "",
-        path: "event",
-      });
+    if (!respContest) return errorRes(404, "No data found");   
 
     return res.send(
       successRes(200, "Similar Leads", {
-        data: similarContest,
+        data: respContest,
       })
     );
   } catch (error) {
     next(error);
   }
 };
+
+export const addContest = async (req, res) => {
+  const body = req.body;
+
+  const { firstName, lastName, phoneNumber, email, photoUrl, thumbnail, event } = body;
+
+  console.log("Received Data:", body);
+
+  try {
+    if (!firstName) return res.send(errorRes(403, "First name is required"));
+    if (!lastName) return res.send(errorRes(403, "Last name is required"));
+    if (!phoneNumber) return res.send(errorRes(403, "Phone number is required"));
+
+    const newContest = await contestModel.create(body);
+
+    if (email) {
+      const hashPassword = await encryptPassword(phoneNumber?.toString() ?? "123456");
+
+      const newClient = new clientModel({
+        ...body,
+        password: hashPassword,
+      });
+      await newClient.save();
+    }
+
+    const newPopulatedContest = await contestModel.findById(newContest.id).populate("event");
+
+    return res.send(
+      successRes(200, `Contest applicant added successfully: ${firstName} ${lastName}`, {
+        data: newPopulatedContest,
+      })
+    );
+  } catch (error) {
+    console.error("Error adding contest:", error);
+    return res.send(errorRes(500, error.message || "Server error"));
+  }
+};
+
+
 // export const generateContestOtp = async (req, res, next) => {
 //   const {firstName, lastName, phoneNumber} = req.body;
 //   try {

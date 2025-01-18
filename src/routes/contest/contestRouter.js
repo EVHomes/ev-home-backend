@@ -14,6 +14,7 @@ contestRouter.post(
   // authenticateToken,
   addContest
 );
+contestRouter.post("/contest-byPhone",getContestById);
 
 contestRouter.get("/contest-id/:id",getContestById)
 // contest.post(

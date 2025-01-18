@@ -15,6 +15,9 @@ export const contestSchema = new mongoose.Schema(
       type: String,
       ref: "event",
     },
+    validTill: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
