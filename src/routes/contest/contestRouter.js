@@ -2,7 +2,8 @@ import { Router } from "express";
 import {
   addContest,
  
-  getContest
+  getContest,
+  getContestById
 } from "../../controller/contest.controller.js";
 import { validateContestFields } from "../../middleware/contest.middleware.js";
 
@@ -15,6 +16,7 @@ contestRouter.post(
   // authenticateToken,
   addContest
 );
+contestRouter.post("/contest-byPhone",getContestById);
 
 // contest.post(
 //   "/contest-otp",
