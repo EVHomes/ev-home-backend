@@ -11,6 +11,7 @@ export const contestSchema = new mongoose.Schema(
       default: null,
     },
     thumbnail: { type: String, default: null },
+    createId: { type: Boolean, default: false },
     event: {
       type: String,
       ref: "event",
