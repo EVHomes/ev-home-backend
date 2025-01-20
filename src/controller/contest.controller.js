@@ -117,21 +117,21 @@ export const updateContestById = async (req, res, next) => {
 
     if (!respContest) return errorRes(404, "No data found");
 
-    if (body.createId && body.email && body.email != "") {
-      const hashPassword = await encryptPassword(
-        body.phoneNumber?.toString() ?? "123456"
-      );
+    // if (body.createId && body.email && body.email != "") {
+    //   const hashPassword = await encryptPassword(
+    //     body.phoneNumber?.toString() ?? "123456"
+    //   );
 
-      try {
-        const newClient = new clientModel({
-          ...body,
-          password: hashPassword,
-        });
-        await newClient.save();
-      } catch (error) {
-        // failed to create client
-      }
-    }
+    //   try {
+    //     const newClient = new clientModel({
+    //       ...body,
+    //       password: hashPassword,
+    //     });
+    //     await newClient.save();
+    //   } catch (error) {
+    //     // failed to create client
+    //   }
+    // }
 
     return res.send(
       successRes(200, "Updated", {
