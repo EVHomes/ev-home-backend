@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 {
 
 weekoffDate:{
-    type:String,
+    type: Date,
     required:true,
 },
 reason:{
@@ -12,12 +12,12 @@ reason:{
 },
 aprovereason:{
     type: String,
-    required:true,
+   
    default:"pending",
 },
 weekoffstatus:{
     type: String,
-    require:true,
+  
     default: "pending",
 },
 applyby: {
