@@ -5,6 +5,8 @@ export const ourProjectsSchema = new mongoose.Schema({
   name: { type: String, required: true, unique: true },
   description: { type: String, default: "" },
   showCaseImage: { type: String, required: true },
+  logo: { type: String, default: null },
+  shareLink: { type: String, default: null },
   carouselImages: [{ type: String, required: true }],
   flatList: [
     {
