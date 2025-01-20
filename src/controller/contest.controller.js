@@ -99,44 +99,46 @@ export const addContest = async (req, res) => {
   }
 };
 
-// export const generateContestOtp = async (req, res, next) => {
-//   const {firstName, lastName, phoneNumber} = req.body;
-//   try {
-//     const user = await contestModel.findById(phoneNumber);
+export const updateContestById = async (req, res, next) => {
+  const id = req.params.id;
+  const body = req.body;
+  try {
+    if (!id) return res.send(errorRes(403, "id is required"));
+    if (!body) return res.send(errorRes(403, "body is required"));
 
-//     const findOldOtp = await otpModel.findOne({
-//       $or: [{ phoneNumber: phoneNumber }],
-//     });
-//     if (findOldOtp) {
-//       let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}&project=${project}&closingManager=${user?.firstName} ${user?.lastName}&otp=${findOldOtp.otp}`;
-//       // console.log(encodeURIComponent(url));
-//       const resp = await axios.post(url);
-//       return res.send(
-//         successRes(200, "otp Sent to Client", {
-//           data: findOldOtp,
-//         })
-//       );
-//     }
-//     const newOtp = generateOTP(4);
-//     const newOtpModel = new otpModel({
-//       otp: newOtp,
-//       docId: user?._id,
-//       phoneNumber: phoneNumber,
-//       type: "contest-entry",
-//       message: "Contest Verification Code",
-//     });
+    const respContest = await contestModel
+      .findByIdAndUpdate(id, {
+        ...body,
+      })
+      .populate({
+        select: "",
+        path: "event",
+      });
 
-//     const savedOtp = await newOtpModel.save();
+    if (!respContest) return errorRes(404, "No data found");
 
-//     let url = `https://hooks.zapier.com/hooks/catch/9993809/25xnarr?phoneNumber=+91${phoneNumber}&name=${firstName} ${lastName}}&otp=${newOtp}`;
-//     // console.log(encodeURIComponent(url));
-//     const resp = await axios.post(url);
-//     return res.send(
-//       successRes(200, "otp Sent to Client", {
-//         data: savedOtp,
-//       })
-//     );
-//   } catch (error) {
-//     return next(error);
-//   }
-// };
+    if (body.createId && body.email && body.email != "") {
+      const hashPassword = await encryptPassword(
+        body.phoneNumber?.toString() ?? "123456"
+      );
+
+      try {
+        const newClient = new clientModel({
+          ...body,
+          password: hashPassword,
+        });
+        await newClient.save();
+      } catch (error) {
+        // failed to create client
+      }
+    }
+
+    return res.send(
+      successRes(200, "Updated", {
+        data: respContest,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
