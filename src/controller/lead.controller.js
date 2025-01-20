@@ -67,7 +67,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let callData = req.query.callData;
     let order = req.query.order;
     let sortDirection = -1;
-
+    const interval = req.query.interval ; 
+    const currentDate = new Date();
+    let startDate, endDate;
     // let callDone =req.query.callDone;
 
     let validity = req.query.validity;
@@ -115,11 +117,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     //     ],
     //   };
     // }
-
-
-    const interval = req.query.interval ; 
-    const currentDate = new Date();
-    let startDate, endDate;
 
   
     if (status === "booking-done" || status === "booking") {
@@ -1875,13 +1872,44 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
   const teamLeaderId = req.params.id;
   try {
     if (!teamLeaderId) return res.send(errorRes(401, "id Required"));
-    const filterDate = new Date("2024-12-10");
 
-    const leadCount =
-      (await leadModel.countDocuments({
-        teamLeader: { $eq: teamLeaderId },
-        startDate: { $gte: filterDate },
-      })) || 0;
+    const filterDate = new Date("2024-12-10");
+    const interval = req.query.interval;
+    const currentDate = new Date();
+
+    // Initialize startDate and endDate
+    let startDate, endDate;
+
+    // Set startDate and endDate based on the interval
+    if (interval === "monthly") {
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    } else if (interval === "quarterly") {
+      const quarter = Math.floor(currentDate.getMonth() / 3);
+      startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+      endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
+    } else if (interval === "semi-annually") {
+      const half = Math.floor(currentDate.getMonth() / 6);
+      startDate = new Date(currentDate.getFullYear(), half * 6, 1);
+      endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
+    } else if (interval === "annually") {
+      startDate = new Date(currentDate.getFullYear(), 0, 1);
+      endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
+    } else {
+      // Default to the current date if no valid interval is provided
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    }
+
+    // Count leads based on the team leader and the specified date range
+    const leadCount = await leadModel.countDocuments({
+      teamLeader: { $eq: teamLeaderId },
+      startDate: { 
+        $gte: filterDate, 
+       ...(interval &&{ $gte: startDate,  
+        $lt: endDate} )    
+      },
+    }) || 0;
 
     // const bookingCount =
     //   (await leadModel.countDocuments({
@@ -1978,9 +2006,18 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
     //     },
     //   ],
     // });
-
+  
     const counts = await leadModel.aggregate([
-      { $match: { teamLeader: teamLeaderId, startDate: { $gte: filterDate } } },
+      {
+        $match: {
+          teamLeader: teamLeaderId,
+          startDate: { 
+            $gte: filterDate, 
+           ...(interval &&{ $gte: startDate,  
+            $lt: endDate} )    
+          },
+        },
+      },
       {
         $facet: {
           totalItems: [{ $count: "count" }],
@@ -2015,21 +2052,11 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
             {
               $match: {
                 $and: [
-                  {
-                    stage: { $ne: "approval" },
-                  },
-                  {
-                    stage: { $ne: "booking" },
-                  },
-                  {
-                    visitStatus: { $ne: null },
-                  },
-                  {
-                    visitStatus: { $ne: "pending" },
-                  },
-                  {
-                    leadType: "cp",
-                  },
+                  { stage: { $ne: "approval" } },
+                  { stage: { $ne: "booking" } },
+                  { visitStatus: { $ne: null } },
+                  { visitStatus: { $ne: "pending" } },
+                  { leadType: "cp" },
                 ],
               },
             },
@@ -2040,12 +2067,8 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
               $match: {
                 stage: "booking",
                 $and: [
-                  {
-                    revisitStatus: { $ne: null },
-                  },
-                  {
-                    revisitStatus: { $ne: "pending" },
-                  },
+                  { revisitStatus: { $ne: null } },
+                  { revisitStatus: { $ne: "pending" } },
                 ],
               },
             },
@@ -2055,21 +2078,11 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
             {
               $match: {
                 $and: [
-                  {
-                    stage: { $ne: "approval" },
-                  },
-                  {
-                    stage: { $ne: "booking" },
-                  },
-                  {
-                    visitStatus: { $ne: null },
-                  },
-                  {
-                    visitStatus: { $ne: "pending" },
-                  },
-                  {
-                    leadType: { $eq: "walk-in" },
-                  },
+                  { stage: { $ne: "approval" } },
+                  { stage: { $ne: "booking" } },
+                  { visitStatus: { $ne: null } },
+                  { visitStatus: { $ne: "pending" } },
+                  { leadType: { $eq: "walk-in" } },
                 ],
               },
             },
@@ -2079,14 +2092,9 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
             {
               $match: {
                 stage: "booking",
-                // bookingStatus: { $ne: "pending" },
                 $and: [
-                  {
-                    bookingStatus: { $ne: null },
-                  },
-                  {
-                    bookingStatus: { $ne: "pending" },
-                  },
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
                 ],
               },
             },
@@ -2102,8 +2110,6 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
             },
             { $count: "count" },
           ],
-
-          // Add other count stages as required
         },
       },
       {
@@ -2119,7 +2125,6 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
           visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
           bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
           lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
-          // Add other fields similarly as required
         },
       },
       {
@@ -2135,7 +2140,6 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
           bookingCount: 1,
           totalItemsCount: 1,
           lineUpCount: 1,
-          // Include only the fields you need
         },
       },
     ]);
@@ -2152,10 +2156,9 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
       bookingCount = 0,
       totalItemsCount = 0,
       lineUpCount = 0,
-      // Add other counts as required
     } = counts[0] || {};
 
-    // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
+      // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
     // const visitToBookingCount =
     //   visitCount > 0 ? (bookingCount * 100) / visitCount : 0;
     // const revisitToBookingCount =
@@ -2172,10 +2175,6 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
           revisitCount,
           visit2Count,
           pendingCount,
-          // leadToVisitCount,
-          // visitToBookingCount,
-          // revisitToBookingCount,
-          // leadToBookingCount,
         },
       })
     );
