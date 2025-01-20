@@ -18,7 +18,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const ourProjectRouter = Router();
-ourProjectRouter.get("/ourProjects", authenticateToken, getOurProjects);
+ourProjectRouter.get(
+  "/ourProjects",
+  // authenticateToken,
+  getOurProjects
+);
 
 ourProjectRouter.get("/ourProjects:/id", authenticateToken, getProjectsById);
 ourProjectRouter.post(
