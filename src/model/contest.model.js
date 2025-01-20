@@ -19,6 +19,19 @@ export const contestSchema = new mongoose.Schema(
     validTill: {
       type: Date,
     },
+    deleteVideoAt: {
+      type: Date,
+      default: function () {
+        let startDate = Date.now();
+        let validTillDate = new Date(startDate);
+        validTillDate.setHours(validTillDate.getHours() + 47);
+        return validTillDate;
+      },
+    },
+    deleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
