@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   getTestimonial,
   addTestimonial,
-
+  getTestiomonialById
 } from "../../controller/testimonial.controller.js";
 
 
@@ -13,6 +13,12 @@ testimonialRouter.post(
   // authenticateToken,
   addTestimonial
 );
+testimonialRouter.get(
+  "/testimonial-projects/:projects",
+  // authenticateToken,
+  getTestiomonialById
+);
+
 
 
 export default testimonialRouter;
