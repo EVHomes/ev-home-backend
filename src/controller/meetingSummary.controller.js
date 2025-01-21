@@ -44,6 +44,43 @@ export const getClientMeetingById = async (req, res) => {
   }
 };
 
+export const scheduleMeetingByClient = async (req, res) => {
+  const body = req.body;
+  const { date, purpose } = body;
+  const clientId = req.params.id;
+  try {
+    if (!date || !purpose) {
+      return res.send(errorRes(403, "All fields are required"));
+    }
+
+    const customerResp = await clientModel.findById(clientId);
+
+    if (!customerResp) {
+      return res.send(errorRes("Customer not registered with us yet"));
+    }
+
+    const newMeeting = await meetingModel.create({
+      ...body,
+      customer: customerResp._id,
+    });
+
+    const respPayment = await meetingModel
+      .findById(newMeeting._id)
+      .populate(meetingPopulateOptions);
+
+    return res.send(
+      successRes(200, `Request sent!`, {
+        data: respPayment,
+      })
+    );
+  } catch (error) {
+    // console.error(error);
+    return res.send(
+      errorRes(500, "An error occurred while adding the meeting summary")
+    );
+  }
+};
+
 export const addMeetingSummary = async (req, res) => {
   const body = req.body;
   const {
