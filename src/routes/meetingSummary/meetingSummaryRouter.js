@@ -10,7 +10,7 @@ import { Router } from "express";
 const meetingRouter = Router();
 meetingRouter.get("/meeting", getMeetingSummary);
 meetingRouter.post("/meeting-add", addMeetingSummary);
-meetingRouter.post("/meeting-add/:id", scheduleMeetingByClient);
+meetingRouter.post("/meeting-add-by-client/:id", scheduleMeetingByClient);
 meetingRouter.get("/meeting-client-id/:id", getClientMeetingById);
 
 export default meetingRouter;
