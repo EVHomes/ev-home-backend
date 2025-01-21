@@ -34,6 +34,7 @@ import whatsnewrouterRouter from "./whatsnew/whatsnewRouter.js";
 import appUpdateRouter from "./appUpdate/appUpdateRouter.js";
 import auditSectionRouter from "./auditSection/auditSectionRouter.js";
 import shiftRouter from "./shift/shiftRouter.js";
+import weekoffRouter from "./weekoff/weekoffRouter.js";
 import faceIdRouter from "./faceId/faceIdRouter.js";
 import geoRouter from "./geofence/geofenceRouter.js";
 import feedbackEnquiryRouter from "./feedbackEnquiry/feedbackEnquiryRouter.js"
@@ -104,6 +105,7 @@ router.use(whatsnewrouterRouter);
 router.use(appUpdateRouter);
 router.use(auditSectionRouter);
 router.use(shiftRouter);
+router.use(weekoffRouter);
 router.use(faceIdRouter);
 router.use(geoRouter);
 router.use(feedbackEnquiryRouter);
