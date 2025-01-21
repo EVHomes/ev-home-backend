@@ -9,7 +9,18 @@ export const testimonialSchema = new mongoose.Schema(
       default: null,
     },
     thumbnail: { type: String, default: null },
-   
+    projects:{
+      type:String,
+      ref:"ourProjects"
+    },
+    phone:{
+      type:Number,
+      default:null,
+    },
+    email:{
+      type:String,
+      default:null
+    }
   },
 
 );
