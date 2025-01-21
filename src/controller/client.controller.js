@@ -559,46 +559,25 @@ export const resetPasswordClient = async (req, res, next) => {
 export const updateClient = async (req, res) => {
   const id = req.params.id;
   const body = req.body;
-  const { firstName, lastName, email, gender, phoneNumber, address, password } =
-    body;
 
   try {
     if (!body) return res.send(errorRes(403, "Data is required"));
-    // if (!client) return res.send(errorRes(404, "Client not found"));
-    if (!firstName) return res.send(errorRes(403, "First name is required"));
-    if (!lastName) return res.send(errorRes(403, "Last name is required"));
-    if (!password) return res.send(errorRes(403, "Password is required"));
-    if (!email) return res.send(errorRes(403, "Email is required"));
-    if (!gender) return res.send(errorRes(403, "Gender is required"));
-    if (!phoneNumber)
-      return res.send(errorRes(403, "Phone number is required"));
-    if (!address) return res.send(errorRes(403, "Address is required"));
 
     // Find the client by ID
     const updatedClient = await clientModel
       .findByIdAndUpdate(
         id,
         {
-          firstName,
-          lastName,
-          email,
-          gender,
-          phoneNumber,
-          address,
-          password,
+          ...body,
         },
         { new: true }
       )
       .populate(clientPopulateOptions);
 
-    if (!updatedClient)
-      return res.senderrorRes(
-        402,
-        `Client not updated:${firstName}${lastName}`
-      );
+    if (!updatedClient) return res.senderrorRes(402, `Client not updated`);
 
     return res.send(
-      successRes(200, `Client updated successfully: ${firstName} ${lastName}`, {
+      successRes(200, `Client updated successfully`, {
         data: updatedClient,
       })
     );

@@ -3,13 +3,16 @@ import mongoose from "mongoose";
 export const meetingSchema = new mongoose.Schema({
   date: {
     type: Date,
+    required: true,
   },
   place: {
     type: String,
-    ref: "divisions",
+    ref: "geofence",
+    default: null,
   },
   purpose: {
     type: String,
+    default: null,
   },
   customer: {
     type: mongoose.Schema.Types.ObjectId,
@@ -26,20 +29,35 @@ export const meetingSchema = new mongoose.Schema({
     default: null,
     ref: "employees",
   },
-
+  customerRemark: {
+    type: String,
+    default: null,
+  },
   summary: {
     type: String,
+    default: null,
+  },
+  meetingRemark: {
+    type: String,
+    default: null,
+  },
+  meetingInProgress: {
+    type: Boolean,
+    default: false,
   },
   meetingEnd: {
     type: Date,
+    default: null,
   },
   lead: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "leads",
+    default: null,
   },
   postSaleBooking: {
-    type:mongoose.Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: "postSaleLead",
+    default: null,
   },
 });
 
