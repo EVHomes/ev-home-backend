@@ -62,6 +62,7 @@ export const getWeekOffs = async (req, res, next) => {
     if (weekoffs.length === 0) {
       return res.status(404).send(errorRes(404, "No Week Off records found"));
     }
+  
     return res.status(200).send(successRes(200, "Week Off records retrieved", { data: weekoffs }));
   } catch (error) {
     console.error("Error retrieving week offs:", error);
@@ -87,3 +88,45 @@ return res.send(
     return res.send(errorRes(500, "Internal Server Error"));
   }
 };
+
+export const updateWeekOffStatus = async (req, res) => {
+  const { id } = req.params; // WeekOff request ID
+  const { weekoffstatus, aprovereason } = req.body;
+
+  try {
+   
+    if (!weekoffstatus) {
+      return res.status(400).send({
+        success: false,
+        message: "Week Off status is required",
+      });
+    }
+
+    const weekoff = await weekoffModel.findById(id);
+    if (!weekoff) {
+      return res.status(404).send({
+        success: false,
+        message: "Week Off request not found",
+      });
+    }
+
+    weekoff.weekoffstatus = weekoffstatus;
+    weekoff.aprovereason = aprovereason || "No reason provided"; 
+
+    await weekoff.save();
+
+    return res.status(200).send({
+      success: true,
+      message: "Week Off status updated successfully",
+      data: weekoff,
+    });
+  } catch (error) {
+    console.error("Error updating Week Off status:", error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+
