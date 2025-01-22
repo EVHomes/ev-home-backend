@@ -76,25 +76,31 @@ export const searchClients = async (req, res, next) => {
   }
 };
 
-//GET BY ID
+
 export const getClientById = async (req, res) => {
   const id = req.params.id;
   try {
     if (!id) return res.send(errorRes(403, "id is required"));
-    const respClient = await clientModel
-      .findById(id)
-      .populate(clientPopulateOptions);
 
-    if (!respClient)
+    const respDes = await clientModel.findById(id).populate(clientPopulateOptions);
+
+    if (!respDes)
       return res.send(
-        successRes(404, `Department not found with id:${id}`, {
-          data: respClient,
+        successRes(404, `Client not found`, {
+          data: respDes,
         })
       );
+
+    return res.send(
+      successRes(200, `Client Details found`, {
+        data: respDes,
+      })
+    );
   } catch (error) {
-    return res.send(errorRes(500, `server error:${error?.message}`));
+    return res.send(errorRes(500, error));
   }
 };
+
 
 //REGISTER
 export const registerClient = async (req, res, next) => {

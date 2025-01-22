@@ -1,19 +1,24 @@
 import eventModel from "../model/event.model.js";
 import { errorRes, successRes } from "../model/response.js";
 
-export const getEvent= async (req, res) => {
-    try {
-      const respDept = await eventModel.find();
-  
-      return res.send(
-        successRes(200, "Get Event", {
-          data: respDept,
-        })
-      );
-    } catch (error) {
-      return res.send(errorRes(500, error));
-    }
-  };
+export const getEvent = async (req, res) => {
+  try {
+    const currentDate = new Date(); // Get the current date
+
+    const respDept = await eventModel.find({
+      validTill: { $gt: currentDate }, 
+    });
+
+    return res.send(
+      successRes(200, "Get Event", {
+        data: respDept,
+      })
+    );
+  } catch (error) {
+    console.error("Error fetching events:", error); // Log the error for debugging
+    return res.status(500).send(errorRes(500, "Internal Server Error", error.message));
+  }
+};
   
   export const addEvent = async (req, res) => {
     const body = req.body;
