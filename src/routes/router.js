@@ -37,10 +37,13 @@ import shiftRouter from "./shift/shiftRouter.js";
 import weekoffRouter from "./weekoff/weekoffRouter.js";
 import faceIdRouter from "./faceId/faceIdRouter.js";
 import geoRouter from "./geofence/geofenceRouter.js";
-import feedbackEnquiryRouter from "./feedbackEnquiry/feedbackEnquiryRouter.js"
+import feedbackEnquiryRouter from "./feedbackEnquiry/feedbackEnquiryRouter.js";
 import eventRouter from "./event/eventRouter.js";
 import testimonialRouter from "./testimonial/testimonialRouter.js";
 import vehicleRouter from "./vehicle/vehicleRouter.js";
+import chatRespRouter from "./chatResponse/chatResponseRouter.js";
+import transPortRouter from "./transport/transportRouter.js";
+
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -113,5 +116,8 @@ router.use(feedbackEnquiryRouter);
 router.use(eventRouter);
 router.use(testimonialRouter);
 router.use(vehicleRouter);
+router.use(chatRespRouter);
+router.use(transPortRouter);
+
 
 export default router;
