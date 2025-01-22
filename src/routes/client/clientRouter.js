@@ -20,7 +20,7 @@ const clientRouter = Router();
 clientRouter.get("/client", authenticateToken, getClients);
 clientRouter.get("/search-client", authenticateToken, searchClients);
 
-clientRouter.get("/client:/id", authenticateToken, getClientById);
+clientRouter.get("/client-id/:id", getClientById);
 clientRouter.post(
   "/client-register",
   // validateClientFields,
