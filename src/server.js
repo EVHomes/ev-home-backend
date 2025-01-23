@@ -16,30 +16,59 @@ import {
 } from "./routes/attendance/attendanceRouter.js";
 import { Server } from "socket.io";
 import http from "http";
+import TransportModel from "./model/transport.model.js";
 
 connectDatabase();
 
 const app = express();
 const server = http.createServer(app);
-
+let conntectedUser = [];
+let trackHistory = [];
+const updateTimeline = async (data) => {
+  const resp = await TransportModel.findByIdAndUpdate(data.transport, {
+    $push: {
+      timeline: data,
+    },
+  });
+};
 const io = new Server(server, {
   cors: {
     origin: "*", // Replace with your Flutter app's origin for better security
+    methods: ["GET", "POST"],
   },
 });
 
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
-
+  socket.on("userConnected", (data) => {
+    console.log(data);
+    conntectedUser.push({
+      socketId: socket.id,
+      transport: data["transport"],
+      loggedId: data["loggedId"],
+    });
+  });
   // Listen for location updates from the driver
-  socket.on("locationUpdate", (data) => {
+  socket.on("locationUpdate", async (data) => {
     console.log("Location Update:", data);
     // Broadcast the updated location to other clients
-    socket.broadcast.emit("updateLocation", data);
+    socket.emit("updateLocation", data);
+    trackHistory.push({
+      socketId: socket.id,
+      ...data,
+    });
+    await updateTimeline({
+      socketId: socket.id,
+      ...data,
+    });
+    console.log("Broadcasting updateLocation");
   });
 
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
+    conntectedUser = conntectedUser.filter(
+      (item) => item.socketId !== socket.id
+    );
   });
 });
 
