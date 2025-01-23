@@ -1,7 +1,9 @@
+import oneSignalModel from "../model/oneSignal.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import TransportModel from "../model/transport.model.js";
 import vehicleModel from "../model/vehicle.model.js";
 import { tansportPopulateOptions } from "../utils/constant.js";
+import { sendNotificationWithInfo } from "./oneSignal.controller.js";
 
 export const getTransports = async (req, res) => {
   const status = req.query.status;
@@ -16,7 +18,12 @@ export const getTransports = async (req, res) => {
     };
   } else if (status?.toLowerCase() == "approval-pending") {
     statusToFind = {
-      $or: [{ stage: "approval" }, { approvalStatus: "pending" }],
+      $or: [
+        { stage: "approval" },
+        { approvalStatus: "pending" },
+        { stage: null },
+        { approvalStatus: null },
+      ],
     };
   } else if (status?.toLowerCase() == "approved") {
     statusToFind = {
@@ -32,9 +39,9 @@ export const getTransports = async (req, res) => {
     };
   }
   try {
-    const resp = await TransportModel.find(statusToFind).populate(
-      tansportPopulateOptions
-    );
+    const resp = await TransportModel.find(statusToFind)
+      .populate(tansportPopulateOptions)
+      .sort({ createdAt: -1 });
 
     return res.send(successRes(200, "Get Transports", { data: resp }));
   } catch (error) {
@@ -69,6 +76,28 @@ export const addTransport = async (req, res) => {
     const resp2 = await TransportModel.findById(resp._id).populate(
       tansportPopulateOptions
     );
+    const allwoed = [
+      "ev15-deepak-karki",
+      "ev89-narayan-jha",
+      "ev88-pavan-ale",
+      "ev0001-ricki-thomas",
+    ];
+
+    const foundTLPlayerId = await oneSignalModel.find({
+      docId: { $in: allwoed },
+      role: "employee",
+    });
+
+    if (foundTLPlayerId.length > 0) {
+      console.log(foundTLPlayerId);
+      const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+      await sendNotificationWithInfo({
+        playerIds: getPlayerIds,
+        title: "Transport request recieved by!",
+        message: `request by ${manager}`,
+      });
+    }
 
     return res.send(successRes(200, "Added Transport", { data: resp2 }));
   } catch (error) {
