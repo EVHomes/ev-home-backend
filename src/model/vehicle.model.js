@@ -19,7 +19,6 @@ export const vehicleSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
-
   driverLastName: {
     type: String,
     default: null,
@@ -32,10 +31,10 @@ export const vehicleSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
-  status:{
-    type:Boolean,
-    default:null
-  }
+  status: {
+    type: Boolean,
+    default: null,
+  },
 });
 
 // Create the model

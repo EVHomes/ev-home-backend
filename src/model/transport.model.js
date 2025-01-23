@@ -4,7 +4,7 @@ const transportSchema = new mongoose.Schema(
   {
     vehicle: {
       type: mongoose.Schema.Types.ObjectId,
-      // ref: "vehicles",
+      ref: "vehicle",
       default: null,
     },
     clientName: { type: String, default: null },
@@ -25,7 +25,7 @@ const transportSchema = new mongoose.Schema(
       ref: "geofence",
       default: null,
     },
-    status: { type: String, default: "approval" },
+    stage: { type: String, default: "approval" },
     approvalStatus: { type: String, default: "pending" },
     jurneyStatus: { type: String, default: "pending" },
     startDate: { type: Date, default: null },
