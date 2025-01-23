@@ -101,15 +101,6 @@ export const startJourney = async (req, res) => {
     }).populate(tansportPopulateOptions);
     if (!transport) return res.send(errorRes(404, "Transport not found"));
 
-    // const updatedTransport = await TransportModel.findByIdAndUpdate(
-    //   id,
-    //   {
-    //     jurneyStatus: "ontheway",
-    //     isOccupied: true,
-    //   },
-    //   { new: true }
-    // ).populate(tansportPopulateOptions);
-
     await vehicleModel.findByIdAndUpdate(transport.vehicle._id, {
       status: true,
     });

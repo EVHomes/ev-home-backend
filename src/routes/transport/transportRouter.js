@@ -15,7 +15,7 @@ transPortRouter.post(
 
 transPortRouter.get(
   "/get-transport",
-  // authenticateToken,
+  // authenticateTok
   getTransports
 );
 
@@ -30,6 +30,8 @@ transPortRouter.post(
   // authenticateToken,
   completedTransport
 );
-transPortRouter.post("/transport-start-journey/:id",startJourney);
+transPortRouter.post("/transport-start-journey/:id",
+  // authenticateToken,
+  startJourney);
 
 export default transPortRouter;
