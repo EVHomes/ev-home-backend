@@ -14,9 +14,35 @@ import {
   insertDailyAttendance,
   markPendingDailyAttendance,
 } from "./routes/attendance/attendanceRouter.js";
+import { Server } from "socket.io";
+import http from "http";
+
 connectDatabase();
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: "*", // Replace with your Flutter app's origin for better security
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.id}`);
+
+  // Listen for location updates from the driver
+  socket.on("locationUpdate", (data) => {
+    console.log("Location Update:", data);
+    // Broadcast the updated location to other clients
+    socket.broadcast.emit("updateLocation", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log(`User disconnected: ${socket.id}`);
+  });
+});
+
 app.use(hostnameCheck);
 
 app.use(express.json({ limit: "2gb" }));
@@ -62,6 +88,8 @@ cron.schedule("59 23 * * *", async () => {
   await markPendingDailyAttendance();
 });
 
-app.listen(config.PORT, () => console.log("listening on port " + config.PORT));
+server.listen(config.PORT, () =>
+  console.log("listening on port " + config.PORT)
+);
 
 export default app;
