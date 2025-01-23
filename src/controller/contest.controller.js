@@ -4,11 +4,29 @@ import { errorRes, successRes } from "../model/response.js";
 import { encryptPassword } from "../utils/helper.js";
 
 export const getContest = async (req, res) => {
+  let query = req.query.query || "";
+  let event = req.query.event;
+  let statusToFind = {};
+
+  if (event) {
+    statusToFind = {
+      event,
+    };
+  }
+
+  const searchConditions = [
+    { firstName: { $regex: query, $options: "i" } },
+    { lastName: { $regex: query, $options: "i" } },
+  ].filter(Boolean);
+  let filters = {...statusToFind, $or:searchConditions};
+  console.log(filters);
   try {
-    const respDept = await contestModel.find().populate({
-      select: "",
-      path: "event",
-    });
+    const respDept = await contestModel
+      .find(filters)
+      .populate({
+        select: "",
+        path: "event",
+      });
 
     return res.send(
       successRes(200, "Get Contest Applicants", {

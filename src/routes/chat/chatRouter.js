@@ -3,6 +3,8 @@ const chatRouter = Router();
 
 const regexResponses = [
   { pattern: /hello/i, response: "Hi there! How can I assist you today?" },
+  { pattern: /hii/i, response: "Hi there! How can I assist you today?" },
+  { pattern: /hi/i, response: "Hi there! How can I assist you today?" },
   {
     pattern: /help/i,
     response: "I'm here to help! Let me know your questions.",
