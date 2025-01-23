@@ -49,6 +49,21 @@ export const getTransports = async (req, res) => {
   }
 };
 
+export const getTransportById = async (req, res) => {
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(401, `id is required`));
+
+    const resp = await TransportModel.findById(id).populate(
+      tansportPopulateOptions
+    );
+
+    return res.send(successRes(200, "Get Transports", { data: resp }));
+  } catch (error) {
+    return res.send(errorRes(500, `${error}`));
+  }
+};
+
 export const addTransport = async (req, res) => {
   const {
     startDate,
@@ -81,11 +96,12 @@ export const addTransport = async (req, res) => {
       "ev89-narayan-jha",
       "ev88-pavan-ale",
       "ev0001-ricki-thomas",
+      "ev201-aktarul-biswas",
     ];
 
     const foundTLPlayerId = await oneSignalModel.find({
       docId: { $in: allwoed },
-      role: "employee",
+      // role: "employee",
     });
 
     if (foundTLPlayerId.length > 0) {
@@ -96,6 +112,11 @@ export const addTransport = async (req, res) => {
         playerIds: getPlayerIds,
         title: "Transport request recieved by!",
         message: `request by ${manager}`,
+        data: {
+          type: "transport",
+          id: resp._id,
+          role: "approval",
+        },
       });
     }
 
@@ -120,6 +141,25 @@ export const approveTransport = async (req, res) => {
 
     if (status.toLowerCase() === "approved") {
       await vehicleModel.findByIdAndUpdate(resp2.vehicle._id, { status: true });
+    }
+    const foundTLPlayerId = await oneSignalModel.find({
+      docId: { $in: [resp2?.manager?._id, "ev201-aktarul-biswas"] },
+      // role: "employee",
+    });
+
+    if (foundTLPlayerId.length > 0) {
+      console.log(foundTLPlayerId);
+      const getPlayerIds = foundTLPlayerId.map((dt) => dt.playerId);
+
+      await sendNotificationWithInfo({
+        playerIds: getPlayerIds,
+        title: "Transport request recieved by!",
+        message: `request by ${manager}`,
+        data: {
+          type: "transport",
+          id: resp2?._id,
+        },
+      });
     }
 
     return res.send(successRes(200, "Added Transport", { data: resp2 }));
