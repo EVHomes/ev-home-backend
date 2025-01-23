@@ -4,8 +4,37 @@ import vehicleModel from "../model/vehicle.model.js";
 import { tansportPopulateOptions } from "../utils/constant.js";
 
 export const getTransports = async (req, res) => {
+  const status = req.query.status;
+  let statusToFind = {};
+  if (status?.toLowerCase() == "ontheway") {
+    statusToFind = {
+      stage: "ontheway",
+    };
+  } else if (status?.toLowerCase() == "completed") {
+    statusToFind = {
+      stage: "completed",
+    };
+  } else if (status?.toLowerCase() == "approval-pending") {
+    statusToFind = {
+      $or: [{ stage: "approval" }, { approvalStatus: "pending" }],
+    };
+  } else if (status?.toLowerCase() == "approved") {
+    statusToFind = {
+      approvalStatus: "approved",
+    };
+  } else if (status?.toLowerCase() == "rejected") {
+    statusToFind = {
+      approvalStatus: "rejected",
+    };
+  } else if (status?.toLowerCase() == "rejected") {
+    statusToFind = {
+      approvalStatus: "rejected",
+    };
+  }
   try {
-    const resp = await TransportModel.find().populate(tansportPopulateOptions);
+    const resp = await TransportModel.find(statusToFind).populate(
+      tansportPopulateOptions
+    );
 
     return res.send(successRes(200, "Get Transports", { data: resp }));
   } catch (error) {
@@ -98,6 +127,7 @@ export const startJourney = async (req, res) => {
       stage: "ontheway",
       jurneyStatus: "ontheway",
     }).populate(tansportPopulateOptions);
+
     if (!transport) return res.send(errorRes(404, "Transport not found"));
 
     await vehicleModel.findByIdAndUpdate(transport.vehicle._id, {
