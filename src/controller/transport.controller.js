@@ -27,11 +27,11 @@ export const getTransports = async (req, res) => {
     };
   } else if (status?.toLowerCase() == "approved") {
     statusToFind = {
-      approvalStatus: "approved",
+      stage: "approved",
     };
   } else if (status?.toLowerCase() == "rejected") {
     statusToFind = {
-      approvalStatus: "rejected",
+      stage: "rejected",
     };
   } else if (status?.toLowerCase() == "rejected") {
     statusToFind = {
@@ -196,7 +196,6 @@ export const startJourney = async (req, res) => {
       stage: "ontheway",
       jurneyStatus: "ontheway",
     }).populate(tansportPopulateOptions);
-
 
     if (!transport) return res.send(errorRes(404, "Transport not found"));
     await vehicleModel.findByIdAndUpdate(transport.vehicle._id, {
