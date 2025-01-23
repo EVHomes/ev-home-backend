@@ -19,7 +19,8 @@ const transportSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "geofence",
       default: null,
-    },
+    }, 
+    
     destination: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "geofence",

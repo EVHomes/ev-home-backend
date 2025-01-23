@@ -56,7 +56,7 @@ export const approveTransport = async (req, res) => {
 
     // await vehicleModel.findByIdAndUpdate(vehicle, { status: true });
     const resp2 = await TransportModel.findByIdAndUpdate(id, {
-      stage: status.toLowerCase() === "approved" ? "ontheway" : "rejected",
+      stage: status.toLowerCase() === "approved" ? "approved" : "rejected",
       approvalStatus: status,
     }).populate(tansportPopulateOptions);
 
@@ -84,6 +84,41 @@ export const completedTransport = async (req, res) => {
     await vehicleModel.findByIdAndUpdate(resp2.vehicle._id, { status: false });
 
     return res.send(successRes(200, "Added Transport", { data: resp2 }));
+  } catch (error) {
+    return res.send(errorRes(500, `${error}`));
+  }
+};
+
+export const startJourney = async (req, res) => {
+  const { status } = req.body;
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(401, "Transport ID is required"));
+
+    const transport = await TransportModel.findByIdAndUpdate(id, {
+      stage: "ontheway",
+      jurneyStatus: "ontheway",
+    }).populate(tansportPopulateOptions);
+    if (!transport) return res.send(errorRes(404, "Transport not found"));
+
+    // const updatedTransport = await TransportModel.findByIdAndUpdate(
+    //   id,
+    //   {
+    //     jurneyStatus: "ontheway",
+    //     isOccupied: true,
+    //   },
+    //   { new: true }
+    // ).populate(tansportPopulateOptions);
+
+    await vehicleModel.findByIdAndUpdate(transport.vehicle._id, {
+      status: true,
+    });
+
+    return res.send(
+      successRes(200, "Journey started successfully", {
+        data: transport,
+      })
+    );
   } catch (error) {
     return res.send(errorRes(500, `${error}`));
   }

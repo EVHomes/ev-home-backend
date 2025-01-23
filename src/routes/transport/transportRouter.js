@@ -4,6 +4,7 @@ import {
   approveTransport,
   completedTransport,
   getTransports,
+  startJourney,
 } from "../../controller/transport.controller.js";
 const transPortRouter = Router();
 transPortRouter.post(
@@ -29,5 +30,6 @@ transPortRouter.post(
   // authenticateToken,
   completedTransport
 );
+transPortRouter.post("/transport-start-journey/:id",startJourney);
 
 export default transPortRouter;
