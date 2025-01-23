@@ -20,6 +20,7 @@ export const ourProjectsSchema = new mongoose.Schema({
       allInclusiveValue: { type: Number, default: null },
       occupied: { type: Boolean, default: false },
       occupiedBy: { type: String, default: null },
+      buildingNo:{ type:Number, default: 1},
       msp1: { type: Number, default: 0 },
       msp2: { type: Number, default: 0 },
       msp3: { type: Number, default: 0 },

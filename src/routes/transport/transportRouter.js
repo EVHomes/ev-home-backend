@@ -16,7 +16,7 @@ transPortRouter.post(
 
 transPortRouter.get(
   "/get-transport",
-  // authenticateToken,
+  // authenticateTok
   getTransports
 );
 
