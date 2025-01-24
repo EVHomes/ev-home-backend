@@ -1792,6 +1792,7 @@ export const leadUpdateStatus = async (req, res, next) => {
 
     if (status === "booked") {
       foundLead.bookingStatus = "booked";
+      foundLead.stage = "booking";
       foundLead.bookingRef = bookingRef;
       await foundLead.save();
       if (foundLead.channelPartner) {
