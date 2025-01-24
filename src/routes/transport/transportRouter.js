@@ -7,6 +7,7 @@ import {
   getTransports,
   startJourney,
 } from "../../controller/transport.controller.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 const transPortRouter = Router();
 transPortRouter.post(
   "/add-transport",
@@ -28,7 +29,7 @@ transPortRouter.get(
 
 transPortRouter.post(
   "/approve-transport/:id",
-  // auth,
+  authenticateToken,
   approveTransport
 );
 

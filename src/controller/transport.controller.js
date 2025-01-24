@@ -129,6 +129,7 @@ export const addTransport = async (req, res) => {
 export const approveTransport = async (req, res) => {
   const { status } = req.body;
   const id = req.params.id;
+  const user = req?.user;
   try {
     console.log(req.body);
     // if (!id) return res.send(errorRes(401, "id is required"));
@@ -137,6 +138,7 @@ export const approveTransport = async (req, res) => {
     const resp2 = await TransportModel.findByIdAndUpdate(id, {
       stage: status.toLowerCase() === "approved" ? "approved" : "rejected",
       approvalStatus: status,
+      approvalBy: user?._id,
     }).populate(tansportPopulateOptions);
 
     if (status.toLowerCase() === "approved") {
