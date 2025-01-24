@@ -18,7 +18,7 @@ export const getContest = async (req, res) => {
     { firstName: { $regex: query, $options: "i" } },
     { lastName: { $regex: query, $options: "i" } },
   ].filter(Boolean);
-  let filters = {...statusToFind, $or:searchConditions};
+  let filters = { ...statusToFind, $or: searchConditions };
   console.log(filters);
   try {
     const respDept = await contestModel
@@ -26,7 +26,8 @@ export const getContest = async (req, res) => {
       .populate({
         select: "",
         path: "event",
-      });
+      })
+      .sort({ createdAt: -1 });
 
     return res.send(
       successRes(200, "Get Contest Applicants", {
