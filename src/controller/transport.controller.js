@@ -153,7 +153,7 @@ export const approveTransport = async (req, res) => {
 
       await sendNotificationWithInfo({
         playerIds: getPlayerIds,
-        title: "Transport request recieved by!",
+        title: `Transport request ${status}`,
         message: `request by ${resp2?.manager?._id}`,
         data: {
           type: "transport",
