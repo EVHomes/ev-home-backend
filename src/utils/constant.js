@@ -944,6 +944,18 @@ export const tansportPopulateOptions = [
       },
     ],
   },
+  {
+    path: "approvalBy",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
 ];
 
 export const visitNotificationImage =
