@@ -3025,11 +3025,11 @@ export const addLead = async (req, res, next) => {
         startDate: { $gte: startOfToday, $lt: endOfToday },
       });
 
-      if (todayLeadsCount >= 25) {
-        return res.send(
-          errorRes(409, `You cannot share more than 25 leads in 1 day.`)
-        );
-      }
+     // if (todayLeadsCount >= 25) {
+        //return res.send(
+         // errorRes(409, `You cannot share more than 25 leads in 1 day.`)
+       // );
+   //   }
 
       const existingLeadForCP = await leadModel.findOne({
         phoneNumber: phoneNumber,
