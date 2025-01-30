@@ -43,7 +43,7 @@ import testimonialRouter from "./testimonial/testimonialRouter.js";
 import vehicleRouter from "./vehicle/vehicleRouter.js";
 import chatRespRouter from "./chatResponse/chatResponseRouter.js";
 import transPortRouter from "./transport/transportRouter.js";
-
+import leaveRequestRouter from "./leaveRequest/leaveRequestRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -118,6 +118,6 @@ router.use(testimonialRouter);
 router.use(vehicleRouter);
 router.use(chatRespRouter);
 router.use(transPortRouter);
-
+router.use(leaveRequestRouter);
 
 export default router;
