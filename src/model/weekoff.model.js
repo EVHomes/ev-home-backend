@@ -6,6 +6,10 @@ weekoffDate:{
     type: Date,
     required:true,
 },
+appliedOn:{
+  type:Date,
+  required:true,
+},
 reason:{
     type: String,
     required:true,

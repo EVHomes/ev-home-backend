@@ -40,6 +40,7 @@ import geoRouter from "./geofence/geofenceRouter.js";
 import feedbackEnquiryRouter from "./feedbackEnquiry/feedbackEnquiryRouter.js"
 import eventRouter from "./event/eventRouter.js";
 import testimonialRouter from "./testimonial/testimonialRouter.js";
+import leaveRequestRouter from "./leaveRequest/leaveRequestRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -106,6 +107,7 @@ router.use(appUpdateRouter);
 router.use(auditSectionRouter);
 router.use(shiftRouter);
 router.use(weekoffRouter);
+router.use(leaveRequestRouter);
 router.use(faceIdRouter);
 router.use(geoRouter);
 router.use(feedbackEnquiryRouter);

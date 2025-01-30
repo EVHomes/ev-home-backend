@@ -3,7 +3,7 @@ import { errorRes, successRes } from "../model/response.js";
 import weekoffModel from "../model/weekoff.model.js";
 
 export const addweekoff = async (req, res, next) => {
-  const { weekoffDate, reason, aprovereason, weekoffstatus, reportingto, applyby } = req.body;
+  const { appliedOn,weekoffDate, reason, aprovereason, weekoffstatus, reportingto, applyby } = req.body;
 
   try {
     if (!weekoffDate) return res.status(401).send(errorRes(401, "Week Off Date is required"));
@@ -19,6 +19,7 @@ export const addweekoff = async (req, res, next) => {
 
     
     const newWeekOff = await weekoffModel.create({
+      appliedOn,
       weekoffDate,
       reason,
       aprovereason: aprovereason || "pending", 
