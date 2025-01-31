@@ -12,5 +12,5 @@ const weekoffRouter = Router();
 weekoffRouter.post("/add-weekoff", addweekoff);
 weekoffRouter.get("/get-weekoff", getWeekOffs);
 weekoffRouter.get("/get-weekoff/:id", getWeekOffById);
-weekoffRouter.put("/weekoff/:id", updateWeekOffStatus);
+weekoffRouter.post("/weekoff/:id", updateWeekOffStatus);
 export default weekoffRouter;

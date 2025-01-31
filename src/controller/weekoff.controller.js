@@ -133,7 +133,7 @@ export const updateWeekOffStatus = async (req, res) => {
     if (weekoffstatus?.toLowerCase() === "approved") {
       let currentDate = moment(weekoff.weekoffDate);
       try {
-        await attendanceModel.insert({
+        await attendanceModel.create({
           day: currentDate.date(),
           month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
           year: currentDate.year(),
@@ -141,6 +141,7 @@ export const updateWeekOffStatus = async (req, res) => {
           userId: weekoff.applyby,
         });
       } catch (error) {
+        console.log(error);
         console.log("failed to insert weekoff");
       }
     }
