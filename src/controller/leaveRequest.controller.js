@@ -1,6 +1,8 @@
 import leaveRequestModel from "../model/leaveRequest.model.js";
 import employeeModel from "../model/employee.model.js";
 import { errorRes, successRes } from "../model/response.js";
+import moment from "moment-timezone";
+import attendanceModel from "../model/attendance.model.js";
 
 export const getLeave = async (req, res, next) => {
   const { applicant, reportingTo, leaveStatus } = req.query;
@@ -112,6 +114,27 @@ export const updateLeaveStatus = async (req, res) => {
     leave.approveReason = approveReason || "No reason provided";
 
     await leave.save();
+    if (leaveStatus?.toLowerCase() === "approved") {
+      const dates = [];
+      let currentDate = moment(leave.startDate);
+
+      while (currentDate <= moment(leave.endDate)) {
+        dates.push({
+          day: currentDate.date(),
+          month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
+          year: currentDate.year(),
+          status: "on-leave",
+          userId: leave.applicant,
+        });
+        currentDate.add(1, "days");
+      }
+      console.log(dates);
+      try {
+        await attendanceModel.insertMany(dates);
+      } catch (error) {
+        console.log("failed to insert leaves");
+      }
+    }
 
     return res.status(200).send({
       success: true,
