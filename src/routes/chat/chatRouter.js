@@ -26,4 +26,6 @@ chatRouter.post("/chat", (req, res) => {
   res.json({ reply: response });
 });
 
+
+
 export default chatRouter;
