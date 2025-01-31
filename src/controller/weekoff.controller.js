@@ -1,6 +1,8 @@
+import attendanceModel from "../model/attendance.model.js";
 import employeeModel from "../model/employee.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import weekoffModel from "../model/weekoff.model.js";
+import moment from "moment-timezone";
 
 export const addweekoff = async (req, res, next) => {
   const {
@@ -128,6 +130,27 @@ export const updateWeekOffStatus = async (req, res) => {
     weekoff.aprovereason = aprovereason || "No reason provided";
 
     await weekoff.save();
+    if (weekoffstatus?.toLowerCase() === "approved") {
+      const dates = [];
+      let currentDate = moment(weekoff.startDate);
+
+      while (currentDate <= moment(weekoff.endDate)) {
+        dates.push({
+          day: currentDate.date(),
+          month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
+          year: currentDate.year(),
+          status: "weekoff",
+          userId: weekoff.applicant,
+        });
+        currentDate.add(1, "days");
+      }
+      console.log(dates);
+      try {
+        await attendanceModel.insertMany(dates);
+      } catch (error) {
+        console.log("failed to insert leaves");
+      }
+    }
 
     return res.status(200).send({
       success: true,
