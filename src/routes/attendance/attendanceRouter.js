@@ -440,6 +440,7 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
           },
           days: Array(daysInMonth).fill("A"), // Default all days to "Absent"
           present: 0,
+          onleave: 0,
           absent: daysInMonth, // Default all days as absent initially
         };
       }
@@ -459,6 +460,17 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
         //   .tz(timeZone)
         //   .format("DD-MM-YYYY HH:mm")}`; // Mark as present
         usersAttendance[user._id].present += 1;
+      } else if (record.status === "weekoff") {
+        if (usersAttendance[user._id].days[dayIndex] === "A") {
+          usersAttendance[user._id].absent -= 1; // Reduce absent count
+        }
+        usersAttendance[user._id].days[dayIndex] = `WO`; // Mark as present
+      } else if (record.status === "on-leave") {
+        if (usersAttendance[user._id].days[dayIndex] === "A") {
+          usersAttendance[user._id].absent -= 1; // Reduce absent count
+          usersAttendance[user._id].onleave += 1; // Reduce absent count
+        }
+        usersAttendance[user._id].days[dayIndex] = `L`; // Mark as present
       }
     }
 
@@ -475,7 +487,12 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
     for (let i = 1; i <= daysInMonth; i++) {
       headerRow.push(`${i}`); // Dynamically create headers for total days in the month
     }
-    headerRow.push("Total Present Days", "Total Absent Days", "Payable Days");
+    headerRow.push(
+      "Total Present Days",
+      "Total Absent Days",
+      "Total Leaves Taken",
+      "Payable Days"
+    );
 
     // Prepare data rows for Excel
     const excelData = [headerRow];
@@ -501,6 +518,7 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
         ...attendance.days,
         attendance.present,
         attendance.absent,
+        attendance.onleave,
         attendance.present,
       ];
       excelData.push(row);
