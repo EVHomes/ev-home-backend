@@ -459,6 +459,7 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
         //   .format("DD-MM-YYYY HH:mm")}/${moment(record.checkOutTime)
         //   .tz(timeZone)
         //   .format("DD-MM-YYYY HH:mm")}`; // Mark as present
+
         usersAttendance[user._id].present += 1;
       } else if (record.status === "weekoff") {
         if (usersAttendance[user._id].days[dayIndex] === "A") {
