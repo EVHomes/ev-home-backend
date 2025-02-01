@@ -6,16 +6,20 @@ export const leaveRequestSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
-        "Compensatory Off",
-        "Paid Leave",
-        "Unpaid Leave",
-        "Sick Leave",
-        "Casual Leave",
+        "compensatory_off",
+        "paid_leave",
+        "unpaid_leave",
+        "sick_leave",
+        "casual_leave",
       ],
     },
     appliedOn: {
       type: Date,
       required: true,
+    },
+    approveOn: {
+      type: Date,
+      default: null,
     },
     startDate: {
       type: Date,
@@ -26,27 +30,32 @@ export const leaveRequestSchema = new mongoose.Schema(
       required: true,
     },
     numberOfDays: {
-      type: String,
+      type: Number,
       required: true,
     },
-    reason: {
+    leaveReason: {
       type: String,
       required: true,
     },
     approveReason: {
       type: String,
-      default: "Pending",
+      default: null,
     },
     leaveStatus: {
       type: String,
       required: true,
-      enum: ["Pending", "Approved", "Rejected"],
-      default: "Pending",
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
     },
     applicant: {
       type: String,
       ref: "employees",
       required: true,
+    },
+    approveBy: {
+      type: String,
+      ref: "employees",
+      default: null,
     },
     reportingTo: {
       type: String,

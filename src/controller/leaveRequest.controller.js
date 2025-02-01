@@ -3,6 +3,7 @@ import employeeModel from "../model/employee.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import moment from "moment-timezone";
 import attendanceModel from "../model/attendance.model.js";
+import { leaveRequestPopulateOptions } from "../utils/constant.js";
 
 export const getLeave = async (req, res, next) => {
   const { applicant, reportingTo, leaveStatus } = req.query;
@@ -35,6 +36,26 @@ export const getLeave = async (req, res, next) => {
   }
 };
 
+export const getMyLeave = async (req, res, next) => {
+  // const { applicant, reportingTo, leaveStatus } = req.query;
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(401, "id is required"));
+
+    const resp = await leaveRequestModel
+      .find({ applicant: id })
+      .populate(leaveRequestPopulateOptions)
+      .sort({
+        appliedOn: -1,
+      });
+
+    return res.send(successRes(200, "Leave records retrieved", { data: resp }));
+  } catch (error) {
+    console.error("Error retrieving leave requests:", error);
+    return res.send(errorRes(500, "Internal Server Error"));
+  }
+};
+
 export const addLeave = async (req, res, next) => {
   const {
     leaveType,
@@ -59,27 +80,19 @@ export const addLeave = async (req, res, next) => {
       return res.status(401).send(errorRes(401, "Reason is required"));
 
     const applybyEmployee = await employeeModel.findById(applicant);
+
     if (!applybyEmployee)
       return res.status(404).send(errorRes(404, "Apply By employee not found"));
 
     const reportingToEmployee = await employeeModel.findById(reportingTo);
+
     if (!reportingToEmployee)
       return res
         .status(404)
         .send(errorRes(404, "Reporting To employee not found"));
 
     const newLeaveRequest = await leaveRequestModel.create({
-      leaveType,
-      appliedOn,
-      startDate,
-      endDate,
-      numberOfDays,
-      reason,
-      approveReason: approveReason || "pending",
-      leaveStatus: leaveStatus || "pending",
-      applicant: applybyEmployee._id,
-      reportingTo: reportingToEmployee._id,
-      attachedFile,
+      ...req.body,
     });
 
     return res.status(200).send(
