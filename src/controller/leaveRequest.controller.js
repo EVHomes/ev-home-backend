@@ -36,6 +36,25 @@ export const getLeave = async (req, res, next) => {
   }
 };
 
+export const getApplyLeave = async (req, res, next) => {
+  const id = req.params.id;
+  try {
+    if (!id) return res.send(errorRes(401, "id is required"));
+
+    const resp = await leaveRequestModel
+      .find({ reportingTo: id })
+      .populate(leaveRequestPopulateOptions)
+      .sort({
+        appliedOn: -1,
+      });
+
+    return res.send(successRes(200, "Leave records retrieved", { data: resp }));
+  } catch (error) {
+    console.error("Error retrieving leave requests:", error);
+    return res.send(errorRes(500, "Internal Server Error"));
+  }
+};
+
 export const getMyLeave = async (req, res, next) => {
   // const { applicant, reportingTo, leaveStatus } = req.query;
   const id = req.params.id;
@@ -141,7 +160,7 @@ export const updateLeaveStatus = async (req, res) => {
         });
         currentDate.add(1, "days");
       }
-      console.log(dates);
+      // console.log(dates);
       try {
         await attendanceModel.insertMany(dates);
       } catch (error) {

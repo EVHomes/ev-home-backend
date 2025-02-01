@@ -12,20 +12,20 @@ export const weekoffSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  aprovereason: {
+  aproveReason: {
     type: String,
     default: "pending",
   },
-  weekoffstatus: {
+  weekoffStatus: {
     type: String,
     default: "pending",
   },
-  applyby: {
+  applyBy: {
     type: String,
     ref: "employees",
     default: null,
   },
-  reportingto: {
+  reportingTo: {
     type: String,
     ref: "employees",
     default: null,
