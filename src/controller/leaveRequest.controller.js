@@ -82,7 +82,7 @@ export const addLeave = async (req, res, next) => {
     startDate,
     endDate,
     numberOfDays,
-    reason,
+    leaveReason,
     approveReason,
     leaveStatus,
     reportingTo,
@@ -95,7 +95,7 @@ export const addLeave = async (req, res, next) => {
       return res.status(401).send(errorRes(401, "Start Date is required"));
     if (!endDate)
       return res.status(401).send(errorRes(401, "End Date is required"));
-    if (!reason)
+    if (!leaveReason)
       return res.status(401).send(errorRes(401, "Reason is required"));
 
     const applybyEmployee = await employeeModel.findById(applicant);
