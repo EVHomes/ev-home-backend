@@ -3,6 +3,7 @@ import {
   addPayment,
   getPayment,
   getPaymentbyFlat,
+  updateCheckDates,
 } from "../../controller/payment.controller.js";
 import { fileURLToPath } from "url";
 import fs from "fs";
@@ -14,6 +15,7 @@ const __dirname = path.dirname(__filename);
 const paymentRouter = Router();
 paymentRouter.get("/payment", getPayment);
 paymentRouter.post("/payment-add", addPayment);
+paymentRouter.post("/update-cheque-date/:id", updateCheckDates);
 paymentRouter.get("/get-payment-by-flat", getPaymentbyFlat);
 function extractNumber(str) {
   // Match the first sequence of digits in the string
