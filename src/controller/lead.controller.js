@@ -2922,7 +2922,8 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     });
 
     const visitedCount = await leadModel.countDocuments({
-      $or:[{visitStatus: "visited",},{visitStatus: "virtual-meeting",}],
+      revisitStatus: { $ne: null, $eq: "pending" },
+      $or: [{ visitStatus: "visited" }, { visitStatus: "virtual-meeting" }],
       stage: { $ne: "tagging-over" },
       leadType: { $ne: "walk-in" },
       channelPartner: id,
