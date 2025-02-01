@@ -70,8 +70,86 @@ export const getWeekOffs = async (req, res, next) => {
     }
     const weekoffs = await weekoffModel
       .find(query)
-      .populate("applyby", "firstName lastName")
-      .populate("reportingto", "firstName lastName");
+      .populate("applyBy", "firstName lastName")
+      .populate("reportingTo", "firstName lastName");
+
+    if (weekoffs.length === 0) {
+      return res.status(404).send(errorRes(404, "No Week Off records found"));
+    }
+
+    return res
+      .status(200)
+      .send(successRes(200, "Week Off records retrieved", { data: weekoffs }));
+  } catch (error) {
+    console.error("Error retrieving week offs:", error);
+    return res.status(500).send(errorRes(500, "Internal Server Error"));
+  }
+};
+
+export const getMyWeekOffs = async (req, res, next) => {
+  const { applyby, reportingto, weekoffstatus } = req.query;
+
+  const id = req.params.id;
+  try {
+    if (!id) return res.status(401).send(errorRes(401, "weekoff id required"));
+    // const query = {};
+
+    // if (applyby) {
+    //   query.applyby = applyby;
+    // }
+
+    // if (reportingto) {
+    //   query.reportingto = reportingto;
+    // }
+
+    // if (weekoffstatus) {
+    //   query.weekoffstatus = weekoffstatus;
+    // }
+    const weekoffs = await weekoffModel
+      .find({
+        applyBy: id,
+      })
+      .populate("applyBy", "firstName lastName")
+      .populate("reportingTo", "firstName lastName");
+
+    if (weekoffs.length === 0) {
+      return res.status(404).send(errorRes(404, "No Week Off records found"));
+    }
+
+    return res
+      .status(200)
+      .send(successRes(200, "Week Off records retrieved", { data: weekoffs }));
+  } catch (error) {
+    console.error("Error retrieving week offs:", error);
+    return res.status(500).send(errorRes(500, "Internal Server Error"));
+  }
+};
+
+export const getReportingToWeekOffs = async (req, res, next) => {
+  const { applyby, reportingto, weekoffstatus } = req.query;
+
+  const id = req.params.id;
+  try {
+    if (!id) return res.status(401).send(errorRes(401, "weekoff id required"));
+    // const query = {};
+
+    // if (applyby) {
+    //   query.applyby = applyby;
+    // }
+
+    // if (reportingto) {
+    //   query.reportingto = reportingto;
+    // }
+
+    // if (weekoffstatus) {
+    //   query.weekoffstatus = weekoffstatus;
+    // }
+    const weekoffs = await weekoffModel
+      .find({
+        reportingTo: id,
+      })
+      .populate("applyBy", "firstName lastName")
+      .populate("reportingTo", "firstName lastName");
 
     if (weekoffs.length === 0) {
       return res.status(404).send(errorRes(404, "No Week Off records found"));
@@ -108,10 +186,10 @@ export const getWeekOffById = async (req, res, next) => {
 
 export const updateWeekOffStatus = async (req, res) => {
   const { id } = req.params; // WeekOff request ID
-  const { weekoffstatus, aprovereason } = req.body;
+  const { weekoffStatus, aproveReason } = req.body;
 
   try {
-    if (!weekoffstatus) {
+    if (!weekoffStatus) {
       return res.status(400).send({
         success: false,
         message: "Week Off status is required",
@@ -126,11 +204,11 @@ export const updateWeekOffStatus = async (req, res) => {
       });
     }
 
-    weekoff.weekoffstatus = weekoffstatus;
-    weekoff.aprovereason = aprovereason || "No reason provided";
+    weekoff.weekoffStatus = weekoffStatus;
+    weekoff.aproveReason = aproveReason || "No reason provided";
 
     await weekoff.save();
-    if (weekoffstatus?.toLowerCase() === "approved") {
+    if (weekoffStatus?.toLowerCase() === "approved") {
       let currentDate = moment(weekoff.weekoffDate);
       try {
         await attendanceModel.create({
@@ -138,7 +216,7 @@ export const updateWeekOffStatus = async (req, res) => {
           month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
           year: currentDate.year(),
           status: "weekoff",
-          userId: weekoff.applyby,
+          userId: weekoff.applyBy,
         });
       } catch (error) {
         console.log(error);
