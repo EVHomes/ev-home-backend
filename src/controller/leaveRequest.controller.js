@@ -160,7 +160,7 @@ export const updateLeaveStatus = async (req, res) => {
         });
         currentDate.add(1, "days");
       }
-      // console.log(dates);
+      console.log(dates);
       try {
         await attendanceModel.insertMany(dates);
       } catch (error) {
@@ -168,11 +168,11 @@ export const updateLeaveStatus = async (req, res) => {
       }
     }
 
-    return res.status(200).send({
-      success: true,
-      message: "Leave Status updated successfully",
-      data: leave,
-    });
+    return res
+      .status(200)
+      .send(
+        successRes(200, "Leave Status updated successfully", { data: leave })
+      );
   } catch (error) {
     console.error("Error updating Leave Status :", error);
     return res.status(500).send({
