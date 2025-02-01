@@ -9,10 +9,10 @@ export const addweekoff = async (req, res, next) => {
     appliedOn,
     weekoffDate,
     reason,
-    aprovereason,
-    weekoffstatus,
-    reportingto,
-    applyby,
+    aproveReason,
+    weekoffStatus,
+    reportingTo,
+    applyBy,
   } = req.body;
 
   try {
@@ -21,24 +21,20 @@ export const addweekoff = async (req, res, next) => {
     if (!reason)
       return res.status(401).send(errorRes(401, "Reason is required"));
 
-    const applybyEmployee = await employeeModel.findById(applyby);
+    const applybyEmployee = await employeeModel.findById(applyBy);
     if (!applybyEmployee)
       return res.status(404).send(errorRes(404, "Apply By employee not found"));
 
-    const reportingToEmployee = await employeeModel.findById(reportingto);
+    const reportingToEmployee = await employeeModel.findById(reportingTo);
     if (!reportingToEmployee)
       return res
         .status(404)
         .send(errorRes(404, "Reporting To employee not found"));
 
     const newWeekOff = await weekoffModel.create({
-      appliedOn,
-      weekoffDate,
-      reason,
-      aprovereason: aprovereason || "pending",
-      weekoffstatus: weekoffstatus || "pending",
-      applyby,
-      reportingto,
+      ...req.body,
+      aproveReason: aproveReason || "pending",
+      weekoffStatus: weekoffStatus || "pending",
     });
 
     return res.status(200).send(
@@ -224,11 +220,13 @@ export const updateWeekOffStatus = async (req, res) => {
       }
     }
 
-    return res.status(200).send({
-      success: true,
-      message: "Week Off status updated successfully",
-      data: weekoff,
-    });
+    return res
+      .status(200)
+      .send(
+        successRes(200, "Week Off status updated successfully", {
+          data: weekoff,
+        })
+      );
   } catch (error) {
     console.error("Error updating Week Off status:", error);
     return res.status(500).send({
