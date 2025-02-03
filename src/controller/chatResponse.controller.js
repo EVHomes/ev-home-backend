@@ -39,27 +39,45 @@ export const getDetails = async (req, res) => {
 
     if (message.includes("Ask about projects")) {
       // Fetch projects from the database
-      let opt={};
+      let opt = {};
       const projects = await ourProjectModel.find({}, { name: 1, _id: 1 }); // Include _id to get the project ID
       console.log(projects);
 
       // Map the projects to include both name and id in the desired format
-      const projectOptions = projects.map(project => ({
-        message:project.name,
-        response:{
+      const projectOptions = projects.map((project) => ({
+        message: project.name,
+        response: {
           id: project._id, // Use _id as the project ID and convert to string
           message: "Checkout", // Project name
-          type: "project" // Set the type to "project"
-        }
+          type: "project", // Set the type to "project"
+        },
       }));
       opt.isBot = true;
       opt.message = "We have several exciting projects. Which one would you like to know more about?";
-      opt.options= projectOptions;
+      opt.options = projectOptions;
 
       // Return the response with options inside data
-      return res.send(successRes(200, "List of projects", { 
-        data: opt
-      }));
+      return res.send(successRes(200, "List of projects", { data: opt }));
+    } else if (message.includes("Talk to a human")) {
+      // Handle "Talk to a human" case
+      const humanResponse = {
+        isBot: true,
+        message: "Here is our Representative",
+        options: [
+          {
+            type: "human-call",
+            phoneNumber: "+91 8097192777", // Pawan
+            message: "Call",
+          },
+          {
+            type: "human-whatsapp",
+            phoneNumber: "+91 9819066777", // Narayan
+            message: "Whatsapp",
+          },
+        ],
+      };
+
+      return res.send(successRes(200, "Human representative options", { data: humanResponse }));
     } else {
       return res.send(successRes(200, "Default response", { data: "Your query did not match any specific action." }));
     }
