@@ -60,8 +60,8 @@ export const validateRequiredLeadsFields = (body) => {
     "lastName",
     "phoneNumber",
     "address",
-    "project",
-    "requirement",
+    // "project",
+    // "requirement",
   ];
   for (let field of requiredFields) {
     if (!body[field]) {
