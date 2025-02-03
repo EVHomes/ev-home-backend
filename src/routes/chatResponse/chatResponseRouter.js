@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   addChatOptions,
   getDefaultOptionChatOptions,
+  getDetails
 } from "../../controller/chatResponse.controller.js";
 const chatRespRouter = Router();
 chatRespRouter.post(
@@ -15,5 +16,7 @@ chatRespRouter.get(
   // authenticateToken,
   getDefaultOptionChatOptions
 );
+
+chatRespRouter.get("/get-project-details",getDetails);
 
 export default chatRespRouter;
