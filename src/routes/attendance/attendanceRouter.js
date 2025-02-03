@@ -149,8 +149,34 @@ attendanceRouter.get("/get-check-in-by-date", async (req, res) => {
       (ele) => ele.status === "on-leave"
     );
 
-    const lateComersList = [];
-    const earlyLeaversList = [];
+    const lateComersList = presentList.filter((ele) => {
+      const checkInTime = new Date(ele.checkInTime);
+      const lateThreshold = new Date();
+      lateThreshold.setHours(11, 20, 0); // Set threshold to 11:20 AM
+
+      return checkInTime > lateThreshold;
+    });
+
+      // Initialize early leavers list
+      const earlyLeaversList = presentList.filter((ele) => {
+        const checkOutTime = new Date(ele.checkOutTime);
+        const checkInTime = new Date(ele.checkInTime);
+        const totalShiftHours = (checkOutTime - checkInTime) / (1000 * 60 * 60); 
+  
+        const designation = ele.userId?.designation._id; 
+  
+        // Define conditions for early leavers
+        if (
+          (["desg-senior-closing-manager", "desg-sales-executive", "desg-site-head", "desg-data-analyzer", "desg-floor-manager", "desg-front-desk-executive","desg-senior-sales-manager","desg-sales-manager"].includes(designation) &&
+            (checkOutTime.getHours() < 21 || totalShiftHours <= 10)) || // Check for 9 PM and 10 hours shift
+          (["desg-app-developer", "desg-video-editor"].includes(designation) &&
+            (checkOutTime.getHours() < 19 || totalShiftHours <= 8)) // Check for 7 PM and 8 hours shift
+        ) {
+          return true; 
+        }
+  
+        return false; 
+      });
 
     return res.send(
       successRes(200, "Attendance List", {
