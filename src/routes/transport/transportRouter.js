@@ -3,9 +3,11 @@ import {
   addTransport,
   approveTransport,
   completedTransport,
+  getTransportById,
   getTransports,
   startJourney,
 } from "../../controller/transport.controller.js";
+import { authenticateToken } from "../../middleware/auth.middleware.js";
 const transPortRouter = Router();
 transPortRouter.post(
   "/add-transport",
@@ -19,9 +21,15 @@ transPortRouter.get(
   getTransports
 );
 
+transPortRouter.get(
+  "/get-transport-by-id/:id",
+  // authenticateToken,
+  getTransportById
+);
+
 transPortRouter.post(
   "/approve-transport/:id",
-  // auth,
+  authenticateToken,
   approveTransport
 );
 
@@ -30,8 +38,6 @@ transPortRouter.post(
   // authenticateToken,
   completedTransport
 );
-transPortRouter.post("/transport-start-journey/:id",
-  // authenticateToken,
-  startJourney);
+transPortRouter.post("/transport-start-journey/:id", startJourney);
 
 export default transPortRouter;

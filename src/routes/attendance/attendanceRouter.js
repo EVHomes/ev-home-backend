@@ -24,7 +24,8 @@ const calculateSeconds = (start, end) => {
 // Check-In Endpoint
 attendanceRouter.post("/check-in", async (req, res) => {
   try {
-    const { userId, checkInLatitude, checkInLongitude, checkInPhoto } = req.body;
+    const { userId, checkInLatitude, checkInLongitude, checkInPhoto } =
+      req.body;
 
     // Validate required fields
     if (!userId || !checkInLatitude || !checkInLongitude || !checkInPhoto) {
@@ -137,10 +138,16 @@ attendanceRouter.get("/get-check-in-by-date", async (req, res) => {
     const presentList = existingAttendance.filter(
       (ele) => ele.status === "active" || ele.status === "present"
     );
-    const absentList = existingAttendance.filter((ele) => ele.status === "absent");
-    const weekOffList = existingAttendance.filter((ele) => ele.status === "weekoff");
+    const absentList = existingAttendance.filter(
+      (ele) => ele.status === "absent"
+    );
+    const weekOffList = existingAttendance.filter(
+      (ele) => ele.status === "weekoff"
+    );
 
-    const onLeaveList = existingAttendance.filter((ele) => ele.status === "on-leave");
+    const onLeaveList = existingAttendance.filter(
+      (ele) => ele.status === "on-leave"
+    );
 
     const lateComersList = [];
     const earlyLeaversList = [];
@@ -194,7 +201,9 @@ attendanceRouter.post("/break-start", async (req, res) => {
     attendance.breakStartTime = now;
     await attendance.save();
 
-    return res.send(successRes(200, "Break started successfully", { data: attendance }));
+    return res.send(
+      successRes(200, "Break started successfully", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -225,7 +234,9 @@ attendanceRouter.post("/break-end", async (req, res) => {
     attendance.breakStartTime = null;
     await attendance.save();
 
-    return res.send(successRes(200, "Break ended successfully", { data: attendance }));
+    return res.send(
+      successRes(200, "Break ended successfully", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -235,7 +246,8 @@ attendanceRouter.post("/break-end", async (req, res) => {
 // Check-Out Endpoint
 attendanceRouter.post("/check-out", async (req, res) => {
   try {
-    const { userId, checkOutLatitude, checkOutLongitude, checkOutPhoto } = req.body;
+    const { userId, checkOutLatitude, checkOutLongitude, checkOutPhoto } =
+      req.body;
 
     const now = new Date();
     const attendance = await attendanceModel
@@ -256,7 +268,8 @@ attendanceRouter.post("/check-out", async (req, res) => {
     }
 
     const activeDuration =
-      calculateSeconds(attendance.checkInTime, now) - attendance.totalBreakSeconds;
+      calculateSeconds(attendance.checkInTime, now) -
+      attendance.totalBreakSeconds;
     attendance.checkOutTime = now;
     attendance.checkOutLatitude = checkOutLatitude;
     attendance.checkOutLongitude = checkOutLongitude;
@@ -271,7 +284,9 @@ attendanceRouter.post("/check-out", async (req, res) => {
       attendance.status = "present";
     }
     await attendance.save();
-    return res.send(successRes(200, "Check-out successful", { data: attendance }));
+    return res.send(
+      successRes(200, "Check-out successful", { data: attendance })
+    );
   } catch (error) {
     console.error(error);
     return res.send(errorRes(500, "Internal Server Error"));
@@ -420,9 +435,12 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
             division: user.division,
             department: user.department,
             employeeId: user.employeeId,
+            checkInTime: record.checkInTime,
+            checkOutTime: record.checkOutTime,
           },
           days: Array(daysInMonth).fill("A"), // Default all days to "Absent"
           present: 0,
+          onleave: 0,
           absent: daysInMonth, // Default all days as absent initially
         };
       }
@@ -432,8 +450,28 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
         if (usersAttendance[user._id].days[dayIndex] === "A") {
           usersAttendance[user._id].absent -= 1; // Reduce absent count
         }
-        usersAttendance[user._id].days[dayIndex] = "P"; // Mark as present
+        usersAttendance[user._id].days[dayIndex] = `P`; // Mark as present
+
+        // usersAttendance[user._id].days[dayIndex] = `P-${moment(
+        //   record.checkInTime
+        // )
+        //   .tz(timeZone)
+        //   .format("DD-MM-YYYY HH:mm")}/${moment(record.checkOutTime)
+        //   .tz(timeZone)
+        //   .format("DD-MM-YYYY HH:mm")}`; // Mark as present
+
         usersAttendance[user._id].present += 1;
+      } else if (record.status === "weekoff") {
+        if (usersAttendance[user._id].days[dayIndex] === "A") {
+          usersAttendance[user._id].absent -= 1; // Reduce absent count
+        }
+        usersAttendance[user._id].days[dayIndex] = `WO`; // Mark as present
+      } else if (record.status === "on-leave") {
+        if (usersAttendance[user._id].days[dayIndex] === "A") {
+          usersAttendance[user._id].absent -= 1; // Reduce absent count
+          usersAttendance[user._id].onleave += 1; // Reduce absent count
+        }
+        usersAttendance[user._id].days[dayIndex] = `L`; // Mark as present
       }
     }
 
@@ -450,7 +488,12 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
     for (let i = 1; i <= daysInMonth; i++) {
       headerRow.push(`${i}`); // Dynamically create headers for total days in the month
     }
-    headerRow.push("Total Present Days", "Total Absent Days", "Payable Days");
+    headerRow.push(
+      "Total Present Days",
+      "Total Absent Days",
+      "Total Leaves Taken",
+      "Payable Days"
+    );
 
     // Prepare data rows for Excel
     const excelData = [headerRow];
@@ -476,6 +519,7 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
         ...attendance.days,
         attendance.present,
         attendance.absent,
+        attendance.onleave,
         attendance.present,
       ];
       excelData.push(row);

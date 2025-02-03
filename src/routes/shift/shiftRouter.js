@@ -17,11 +17,14 @@ shiftRouter.get("/shifts", getShifts);
 shiftRouter.post("/add-shift", addShift);
 shiftRouter.get("/shift/:id", getShiftById);
 shiftRouter.delete("/shift/:id", deleteShiftById);
-shiftRouter.put("/shift-update/:id", editShift);
+shiftRouter.post("/shift-update/:id", editShift);
 shiftRouter.post("/assign-employees-to-shift", assignShift);
 
-shiftRouter.get("/shift/:shiftId/employees", getAssignedEmployees); 
-shiftRouter.post("/shift/:shiftId/add-employees", addEmployeesToShift); 
-shiftRouter.delete("/shift/:shiftId/remove-employee/:employeeId", removeEmployeeFromShift); 
+shiftRouter.get("/shift/:shiftId/employees", getAssignedEmployees);
+shiftRouter.post("/shift/:shiftId/add-employees", addEmployeesToShift);
+shiftRouter.delete(
+  "/shift/:shiftId/remove-employee/:employeeId",
+  removeEmployeeFromShift
+);
 
 export default shiftRouter;

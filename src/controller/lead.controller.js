@@ -67,7 +67,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     let callData = req.query.callData;
     let order = req.query.order;
     let sortDirection = -1;
-    const interval = req.query.interval ; 
+    const interval = req.query.interval;
     const currentDate = new Date();
     let startDate, endDate;
     // let callDone =req.query.callDone;
@@ -118,7 +118,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     //   };
     // }
 
-  
     if (status === "booking-done" || status === "booking") {
       statusToFind = {
         stage: "booking",
@@ -313,33 +312,35 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       sortDirection = -1;
     }
 
-
-
-    
-    if(interval=="monthly") {
-      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-    }
-    else if(interval=="quarterly") {
+    if (interval == "monthly") {
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+    } else if (interval == "quarterly") {
       const quarter = Math.floor(currentDate.getMonth() / 3);
       startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
       endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
-    }else if(interval=="semi-annually"){
+    } else if (interval == "semi-annually") {
       const half = Math.floor(currentDate.getMonth() / 6);
       startDate = new Date(currentDate.getFullYear(), half * 6, 1);
       endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
-    }
-    else if(interval=="annually") {
+    } else if (interval == "annually") {
       startDate = new Date(currentDate.getFullYear(), 0, 1);
       endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
     }
     // Base Filter for Search and Leads Query
     let baseFilter = {
       teamLeader: { $eq: teamLeaderId },
-      startDate: { 
-        $gte: filterDate, 
-       ...(interval &&{ $gte: startDate,  
-        $lt: endDate} )    
+      startDate: {
+        $gte: filterDate,
+        ...(interval && { $gte: startDate, $lt: endDate }),
       },
       ...(statusToFind != null ? statusToFind : null),
       ...(member != null ? { taskRef: { $in: ids } } : null),
@@ -425,11 +426,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
 
     const counts = await leadModel.aggregate([
-      { $match: { teamLeader: teamLeaderId, 
-        startDate: { 
-          $gte: filterDate, 
-         ...(interval &&{ $gte: startDate,  
-          $lt: endDate} ) }}},
+      {
+        $match: {
+          teamLeader: teamLeaderId,
+          startDate: {
+            $gte: filterDate,
+            ...(interval && { $gte: startDate, $lt: endDate }),
+          },
+        },
+      },
       {
         $facet: {
           totalItems: [{ $count: "count" }],
@@ -634,11 +639,6 @@ export const getLeadsTeamLeader = async (req, res, next) => {
     next(error);
   }
 };
-
-
-
-
-
 
 export const getAssignedToSalesManger = async (req, res, next) => {
   const salesManagerId = req.params.id;
@@ -1792,6 +1792,7 @@ export const leadUpdateStatus = async (req, res, next) => {
 
     if (status === "booked") {
       foundLead.bookingStatus = "booked";
+      foundLead.stage = "booking";
       foundLead.bookingRef = bookingRef;
       await foundLead.save();
       if (foundLead.channelPartner) {
@@ -1882,8 +1883,16 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
 
     // Set startDate and endDate based on the interval
     if (interval === "monthly") {
-      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
     } else if (interval === "quarterly") {
       const quarter = Math.floor(currentDate.getMonth() / 3);
       startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
@@ -1897,19 +1906,27 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
       endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
     } else {
       // Default to the current date if no valid interval is provided
-      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
     }
 
     // Count leads based on the team leader and the specified date range
-    const leadCount = await leadModel.countDocuments({
-      teamLeader: { $eq: teamLeaderId },
-      startDate: { 
-        $gte: filterDate, 
-       ...(interval &&{ $gte: startDate,  
-        $lt: endDate} )    
-      },
-    }) || 0;
+    const leadCount =
+      (await leadModel.countDocuments({
+        teamLeader: { $eq: teamLeaderId },
+        startDate: {
+          $gte: filterDate,
+          ...(interval && { $gte: startDate, $lt: endDate }),
+        },
+      })) || 0;
 
     // const bookingCount =
     //   (await leadModel.countDocuments({
@@ -2006,15 +2023,14 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
     //     },
     //   ],
     // });
-  
+
     const counts = await leadModel.aggregate([
       {
         $match: {
           teamLeader: teamLeaderId,
-          startDate: { 
-            $gte: filterDate, 
-           ...(interval &&{ $gte: startDate,  
-            $lt: endDate} )    
+          startDate: {
+            $gte: filterDate,
+            ...(interval && { $gte: startDate, $lt: endDate }),
           },
         },
       },
@@ -2110,11 +2126,41 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
             },
             { $count: "count" },
           ],
+          bookingWalkinCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                  { leadType: "walk-in" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCpCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                  { leadType: "cp" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
         },
       },
       {
         $addFields: {
           totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          bookingWalkinCount: {
+            $arrayElemAt: ["$bookingWalkinCount.count", 0],
+          },
+          bookingCpCount: { $arrayElemAt: ["$bookingCpCount.count", 0] },
           totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
           pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
           contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
@@ -2140,6 +2186,8 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
           bookingCount: 1,
           totalItemsCount: 1,
           lineUpCount: 1,
+          bookingWalkinCount: 1,
+          bookingCpCount: 1,
         },
       },
     ]);
@@ -2156,9 +2204,11 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
       bookingCount = 0,
       totalItemsCount = 0,
       lineUpCount = 0,
+      bookingWalkinCount = 0,
+      bookingCpCount = 0,
     } = counts[0] || {};
 
-      // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
+    // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
     // const visitToBookingCount =
     //   visitCount > 0 ? (bookingCount * 100) / visitCount : 0;
     // const revisitToBookingCount =
@@ -2175,6 +2225,8 @@ export const getLeadTeamLeaderGraph = async (req, res, next) => {
           revisitCount,
           visit2Count,
           pendingCount,
+          bookingWalkinCount,
+          bookingCpCount,
         },
       })
     );
@@ -2322,6 +2374,32 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
             },
             { $count: "count" },
           ],
+          bookingWalkinCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                  { leadType: "walk-in" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCpCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                  { leadType: "cp" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
 
           // Add other count stages as required
         },
@@ -2329,6 +2407,10 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
       {
         $addFields: {
           totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          bookingWalkinCount: {
+            $arrayElemAt: ["$bookingWalkinCount.count", 0],
+          },
+          bookingCpCount: { $arrayElemAt: ["$bookingCpCount.count", 0] },
           totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
           pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
           contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
@@ -2355,6 +2437,8 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
           bookingCount: 1,
           totalItemsCount: 1,
           lineUpCount: 1,
+          bookingWalkinCount: 1,
+          bookingCpCount: 1,
           // Include only the fields you need
         },
       },
@@ -2372,6 +2456,8 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
       bookingCount = 0,
       totalItemsCount = 0,
       lineUpCount = 0,
+      bookingWalkinCount = 0,
+      bookingCpCount = 0,
       // Add other counts as required
     } = counts[0] || {};
 
@@ -2384,6 +2470,8 @@ export const getLeadTeamLeaderReportingToGraph = async (req, res, next) => {
           revisitCount,
           visit2Count,
           pendingCount,
+          bookingWalkinCount,
+          bookingCpCount,
           // leadToVisitCount,
           // visitToBookingCount,
           // revisitToBookingCount,
@@ -2834,7 +2922,8 @@ export const searchLeadsChannelPartner = async (req, res, next) => {
     });
 
     const visitedCount = await leadModel.countDocuments({
-      visitStatus: "visited",
+      revisitStatus: { $ne: null, $eq: "pending" },
+      $or: [{ visitStatus: "visited" }, { visitStatus: "virtual-meeting" }],
       stage: { $ne: "tagging-over" },
       leadType: { $ne: "walk-in" },
       channelPartner: id,
@@ -3024,11 +3113,11 @@ export const addLead = async (req, res, next) => {
         startDate: { $gte: startOfToday, $lt: endOfToday },
       });
 
-      if (todayLeadsCount >= 25) {
-        return res.send(
-          errorRes(409, `You cannot share more than 25 leads in 1 day.`)
-        );
-      }
+      // if (todayLeadsCount >= 25) {
+      //return res.send(
+      // errorRes(409, `You cannot share more than 25 leads in 1 day.`)
+      // );
+      //   }
 
       const existingLeadForCP = await leadModel.findOne({
         phoneNumber: phoneNumber,
