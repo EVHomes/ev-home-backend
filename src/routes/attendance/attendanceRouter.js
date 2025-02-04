@@ -157,26 +157,39 @@ attendanceRouter.get("/get-check-in-by-date", async (req, res) => {
       return checkInTime > lateThreshold;
     });
 
-      // Initialize early leavers list
-      const earlyLeaversList = presentList.filter((ele) => {
-        const checkOutTime = new Date(ele.checkOutTime);
-        const checkInTime = new Date(ele.checkInTime);
-        const totalShiftHours = (checkOutTime - checkInTime) / (1000 * 60 * 60); 
-  
-        const designation = ele.userId?.designation._id; 
-  
-        // Define conditions for early leavers
-        if (
-          (["desg-senior-closing-manager", "desg-sales-executive", "desg-site-head", "desg-data-analyzer", "desg-floor-manager", "desg-front-desk-executive","desg-senior-sales-manager","desg-sales-manager"].includes(designation) &&
-            (checkOutTime.getHours() < 21 || totalShiftHours <= 10)) || // Check for 9 PM and 10 hours shift
-          (["desg-app-developer", "desg-video-editor"].includes(designation) &&
-            (checkOutTime.getHours() < 19 || totalShiftHours <= 8)) // Check for 7 PM and 8 hours shift
-        ) {
-          return true; 
-        }
-  
-        return false; 
-      });
+    // Initialize early leavers list
+    const earlyLeaversList = presentList.filter((ele) => {
+      const checkOutTime = new Date(ele.checkOutTime);
+      const checkInTime = new Date(ele.checkInTime);
+      const totalShiftHours = (checkOutTime - checkInTime) / (1000 * 60 * 60);
+
+      const designation = ele.userId?.designation._id;
+      const idsAll = [
+        "desg-senior-closing-manager",
+        "desg-sales-executive",
+        "desg-site-head",
+        "desg-data-analyzer",
+        "desg-floor-manager",
+        "desg-front-desk-executive",
+        "desg-senior-sales-manager",
+        "desg-sales-manager",
+      ];
+      const idsIT = ["desg-app-developer", "desg-video-editor"];
+
+      // Define conditions for early leavers
+      if (
+        (ele.checkOutTime != null &&
+          idsAll.includes(designation) &&
+          (checkOutTime.getHours() < 21 || totalShiftHours <= 10)) || // Check for 9 PM and 10 hours shift
+        (ele.checkOutTime != null &&
+          idsIT.includes(designation) &&
+          (checkOutTime.getHours() < 19 || totalShiftHours <= 8)) // Check for 7 PM and 8 hours shift
+      ) {
+        return true;
+      }
+
+      return false;
+    });
 
     return res.send(
       successRes(200, "Attendance List", {
@@ -409,7 +422,7 @@ attendanceRouter.get("/attendance/:id", async (req, res) => {
 
     const resp = await attendanceModel
       .find({ userId: id })
-      .sort({ createdAt: -1 })
+      .sort({ day: -1, month: 1, year: -1 })
       .populate(attendancePopulateOption);
     // .populate(attendancePopulateOption);
 
@@ -603,6 +616,24 @@ attendanceRouter.post("/attendance-fill", async (req, res) => {
     return res.send(error);
   }
 });
+
+attendanceRouter.post("/attendance-add-date", async (req, res) => {
+  try {
+    const resp = await attendanceModel.find();
+    const dates = resp.map((ele) => {
+      ele.date = new Date(ele.year, ele.month, ele.day, 9, 0);
+
+      return {};
+    });
+    return res.send({
+      total: resp?.length,
+      data: dates,
+    });
+  } catch (error) {
+    return res.send(error);
+  }
+});
+
 export const insertDailyAttendance = async () => {
   try {
     // const formattedDate = new Date();

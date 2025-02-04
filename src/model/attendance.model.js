@@ -6,6 +6,10 @@ export const attendanceSchema = new mongoose.Schema({
     ref: "employees",
     required: true,
   },
+  date: {
+    type: Date,
+    default: null,
+  },
   day: {
     type: Number,
     required: true,
@@ -36,6 +40,14 @@ export const attendanceSchema = new mongoose.Schema({
     //   "completed",
     // ],
     default: "absent",
+  },
+  wlStatus: {
+    type: String,
+    // enum: [
+    //   "weekoff",
+    //   "on-leave",
+    // ],
+    default: null,
   },
   checkInTime: {
     type: Date,
@@ -93,7 +105,6 @@ export const attendanceSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-
   timeline: [
     {
       event: {
