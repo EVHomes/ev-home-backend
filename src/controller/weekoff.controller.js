@@ -212,6 +212,7 @@ export const updateWeekOffStatus = async (req, res) => {
           month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
           year: currentDate.year(),
           status: "weekoff",
+          wlStatus: "weekoff",
           userId: weekoff.applyBy,
         });
       } catch (error) {
@@ -220,13 +221,11 @@ export const updateWeekOffStatus = async (req, res) => {
       }
     }
 
-    return res
-      .status(200)
-      .send(
-        successRes(200, "Week Off status updated successfully", {
-          data: weekoff,
-        })
-      );
+    return res.status(200).send(
+      successRes(200, "Week Off status updated successfully", {
+        data: weekoff,
+      })
+    );
   } catch (error) {
     console.error("Error updating Week Off status:", error);
     return res.status(500).send({

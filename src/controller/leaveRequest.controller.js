@@ -156,15 +156,21 @@ export const updateLeaveStatus = async (req, res) => {
           month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
           year: currentDate.year(),
           status: "on-leave",
+          wlStatus: "on-leave",
           userId: leave.applicant,
         });
         currentDate.add(1, "days");
       }
       console.log(dates);
       try {
-        await attendanceModel.insertMany(dates);
+        await attendanceModel.insertMany(dates, { ordered: false });
       } catch (error) {
-        console.log("failed to insert leaves");
+        if (error.writeErrors) {
+          console.log("Some entries were skipped due to duplicates.");
+        } else {
+          console.error("Failed to insert leaves:", error);
+        }
+        // console.log("failed to insert leaves");
       }
     }
 
