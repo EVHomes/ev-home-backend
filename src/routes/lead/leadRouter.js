@@ -36,6 +36,8 @@ import {
   getLeadTeamLeaderReportingToGraph,
   triggerCycleChangeFunction,
   getAssignedToSalesManger,
+  getAllData,
+  getAllGraph,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -62,7 +64,9 @@ const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
 
-leadRouter.get("/leads", authenticateToken, getAllLeads);
+leadRouter.get("/leads", /*authenticationToken*/  getAllLeads);
+leadRouter.get("/leads-data", /*authenticationToken*/  getAllData);
+leadRouter.get("/leads-graph", /*authenticationToken*/ getAllGraph);
 leadRouter.get(
   "/leads-team-leader/:id",
   // authenticateToken,
