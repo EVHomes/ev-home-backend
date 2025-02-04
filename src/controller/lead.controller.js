@@ -109,6 +109,7 @@ export const getAllData = async (req, res, next) => {
           {
             revisitStatus: { $ne: "pending" },
           },
+          {bookingStatus:{$ne:"booked"}}
         ],
 
         // ...walkinType,
@@ -541,29 +542,371 @@ export const getAllData = async (req, res, next) => {
   }
 };
 
+export const getAllGraph = async (req, res, next) => {
 
+  try {
+    // if (!teamLeaderId) return res.send(errorRes(401, "id Required"));
 
+    const filterDate = new Date("2024-12-10");
+    const interval = req.query.interval;
+    const currentDate = new Date();
 
+    // Initialize startDate and endDate
+    let startDate, endDate;
 
+    // Set startDate and endDate based on the interval
+    if (interval === "monthly") {
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+    } else if (interval === "quarterly") {
+      const quarter = Math.floor(currentDate.getMonth() / 3);
+      startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+      endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
+    } else if (interval === "semi-annually") {
+      const half = Math.floor(currentDate.getMonth() / 6);
+      startDate = new Date(currentDate.getFullYear(), half * 6, 1);
+      endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
+    } else if (interval === "annually") {
+      startDate = new Date(currentDate.getFullYear(), 0, 1);
+      endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
+    } else {
+      // Default to the current date if no valid interval is provided
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+    }
 
+    // Count leads based on the team leader and the specified date range
+    const leadCount =
+      (await leadModel.countDocuments({
+        // teamLeader: { $eq: teamLeaderId },
+        startDate: {
+          $gte: filterDate,
+          ...(interval && { $gte: startDate, $lt: endDate }),
+        },
+      })) || 0;
 
+    // const bookingCount =
+    //   (await leadModel.countDocuments({
+    //     teamLeader: { $eq: teamLeaderId },
+    //     bookingStatus: { $ne: "pending" },
+    //   })) || 0;
 
+    // const visitCount =
+    //   (await leadModel.countDocuments({
+    //     teamLeader: { $eq: teamLeaderId },
+    //     visitStatus: { $ne: "pending" },
+    //   })) || 0;
 
+    // const revisitCount =
+    //   (await leadModel.countDocuments({
+    //     teamLeader: { $eq: teamLeaderId },
 
+    //     revisitStatus: { $ne: "pending" },
+    //   })) || 0;
 
+    /* --new graphs -- */
+    // const visitCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   // visitStatus: { $ne: "pending" },
+    //   // leadType: { $ne: "walk-in" },
+    //   $and: [
+    //     {
+    //       stage: { $ne: "approval" },
+    //     },
+    //     {
+    //       stage: { $ne: "booking" },
+    //     },
+    //     {
+    //       visitStatus: { $ne: null },
+    //     },
+    //     {
+    //       visitStatus: { $ne: "pending" },
+    //     },
+    //     {
+    //       leadType: "cp",
+    //     },
+    //   ],
+    // });
 
+    // const revisitCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   revisitStatus: { $ne: "pending" },
+    //   $or: [
+    //     {
+    //       stage: { $ne: "tagging-over" },
+    //     },
+    //     {
+    //       stage: { $ne: "approval" },
+    //     },
+    //   ],
+    // });
+    // const visit2Count = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   visitStatus: { $ne: "pending" },
+    //   leadType: { $eq: "walk-in" },
+    //   $or: [
+    //     {
+    //       stage: { $ne: "tagging-over" },
+    //     },
+    //     {
+    //       stage: { $ne: "approval" },
+    //     },
+    //   ],
+    // });
 
+    // const bookingCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   stage: "booking",
+    //   // bookingStatus: { $ne: "pending" },
+    //   $and: [
+    //     {
+    //       bookingStatus: { $ne: null },
+    //     },
+    //     {
+    //       bookingStatus: { $ne: "pending" },
+    //     },
+    //   ],
+    // });
 
+    // const pendingCount = await leadModel.countDocuments({
+    //   teamLeader: { $eq: teamLeaderId },
+    //   bookingStatus: { $ne: "booked" },
+    //   $or: [
+    //     {
+    //       visitStatus: "pending",
+    //     },
+    //     {
+    //       revisitStatus: "pending",
+    //     },
+    //   ],
+    // });
 
+    const counts = await leadModel.aggregate([
+      {
+        $match: {
+          // teamLeader: teamLeaderId,
+          startDate: {
+            $gte: filterDate,
+            ...(interval && { $gte: startDate, $lt: endDate }),
+          },
+        },
+      },
+      {
+        $facet: {
+          totalItems: [{ $count: "count" }],
+          totalItemsCount: [{ $count: "count" }],
+          pendingCount: [
+            {
+              $match: {
+                $or: [
+                  { visitStatus: "pending", bookingStatus: { $ne: "booked" } },
+                  {
+                    revisitStatus: "pending",
+                    bookingStatus: { $ne: "booked" },
+                  },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          contactedCount: [
+            { $match: { contactedStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          followUpCount: [
+            { $match: { followupStatus: { $ne: "pending" } } },
+            { $count: "count" },
+          ],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
+          visitCount: [
+            {
+              $match: {
+                $and: [
+                  { stage: { $ne: "approval" } },
+                  { stage: { $ne: "booking" } },
+                  { visitStatus: { $ne: null } },
+                  { visitStatus: { $ne: "pending" } },
+                  { leadType: "cp" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          revisitCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { revisitStatus: { $ne: null } },
+                  { revisitStatus: { $ne: "pending" } },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          visit2Count: [
+            {
+              $match: {
+                $and: [
+                  { stage: { $ne: "approval" } },
+                  { stage: { $ne: "booking" } },
+                  { visitStatus: { $ne: null } },
+                  { visitStatus: { $ne: "pending" } },
+                  { leadType: { $eq: "walk-in" } },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCount: [
+            {
+              $match: {
+                // stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          lineUpCount: [
+            {
+              $match: {
+                stage: { $ne: "tagging-over" },
+                leadType: { $ne: "walk-in" },
+                siteVisitInterested: true,
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingWalkinCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                  { leadType: "walk-in" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+          bookingCpCount: [
+            {
+              $match: {
+                stage: "booking",
+                $and: [
+                  { bookingStatus: { $ne: null } },
+                  { bookingStatus: { $ne: "pending" } },
+                  { leadType: "cp" },
+                ],
+              },
+            },
+            { $count: "count" },
+          ],
+        },
+      },
+      {
+        $addFields: {
+          totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          bookingWalkinCount: {
+            $arrayElemAt: ["$bookingWalkinCount.count", 0],
+          },
+          bookingCpCount: { $arrayElemAt: ["$bookingCpCount.count", 0] },
+          totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
+          pendingCount: { $arrayElemAt: ["$pendingCount.count", 0] },
+          contactedCount: { $arrayElemAt: ["$contactedCount.count", 0] },
+          followUpCount: { $arrayElemAt: ["$followUpCount.count", 0] },
+          assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+          visitCount: { $arrayElemAt: ["$visitCount.count", 0] },
+          revisitCount: { $arrayElemAt: ["$revisitCount.count", 0] },
+          visit2Count: { $arrayElemAt: ["$visit2Count.count", 0] },
+          bookingCount: { $arrayElemAt: ["$bookingCount.count", 0] },
+          lineUpCount: { $arrayElemAt: ["$lineUpCount.count", 0] },
+        },
+      },
+      {
+        $project: {
+          totalItems: 1,
+          pendingCount: 1,
+          contactedCount: 1,
+          followUpCount: 1,
+          assignedCount: 1,
+          visitCount: 1,
+          revisitCount: 1,
+          visit2Count: 1,
+          bookingCount: 1,
+          totalItemsCount: 1,
+          lineUpCount: 1,
+          bookingWalkinCount: 1,
+          bookingCpCount: 1,
+        },
+      },
+    ]);
 
+    const {
+      totalItems = 0,
+      pendingCount = 0,
+      contactedCount = 0,
+      followUpCount = 0,
+      assignedCount = 0,
+      visitCount = 0,
+      revisitCount = 0,
+      visit2Count = 0,
+      bookingCount = 0,
+      totalItemsCount = 0,
+      lineUpCount = 0,
+      bookingWalkinCount = 0,
+      bookingCpCount = 0,
+    } = counts[0] || {};
 
+    // const leadToVisitCount = leadCount > 0 ? (visitCount * 100) / leadCount : 0;
+    // const visitToBookingCount =
+    //   visitCount > 0 ? (bookingCount * 100) / visitCount : 0;
+    // const revisitToBookingCount =
+    //   revisitCount > 0 ? (bookingCount * 100) / revisitCount : 0;
+    // const leadToBookingCount =
+    //   leadCount > 0 ? (bookingCount * 100) / leadCount : 0;
 
-
-
-
-
-
-
+    return res.send(
+      successRes(200, "graphs", {
+        data: {
+          leadCount,
+          bookingCount,
+          visitCount,
+          revisitCount,
+          visit2Count,
+          pendingCount,
+          bookingWalkinCount,
+          bookingCpCount,
+        },
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, "Internal Server Error", error));
+  }
+};
 
 
 
