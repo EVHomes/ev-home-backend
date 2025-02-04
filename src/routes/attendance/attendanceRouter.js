@@ -422,7 +422,7 @@ attendanceRouter.get("/attendance/:id", async (req, res) => {
 
     const resp = await attendanceModel
       .find({ userId: id })
-      .sort({ day: -1, month: 1, year: -1 })
+      .sort({ date: -1 })
       .populate(attendancePopulateOption);
     // .populate(attendancePopulateOption);
 
@@ -620,11 +620,15 @@ attendanceRouter.post("/attendance-fill", async (req, res) => {
 attendanceRouter.post("/attendance-add-date", async (req, res) => {
   try {
     const resp = await attendanceModel.find();
-    const dates = resp.map((ele) => {
-      ele.date = new Date(ele.year, ele.month, ele.day, 9, 0);
-
-      return {};
-    });
+    const dates = await Promise.all(
+      resp.map(async (ele) => {
+        // await attendanceModel.findByIdAndUpdate(ele._id, {
+        //   date: new Date(ele.year, ele.month - 1, ele.day, 9, 0),
+        // });
+        ele.date = new Date(ele.year, ele.month - 1, ele.day, 9, 0);
+        return ele;
+      })
+    );
     return res.send({
       total: resp?.length,
       data: dates,
