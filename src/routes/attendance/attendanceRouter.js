@@ -656,7 +656,7 @@ export const insertDailyAttendance = async () => {
       year: formattedDate.getFullYear(),
       status: "absent",
     }));
-    await attendanceModel.insertMany(attendanceRecords);
+    await attendanceModel.insertMany(attendanceRecords, { ordered: false });
     return attendanceRecords;
   } catch (error) {
     return error;
