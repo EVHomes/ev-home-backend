@@ -74,7 +74,6 @@ export const getAllData = async (req, res, next) => {
     const startOfDay = targetDate.startOf("day").toDate(); // 00:00:00
     const endOfDay = targetDate.endOf("day").toDate(); // 23:59:59
 
-  
     const isNumberQuery = !isNaN(query);
     const filterDate = new Date("2024-12-10");
     let page = parseInt(req.query.page) || 1;
@@ -260,6 +259,30 @@ export const getAllData = async (req, res, next) => {
       };
     }
 
+    if (interval == "monthly") {
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+    } else if (interval == "quarterly") {
+      const quarter = Math.floor(currentDate.getMonth() / 3);
+      startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+      endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
+    } else if (interval == "semi-annually") {
+      const half = Math.floor(currentDate.getMonth() / 6);
+      startDate = new Date(currentDate.getFullYear(), half * 6, 1);
+      endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
+    } else if (interval == "annually") {
+      startDate = new Date(currentDate.getFullYear(), 0, 1);
+      endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
+    }
+  
      // Base Filter for Search and Leads Query
     let baseFilter = {
       startDate: {
@@ -439,7 +462,7 @@ export const getAllData = async (req, res, next) => {
           bookingCount: [
             {
               $match: {
-                // stage: "booking",
+                stage: "booking",
                 // bookingStatus: { $ne: "pending" },
                 $and: [
                   {
@@ -780,7 +803,7 @@ export const getAllGraph = async (req, res, next) => {
           bookingCount: [
             {
               $match: {
-                // stage: "booking",
+                stage: "booking",
                 $and: [
                   { bookingStatus: { $ne: null } },
                   { bookingStatus: { $ne: "pending" } },
