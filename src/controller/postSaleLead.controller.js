@@ -202,8 +202,6 @@ export async function getLeadCounts(req, res, next) {
     const { interval = "monthly", year, date, endDate } = req.query;
     const currentYear = new Date().getFullYear();
 
-    console.log(date);
-
     // Validate and set the year
     let selectedYear = currentYear;
     if (year) {
@@ -213,36 +211,13 @@ export async function getLeadCounts(req, res, next) {
       }
     }
 
-    // Weekly date range (Monday to Sunday)
-    const currentDate = new Date();
-    const startOfCurrentWeek = startOfWeek(currentDate, { weekStartsOn: 1 });
-    const endOfCurrentWeek = addDays(startOfCurrentWeek, 7);
-
     // Set match stage for MongoDB aggregation
     let matchStage = {};
-    if (interval === "weekly") {
+    if (interval === "monthly") {
       matchStage.date = {
-        $gte: startOfCurrentWeek,
-        $lt: endOfCurrentWeek,
+        $gte: new Date('2024-12-10T00:00:00Z'), // Start from December 10, 2024
+        $lt: new Date(`${selectedYear + 1}-01-01`),
       };
-    } else if (interval === "monthly") {
-      if (date && endDate) {
-        // Parse startDate and endDate
-        const parsedStartDate = new Date(date);
-        const parsedEndDate = new Date(endDate);
-        if (isNaN(parsedStartDate) || isNaN(parsedEndDate)) {
-          return res.status(400).json({ message: "Invalid date range" });
-        }
-        matchStage.date = {
-          $gte: parsedStartDate,
-          $lt: parsedEndDate,
-        };
-      } else {
-        matchStage.date = {
-          $gte: new Date(`${selectedYear}-01-01`),
-          $lt: new Date(`${selectedYear + 1}-01-01`),
-        };
-      }
     } else {
       return res.status(400).json({ message: "Invalid interval parameter" });
     }
@@ -253,80 +228,41 @@ export async function getLeadCounts(req, res, next) {
     }
 
     // Group stage for MongoDB aggregation
-    let groupStage = {};
-    if (interval === "weekly") {
-      groupStage = {
-        _id: {
-          dayOfWeek: { $dayOfWeek: "$date" },
-          date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-        },
-        count: { $sum: 1 },
-      };
-    } else if (interval === "monthly") {
-      groupStage = {
-        _id: {
-          month: { $month: "$date" },
-          year: { $year: "$date" },
-        },
-        count: { $sum: 1 },
-      };
-    }
+    let groupStage = {
+      _id: {
+        month: { $month: "$date" },
+        year: { $year: "$date" },
+      },
+      count: { $sum: 1 },
+    };
 
     const leadCounts = await postSaleLeadModel.aggregate([
       { $match: matchStage },
       { $group: groupStage },
-      { $sort: { "_id.date": 1, "_id.month": 1, "_id.dayOfWeek": 1 } },
+      { $sort: { "_id.month": 1 } },
     ]);
 
-    if (interval === "weekly") {
-      // Weekly: fill missing days
-      const dayMap = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-      const weekData = Array.from({ length: 7 }, (_, i) => {
-        const date = addDays(startOfCurrentWeek, i);
-        return {
-          date: format(date, "yyyy-MM-dd"),
-          day: dayMap[i],
-          count: 0,
-        };
-      });
-
-      // Populate counts
-      leadCounts.forEach((item) => {
-        const foundDay = weekData.find((day) => day.date === item._id.date);
-        if (foundDay) foundDay.count = item.count;
-      });
-
-      return res.json(weekData);
-    }
-
-    // Monthly: format data
+    // Prepare the response for all months
     const monthNames = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
     ];
-    const formattedMonthlyData = leadCounts.map((item) => ({
-      year: item._id.year,
-      month: monthNames[item._id.month - 1],
-      count: item.count,
+
+    // Create an array for all months initialized to zero
+    const monthlyData = monthNames.map((month, index) => ({
+      month: month,
+      year: selectedYear,
+      count: 0,
     }));
+
+    // Populate counts from leadCounts
+    leadCounts.forEach((item) => {
+      const monthIndex = item._id.month - 1; // Adjust for zero-based index
+      monthlyData[monthIndex].count = item.count;
+    });
+
+    // Filter out months with a count of zero
+    const filteredMonthlyData = monthlyData.filter(item => item.count > 0);
 
     console.log("Query Parameters:", {
       interval,
@@ -335,7 +271,7 @@ export async function getLeadCounts(req, res, next) {
       endDate,
       project,
     });
-    return res.send(successRes(200, "ok", { data: formattedMonthlyData }));
+    return res.send(successRes(200, "ok", { data: filteredMonthlyData }));
   } catch (error) {
     console.error("Error getting lead counts:", error);
     next(error);
