@@ -64,8 +64,8 @@ const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
 
-leadRouter.get("/leads", /*authenticationToken*/  getAllLeads);
-leadRouter.get("/leads-data", /*authenticationToken*/  getAllData);
+leadRouter.get("/leads", /*authenticationToken*/ getAllLeads);
+leadRouter.get("/leads-data", /*authenticationToken*/ getAllData);
 leadRouter.get("/leads-graph", /*authenticationToken*/ getAllGraph);
 leadRouter.get(
   "/leads-team-leader/:id",
@@ -306,7 +306,7 @@ leadRouter.post(
   authenticateToken,
   updateCallHistoryPreSales
 );
-leadRouter.get("/search-lead", authenticateToken, searchLeads);
+leadRouter.get("/search-lead", /*authenticateToken, */ searchLeads);
 leadRouter.get("/search-lead-channel-partner/:id", searchLeadsChannelPartner);
 
 leadRouter.post("/lead-update-status/:id", authenticateToken, leadUpdateStatus);

@@ -3540,8 +3540,10 @@ export const searchLeads = async (req, res, next) => {
         : {
             /*leadType: { $ne: "walk-in" }*/
           }),
-      ...(approvalStatus != "total" ||
-        (approvalStatus != "all" && { leadType: { $ne: "walk-in" } })),
+      ...(approvalStatus === "pending" && {
+        leadType: { $ne: "walk-in" },
+        stage: { $ne: "tagging-over" },
+      }),
     };
 
     // Execute the search with the refined filter
