@@ -59,6 +59,7 @@ export const getAllData = async (req, res, next) => {
   try {
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
+    let teamLeaderId = req.query.teamLeader;
     const interval = req.query.interval;
     const currentDate = new Date();
     let startDate, endDate;
@@ -288,6 +289,7 @@ export const getAllData = async (req, res, next) => {
         $gte: filterDate,
         ...(interval && { $gte: startDate, $lt: endDate }),
       },
+      ...(teamLeaderId ? { teamLeader: teamLeaderId } : {}),
       ...(statusToFind != null ? statusToFind : null),
     };
     console.log(baseFilter);
