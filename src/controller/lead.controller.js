@@ -3542,7 +3542,9 @@ export const searchLeads = async (req, res, next) => {
       // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
       ...(stage === "all"
         ? { stage: stage }
-        : { leadType: { $ne: "walk-in" } }),
+        : {
+            /*leadType: { $ne: "walk-in" }*/
+          }),
     };
 
     // Execute the search with the refined filter
