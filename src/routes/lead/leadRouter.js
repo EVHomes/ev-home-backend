@@ -317,7 +317,7 @@ leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
 leadRouter.post(
   "/lead-assign-tl/:id",
-  authenticateToken,
+  // authenticateToken,
   leadAssignToTeamLeader
 );
 leadRouter.post("/lead-reject/:id", authenticateToken, rejectLeadById);
