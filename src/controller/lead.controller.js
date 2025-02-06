@@ -55,6 +55,7 @@ export const getAllLeads = async (req, res, next) => {
   }
 };
 
+
   export const getAllData = async (req, res, next) => {
     try {
 
@@ -579,7 +580,6 @@ interval &&{ startDate:{$gte: startDate, $lt: endDate} },
   };
 
 export const getAllGraph = async (req, res, next) => {
-
   try {
     // if (!teamLeaderId) return res.send(errorRes(401, "id Required"));
 
@@ -945,9 +945,6 @@ export const getAllGraph = async (req, res, next) => {
     return res.send(errorRes(500, "Internal Server Error", error));
   }
 };
-
-
-
 
 export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
@@ -3557,7 +3554,13 @@ export const searchLeads = async (req, res, next) => {
       // ...(stage ? { stage: stage } : { stage: { $ne: "tagging-over" } }),
       ...(stage === "all"
         ? { stage: stage }
-        : { leadType: { $ne: "walk-in" } }),
+        : {
+            /*leadType: { $ne: "walk-in" }*/
+          }),
+      ...(approvalStatus === "pending" && {
+        leadType: { $ne: "walk-in" },
+        stage: { $ne: "tagging-over" },
+      }),
     };
 
     // Execute the search with the refined filter
@@ -6791,7 +6794,7 @@ export const triggerCycleChange = async (req, res, next) => {
                   validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 3:
-                  validTill.setDate(validTill.getDate() + 3);
+                  validTill.setDate(validTill.getDate() + 2);
                   break;
                 case 4:
                   validTill.setDate(validTill.getDate() + 1);
@@ -6825,7 +6828,7 @@ export const triggerCycleChange = async (req, res, next) => {
                   validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 4:
-                  validTill.setDate(validTill.getDate() + 3);
+                  validTill.setDate(validTill.getDate() + 2);
                   break;
                 default:
                   validTill.setDate(validTill.getDate() + 29);

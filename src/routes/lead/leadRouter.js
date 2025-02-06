@@ -64,8 +64,8 @@ const __dirname = path.dirname(__filename);
 
 const leadRouter = Router();
 
-leadRouter.get("/leads", /*authenticationToken*/  getAllLeads);
-leadRouter.get("/leads-data", /*authenticationToken*/  getAllData);
+leadRouter.get("/leads", /*authenticationToken*/ getAllLeads);
+leadRouter.get("/leads-data", /*authenticationToken*/ getAllData);
 leadRouter.get("/leads-graph", /*authenticationToken*/ getAllGraph);
 leadRouter.get(
   "/leads-team-leader/:id",
@@ -207,7 +207,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
 
               switch (cCycle.currentOrder) {
                 case 1:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
                   break;
                 case 2:
                   validTill.setDate(validTill.getDate() + 14);
@@ -219,7 +219,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
                   validTill.setDate(validTill.getDate() + 2);
                   break;
                 default:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
               }
             }
           }
@@ -306,7 +306,7 @@ leadRouter.post(
   authenticateToken,
   updateCallHistoryPreSales
 );
-leadRouter.get("/search-lead", authenticateToken, searchLeads);
+leadRouter.get("/search-lead", /*authenticateToken, */ searchLeads);
 leadRouter.get("/search-lead-channel-partner/:id", searchLeadsChannelPartner);
 
 leadRouter.post("/lead-update-status/:id", authenticateToken, leadUpdateStatus);
@@ -317,7 +317,7 @@ leadRouter.get("/similar-leads/:id", authenticateToken, getSimilarLeadsById);
 
 leadRouter.post(
   "/lead-assign-tl/:id",
-  authenticateToken,
+  // authenticateToken,
   leadAssignToTeamLeader
 );
 leadRouter.post("/lead-reject/:id", authenticateToken, rejectLeadById);

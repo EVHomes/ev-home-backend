@@ -4,6 +4,12 @@ import { errorRes, successRes } from "../model/response.js";
 import moment from "moment-timezone";
 import attendanceModel from "../model/attendance.model.js";
 import { leaveRequestPopulateOptions } from "../utils/constant.js";
+import oneSignalModel from "../model/oneSignal.model.js";
+
+import {
+  sendNotificationWithImage,
+  sendNotificationWithInfo,
+} from "./oneSignal.controller.js";
 
 export const getLeave = async (req, res, next) => {
   const { applicant, reportingTo, leaveStatus } = req.query;
@@ -89,7 +95,7 @@ export const addLeave = async (req, res, next) => {
     applicant,
     attachedFile,
   } = req.body;
-
+  const user = req.user;
   try {
     if (!startDate)
       return res.status(401).send(errorRes(401, "Start Date is required"));
@@ -114,6 +120,27 @@ export const addLeave = async (req, res, next) => {
       ...req.body,
     });
 
+    const dta = await oneSignalModel.find({
+      $or: [{ docId: applicant }, { docId: "ev201-aktarul-biswas" }],
+      // role: teamLeaderResp?.role,
+    });
+    let ids = dta.map((ele) => ele.playerId);
+    // console.log(foundTLPlayerId);
+
+    await sendNotificationWithImage({
+      playerIds: [...ids],
+      title: "Leave Request",
+      message: `Leave request by ${applybyEmployee?.firstName ?? ""} ${
+        applybyEmployee?.lastName ?? ""
+      }`,
+      imageUrl: "https://uknowva.com/images/aashna/leave-management.png",
+      data: {
+        type: "leave-request-approval",
+        id: newLeaveRequest?._id,
+        // role: "channel-partner",
+      },
+    });
+
     return res.status(200).send(
       successRes(200, "Leave Request added", {
         data: newLeaveRequest,
@@ -135,7 +162,9 @@ export const updateLeaveStatus = async (req, res) => {
         message: "Leave Status is required",
       });
     }
-    const leave = await leaveRequestModel.findById(id);
+    const leave = await leaveRequestModel
+      .findById(id)
+      .populate(leaveRequestPopulateOptions);
     if (!leave) {
       return res.status(404).send({
         success: false,
@@ -155,13 +184,19 @@ export const updateLeaveStatus = async (req, res) => {
           day: currentDate.date(),
           month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
           year: currentDate.year(),
-          status: "on-leave",
-          wlStatus: "on-leave",
-          userId: leave.applicant,
+          status:
+            leave.leaveType === "paid_leave"
+              ? "on-paid-leave"
+              : "on-casual-leave",
+          wlStatus:
+            leave.leaveType === "paid_leave"
+              ? "on-paid-leave"
+              : "on-casual-leave",
+          userId: leave.applicant?._id,
         });
         currentDate.add(1, "days");
       }
-      console.log(dates);
+      // console.log(dates);
       try {
         await attendanceModel.insertMany(dates, { ordered: false });
       } catch (error) {
@@ -172,6 +207,48 @@ export const updateLeaveStatus = async (req, res) => {
         }
         // console.log("failed to insert leaves");
       }
+      const dta = await oneSignalModel.find({
+        $or: [{ docId: leave.applicant?._id }],
+        // role: teamLeaderResp?.role,
+      });
+      let ids = dta.map((ele) => ele.playerId);
+      // console.log(foundTLPlayerId);
+
+      await sendNotificationWithImage({
+        playerIds: [...ids],
+        title: "Leave Approved",
+        message: `Leave approved by ${leave.reportingTo?.firstName ?? ""} ${
+          leave.reportingTo?.lastName ?? ""
+        }`,
+        imageUrl: "https://uknowva.com/images/aashna/leave-management.png",
+        data: {
+          type: "leave-request",
+          id: id,
+          // role: "channel-partner",
+        },
+      });
+      // console.log("pass sent notification");
+    } else if (leaveStatus?.toLowerCase() === "rejected") {
+      const dta = await oneSignalModel.find({
+        $or: [{ docId: leave.applicant?._id }],
+        // role: teamLeaderResp?.role,
+      });
+      let ids = dta.map((ele) => ele.playerId);
+      // console.log(foundTLPlayerId);
+
+      await sendNotificationWithImage({
+        playerIds: [...ids],
+        title: "Leave Rejected",
+        message: `Leave rejected by ${leave.reportingTo?.firstName ?? ""} ${
+          leave.reportingTo?.lastName ?? ""
+        }`,
+        imageUrl: "https://uknowva.com/images/aashna/leave-management.png",
+        data: {
+          type: "leaveRequest",
+          id: id,
+          // role: "channel-partner",
+        },
+      });
     }
 
     return res

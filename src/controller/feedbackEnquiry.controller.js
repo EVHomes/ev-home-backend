@@ -53,10 +53,9 @@ export const addFeedbackEnquiry = async (req, res) => {
   const { enquiryabout, message } = body;
   try {
     if (!body) return res.send(errorRes(403, "Body is required"));
-    const leadResp = await leadModel
-      .findById(id);
-      // .populate({ path: "leads", populate: leadPopulateOptions });
-     
+    const leadResp = await leadModel.findById(id);
+    // .populate({ path: "leads", populate: leadPopulateOptions });
+
     const channelPartner = leadResp.channelPartner;
 
     if (!channelPartner) {
@@ -95,9 +94,13 @@ export const addFeedbackEnquiry = async (req, res) => {
 
       await sendNotificationWithImage({
         playerIds: getPlayerIds,
-        title: "Notification from Channel Partner ",
+        title: `Feedback request from ${channelPartner}`,
         imageUrl: "",
         message: message,
+        data: {
+          type: "lead ",
+          id: leadResp?._id,
+        },
       });
 
       console.log("Notification sent");

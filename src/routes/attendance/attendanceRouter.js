@@ -3,6 +3,7 @@ import attendanceModel from "../../model/attendance.model.js";
 import { errorRes, successRes } from "../../model/response.js";
 import { attendancePopulateOption } from "../../utils/constant.js";
 import XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import moment from "moment-timezone";
 
 import { fileURLToPath } from "url";
@@ -443,7 +444,7 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
     const currentYear = currentDate.getFullYear();
     const daysInMonth = new Date(currentYear, currentMonth, 0).getDate(); // Total days in the month
     const timeZone = "Asia/Kolkata";
-
+    // generateStyledExcel();
     // Fetch attendance records for the current month with populated user details
     const attendanceRecords = await attendanceModel
       .find({
@@ -511,6 +512,12 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
           usersAttendance[user._id].onleave += 1; // Reduce absent count
         }
         usersAttendance[user._id].days[dayIndex] = `L`; // Mark as present
+      } else if (record.status === "on-leave") {
+        if (usersAttendance[user._id].days[dayIndex] === "A") {
+          usersAttendance[user._id].absent -= 1; // Reduce absent count
+          usersAttendance[user._id].onleave += 1; // Reduce absent count
+        }
+        usersAttendance[user._id].days[dayIndex] = `L`; // Mark as present
       }
     }
 
@@ -572,7 +579,7 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
     // Generate Excel file
     const filePath = path.join(__dirname, "detailed_attendance.xlsx");
     XLSX.writeFile(workbook, filePath);
-
+    console.log(filePath);
     // Send file as a response
     res.download(filePath, "detailed_attendance.xlsx", (err) => {
       if (err) {
@@ -588,6 +595,166 @@ attendanceRouter.get("/export-attendance", async (req, res) => {
     res.status(500).json({ message: "Server error." });
   }
 });
+
+attendanceRouter.get("/export-attendance-2", async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+    const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+    const timeZone = "Asia/Kolkata";
+
+    const attendanceRecords = await attendanceModel
+      .find({
+        month: currentMonth,
+        year: currentYear,
+      })
+      .populate(attendancePopulateOption);
+
+    if (attendanceRecords.length === 0) {
+      return res.status(404).json({ message: "No attendance records found." });
+    }
+
+    const usersAttendance = {};
+    for (const record of attendanceRecords) {
+      const user = record.userId;
+      if (!user || !user._id) continue;
+
+      if (!usersAttendance[user._id]) {
+        usersAttendance[user._id] = {
+          user: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            designation: user.designation,
+            division: user.division,
+            department: user.department,
+            employeeId: user.employeeId,
+          },
+          days: Array(daysInMonth).fill("A"),
+          present: 0,
+          onleave: 0,
+          absent: daysInMonth,
+        };
+      }
+
+      const dayIndex = record.day - 1;
+      if (record.status === "completed" || record.status === "present") {
+        usersAttendance[user._id].days[dayIndex] = "P";
+        usersAttendance[user._id].present += 1;
+        usersAttendance[user._id].absent -= 1;
+      } else if (record.status === "weekoff") {
+        usersAttendance[user._id].days[dayIndex] = "WO";
+        usersAttendance[user._id].absent -= 1;
+      } else if (record.status === "on-paid-leave") {
+        usersAttendance[user._id].days[dayIndex] = "PL";
+        usersAttendance[user._id].onleave += 1;
+        usersAttendance[user._id].absent -= 1;
+      } else if (record.status === "on-casual-leave") {
+        usersAttendance[user._id].days[dayIndex] = "CL";
+        usersAttendance[user._id].onleave += 1;
+        usersAttendance[user._id].absent -= 1;
+      }
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Detailed Attendance");
+
+    // Define column headers with styles
+    worksheet.columns = [
+      { header: "ID", key: "id", width: 5 },
+      { header: "Employee ID", key: "employeeId", width: 15 },
+      { header: "First Name", key: "firstName", width: 15 },
+      { header: "Last Name", key: "lastName", width: 15 },
+      { header: "Designation", key: "designation", width: 20 },
+      { header: "Division", key: "division", width: 20 },
+      { header: "Department", key: "department", width: 20 },
+      ...Array.from({ length: daysInMonth }, (_, i) => ({
+        header: `${i + 1}`,
+        key: `day${i + 1}`,
+        width: 5,
+      })),
+      { header: "Present Days", key: "present", width: 15 },
+      { header: "Absent Days", key: "absent", width: 15 },
+      { header: "Total Leaves", key: "onleave", width: 15 },
+    ];
+
+    // Apply header row styling
+
+    worksheet.getRow(1).eachCell((cell) => {
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "bffcb3" }, // Light Pink
+      };
+      cell.font = { bold: true };
+    });
+
+    // Add data rows and apply conditional styling
+    Object.entries(usersAttendance).forEach(([userId, attendance], index) => {
+      const row = worksheet.addRow({
+        id: index + 1,
+        employeeId: attendance.user.employeeId,
+        firstName: attendance.user.firstName,
+        lastName: attendance.user.lastName,
+        designation: attendance.user.designation?.designation,
+        division: attendance.user.division?.division,
+        department: attendance.user.department?.department,
+        ...Object.fromEntries(
+          attendance.days.map((status, i) => [`day${i + 1}`, status])
+        ),
+        present: attendance.present,
+        absent: attendance.absent,
+        onleave: attendance.onleave,
+      });
+
+      // Conditional formatting for attendance status
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        const status = cell.value;
+        if (typeof status === "string") {
+          let color;
+          switch (status) {
+            case "P":
+              color = "90EE90"; // Light Green
+              break;
+            case "L":
+              color = "cd56f5"; // Yellow
+              break;
+            case "WO":
+              color = "fcb447"; // Light Blue
+              break;
+            case "A":
+              color = "fa5770"; // Light Red
+              break;
+          }
+          if (color) {
+            cell.fill = {
+              type: "pattern",
+              pattern: "solid",
+              fgColor: { argb: color },
+            };
+          }
+        }
+      });
+    });
+
+    // Save and send the file
+    const filePath = path.join(__dirname, "detailed_attendance.xlsx");
+    await workbook.xlsx.writeFile(filePath);
+
+    res.download(filePath, "detailed_attendance.xlsx", (err) => {
+      if (err) {
+        console.error("File download error:", err);
+        res.status(500).json({ message: "Failed to download file." });
+      } else {
+        fs.unlinkSync(filePath);
+      }
+    });
+  } catch (error) {
+    console.error("Error exporting detailed attendance:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+});
+
 const calculateHoursDifferenceWithTZ = (passedDate) => {
   const timeZone = "Asia/Kolkata";
 
@@ -687,5 +854,75 @@ export const markPendingDailyAttendance = async () => {
     return error;
   }
 };
+
+async function generateStyledExcel() {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet("Attendance Report", {
+    properties: { defaultColWidth: 20 },
+  });
+
+  // Define Header Row with Styles
+  worksheet.columns = [
+    { header: "ID", key: "id", width: 5 },
+    { header: "Employee Name", key: "name", width: 25 },
+    { header: "Designation", key: "designation", width: 20 },
+    { header: "Present Days", key: "present", width: 15 },
+    { header: "Absent Days", key: "absent", width: 15 },
+  ];
+
+  // Style the header row
+  worksheet.getRow(1).eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF007ACC" },
+    };
+    cell.alignment = { horizontal: "center" };
+  });
+
+  // Add Data Rows
+  const data = [
+    {
+      id: 1,
+      name: "John Doe",
+      designation: "Developer",
+      present: 20,
+      absent: 5,
+    },
+    {
+      id: 2,
+      name: "Jane Smith",
+      designation: "Designer",
+      present: 18,
+      absent: 7,
+    },
+  ];
+
+  data.forEach((item) => {
+    worksheet.addRow(item);
+  });
+
+  // Style specific cells dynamically
+  worksheet.getCell("D2").fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FF92D050" },
+  };
+
+  worksheet.getCell("E2").fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: "FFFF0000" },
+  };
+
+  // Save the file
+  const filePath = path.join(__dirname, "Styled_Attendance_Report.xlsx");
+  await workbook.xlsx.writeFile(filePath);
+
+  console.log(`Excel file generated at: ${filePath}`);
+}
+
+// generateStyledExcel().catch(console.error);
 
 export default attendanceRouter;
