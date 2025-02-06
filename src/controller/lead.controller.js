@@ -57,7 +57,6 @@ export const getAllLeads = async (req, res, next) => {
 
 export const getAllData = async (req, res, next) => {
   try {
-
     let query = req.query.query || "";
     let status = req.query.status?.toLowerCase();
     const interval = req.query.interval;
@@ -108,7 +107,7 @@ export const getAllData = async (req, res, next) => {
           {
             revisitStatus: { $ne: "pending" },
           },
-          {bookingStatus:{$ne:"booked"}}
+          { bookingStatus: { $ne: "booked" } },
         ],
 
         // ...walkinType,
@@ -282,8 +281,8 @@ export const getAllData = async (req, res, next) => {
       startDate = new Date(currentDate.getFullYear(), 0, 1);
       endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
     }
-  
-     // Base Filter for Search and Leads Query
+
+    // Base Filter for Search and Leads Query
     let baseFilter = {
       startDate: {
         $gte: filterDate,
@@ -566,7 +565,6 @@ export const getAllData = async (req, res, next) => {
 };
 
 export const getAllGraph = async (req, res, next) => {
-
   try {
     // if (!teamLeaderId) return res.send(errorRes(401, "id Required"));
 
@@ -930,9 +928,6 @@ export const getAllGraph = async (req, res, next) => {
     return res.send(errorRes(500, "Internal Server Error", error));
   }
 };
-
-
-
 
 export const getLeadsTeamLeader = async (req, res, next) => {
   const teamLeaderId = req.params.id;
@@ -3545,6 +3540,8 @@ export const searchLeads = async (req, res, next) => {
         : {
             /*leadType: { $ne: "walk-in" }*/
           }),
+      ...(approvalStatus != "total" &&
+        approvalStatus != "all" && { leadType: { $ne: "walk-in" } }),
     };
 
     // Execute the search with the refined filter
