@@ -44,6 +44,7 @@ import vehicleRouter from "./vehicle/vehicleRouter.js";
 import chatRespRouter from "./chatResponse/chatResponseRouter.js";
 import transPortRouter from "./transport/transportRouter.js";
 import leaveRequestRouter from "./leaveRequest/leaveRequestRouter.js";
+import slabRouter from "./slabs/slabRouter.js";
 
 const router = Router();
 router.get("/ping", async (req, res) => {
@@ -119,5 +120,6 @@ router.use(vehicleRouter);
 router.use(chatRespRouter);
 router.use(transPortRouter);
 router.use(leaveRequestRouter);
+router.use(slabRouter);
 
 export default router;
