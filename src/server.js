@@ -186,17 +186,17 @@ cron.schedule("0 9 * * *", async () => {
   }
 });
 
-// Trigger at 5:30 AM
-cron.schedule("30 5 * * *", async () => {
-  console.log("Triggered at 5:30 AM local time");
-  await insertDailyAttendance();
-});
+// // Trigger at 5:30 AM
+// cron.schedule("30 5 * * *", async () => {
+//   console.log("Triggered at 5:30 AM local time");
+//   await insertDailyAttendance();
+// });
 
-// Trigger at 11:59 PM
-cron.schedule("59 23 * * *", async () => {
-  console.log("Triggered at 11:59 PM local time");
-  await markPendingDailyAttendance();
-});
+// // Trigger at 11:59 PM
+// cron.schedule("59 23 * * *", async () => {
+//   console.log("Triggered at 11:59 PM local time");
+//   await markPendingDailyAttendance();
+// });
 
 server.listen(config.PORT, () =>
   console.log("listening on port " + config.PORT)
