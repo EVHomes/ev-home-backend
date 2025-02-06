@@ -135,7 +135,7 @@ export const addLeave = async (req, res, next) => {
       }`,
       imageUrl: "https://uknowva.com/images/aashna/leave-management.png",
       data: {
-        type: "leaveRequest",
+        type: "leave-request-approval",
         id: newLeaveRequest?._id,
         // role: "channel-partner",
       },
@@ -184,13 +184,19 @@ export const updateLeaveStatus = async (req, res) => {
           day: currentDate.date(),
           month: currentDate.month() + 1, // Moment months are 0-based, so we add 1
           year: currentDate.year(),
-          status: "on-leave",
-          wlStatus: "on-leave",
+          status:
+            leave.leaveType === "paid_leave"
+              ? "on-paid-leave"
+              : "on-casual-leave",
+          wlStatus:
+            leave.leaveType === "paid_leave"
+              ? "on-paid-leave"
+              : "on-casual-leave",
           userId: leave.applicant?._id,
         });
         currentDate.add(1, "days");
       }
-      console.log(dates);
+      // console.log(dates);
       try {
         await attendanceModel.insertMany(dates, { ordered: false });
       } catch (error) {
@@ -216,7 +222,7 @@ export const updateLeaveStatus = async (req, res) => {
         }`,
         imageUrl: "https://uknowva.com/images/aashna/leave-management.png",
         data: {
-          type: "leaveRequest",
+          type: "leave-request",
           id: id,
           // role: "channel-partner",
         },
