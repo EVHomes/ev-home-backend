@@ -6777,7 +6777,7 @@ export const triggerCycleChange = async (req, res, next) => {
                   validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 3:
-                  validTill.setDate(validTill.getDate() + 3);
+                  validTill.setDate(validTill.getDate() + 2);
                   break;
                 case 4:
                   validTill.setDate(validTill.getDate() + 1);
@@ -6811,7 +6811,7 @@ export const triggerCycleChange = async (req, res, next) => {
                   validTill.setDate(validTill.getDate() + 6);
                   break;
                 case 4:
-                  validTill.setDate(validTill.getDate() + 3);
+                  validTill.setDate(validTill.getDate() + 2);
                   break;
                 default:
                   validTill.setDate(validTill.getDate() + 29);

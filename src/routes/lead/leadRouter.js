@@ -207,7 +207,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
 
               switch (cCycle.currentOrder) {
                 case 1:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
                   break;
                 case 2:
                   validTill.setDate(validTill.getDate() + 14);
@@ -219,7 +219,7 @@ leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
                   validTill.setDate(validTill.getDate() + 2);
                   break;
                 default:
-                  validTill.setDate(validTill.getDate() + 30);
+                  validTill.setDate(validTill.getDate() + 29);
               }
             }
           }
