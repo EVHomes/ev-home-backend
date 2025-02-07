@@ -10,6 +10,10 @@ const cycle = {
     type: Number,
     default: 0,
   },
+  currentDays: {
+    type: Number,
+    default: 0,
+  },
   teamLeader: {
     type: String,
     ref: "employees",
