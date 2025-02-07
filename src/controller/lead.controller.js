@@ -118,7 +118,7 @@ export const getAllLeads = async (req, res, next) => {
           ],
 
           // ...walkinType,
-          leadType: { $ne: "walk-in" },
+          // leadType: { $ne: "walk-in" },
         };
       } else if (status === "visit-done" || status === "visit") {
         statusToFind = {
@@ -444,6 +444,7 @@ interval &&{ startDate:{$gte: startDate, $lt: endDate} },
                     {
                       revisitStatus: { $ne: "pending" },
                     },
+                   { bookingStatus:{$ne:"booked"}}
                   ],
                 },
               },
@@ -1226,6 +1227,9 @@ export const getLeadsTeamLeader = async (req, res, next) => {
       startDate = new Date(currentDate.getFullYear(), 0, 1);
       endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
     }
+    console.log(startDate);
+    console.log(endDate);
+    
     // Base Filter for Search and Leads Query
     let baseFilter = {
       teamLeader: { $eq: teamLeaderId },
@@ -1396,6 +1400,7 @@ export const getLeadsTeamLeader = async (req, res, next) => {
                   {
                     revisitStatus: { $ne: "pending" },
                   },
+                  
                 ],
               },
             },
