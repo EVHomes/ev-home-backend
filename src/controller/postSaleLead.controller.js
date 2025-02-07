@@ -517,7 +517,7 @@ export const updatePostSaleLeadById = async (req, res, next) => {
     if (!foundLead) return res.send(errorRes(404, "No lead found"));
     // console.log("entered 2");
     // console.log(body);
-    await foundLead.updateOne({ ...body }, { new: true });
+    await foundLead.updateOne({ $set: body }, { new: true });
     const updatedLead = await postSaleLeadModel
       .findById(id)
       .populate(postSalePopulateOptions);
