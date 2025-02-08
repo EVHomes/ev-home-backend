@@ -215,7 +215,7 @@ export async function getLeadCounts(req, res, next) {
     let matchStage = {};
     if (interval === "monthly") {
       matchStage.date = {
-        $gte: new Date('2024-12-10T00:00:00Z'), // Start from December 10, 2024
+        $gte: new Date("2024-12-10T00:00:00Z"), // Start from December 10, 2024
         $lt: new Date(`${selectedYear + 1}-01-01`),
       };
     } else {
@@ -244,8 +244,18 @@ export async function getLeadCounts(req, res, next) {
 
     // Prepare the response for all months
     const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     // Create an array for all months initialized to zero
@@ -262,7 +272,7 @@ export async function getLeadCounts(req, res, next) {
     });
 
     // Filter out months with a count of zero
-    const filteredMonthlyData = monthlyData.filter(item => item.count > 0);
+    const filteredMonthlyData = monthlyData.filter((item) => item.count > 0);
 
     console.log("Query Parameters:", {
       interval,
@@ -558,8 +568,14 @@ export const getPostSaleLeadByFlat = async (req, res) => {
     const project = req.query.project;
     console.log(unitNo);
     console.log(project);
+    const filter = {
+      unitNo: parseInt(unitNo),
+      project,
+    };
+    console.log(filter);
+
     const respPayment = await postSaleLeadModel
-      .findOne({ unitNo: unitNo, project: project })
+      .find(filter)
       .populate(postSalePopulateOptions);
     // console.log(respPayment);
     return res.send(

@@ -42,7 +42,7 @@ const applicantSchema = new mongoose.Schema({
 
 export const postSaleLeadSchema = new mongoose.Schema(
   {
-    unitNo: { type: String, required: true, default: null },
+    unitNo: { type: Number, required: true, default: null },
     floor: { type: Number, default: null },
     number: { type: Number, default: null },
     project: {
