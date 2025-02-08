@@ -38,6 +38,7 @@ import {
   getAssignedToSalesManger,
   getAllData,
   getAllGraph,
+  getLeadsAssignFeedback,
 } from "../../controller/lead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 import { validateLeadsFields } from "../../middleware/lead.middleware.js";
@@ -71,6 +72,12 @@ leadRouter.get(
   "/leads-team-leader/:id",
   // authenticateToken,
   getLeadsTeamLeader
+);
+
+leadRouter.get(
+  "/leads-assign-feedback",
+  // authenticateToken,
+  getLeadsAssignFeedback
 );
 
 leadRouter.get("/lead-cycle-timeline/:id", async (req, res) => {
