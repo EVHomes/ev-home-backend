@@ -163,6 +163,7 @@ export const postSaleLeadSchema = new mongoose.Schema(
     stampDutyAmount: { type: Number, default: 0 },
     tdsAmount: { type: Number, default: 0 },
     flatCost: { type: Number, default: 0 },
+    registrationdone: { type: Boolean, default: false},
   },
   { timestamps: true }
 );
