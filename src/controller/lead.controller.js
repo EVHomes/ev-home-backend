@@ -7166,7 +7166,8 @@ export const triggerCycleChangeFunction = async () => {
                 cCycle.currentOrder += 1;
                 cCycle.currentDays = visitDays[0];
                 cCycle.lastIndex = lastIndex;
-                cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+                cCycle.teamLeader =
+                  teamLeaders[(lastIndex + 1) % teamLeaders.length]._id; // Reset to first TL
               } else {
                 cCycle.currentOrder += 1;
                 cCycle.lastIndex = lastIndex;
@@ -7227,7 +7228,8 @@ export const triggerCycleChangeFunction = async () => {
                 cCycle.currentOrder += 1;
                 cCycle.currentDays = revisitDays[0];
                 cCycle.lastIndex = lastIndex;
-                cCycle.teamLeader = teamLeaders[0]?._id; // Reset to first TL
+                cCycle.teamLeader =
+                  teamLeaders[(lastIndex + 1) % teamLeaders.length]._id; // Reset to first TL
               } else {
                 cCycle.currentOrder += 1;
                 cCycle.lastIndex = lastIndex;
