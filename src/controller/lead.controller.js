@@ -1121,8 +1121,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
         // ...walkinType,
       };
@@ -1149,8 +1156,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             revisitStatus: { $ne: "pending" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
 
         // ...walkinType,
@@ -1168,8 +1182,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             visitStatus: { $ne: "pending" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
         // ...walkinType,
         leadType: { $eq: "walk-in" },
@@ -2012,8 +2033,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
         // ...walkinType,
       };
@@ -2044,8 +2072,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             revisitStatus: { $ne: "pending" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
 
         // ...walkinType,
@@ -2063,8 +2098,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             visitStatus: { $ne: "pending" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
         // ...walkinType,
         // leadType: { $eq: "walk-in" },
@@ -2478,8 +2520,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
         // ...walkinType,
       };
@@ -2506,8 +2555,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             revisitStatus: { $ne: "pending" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
 
         // ...walkinType,
@@ -2525,8 +2581,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             visitStatus: { $ne: "pending" },
           },
           {
-            leadType: "walk-in",
-          },
+            $or:[
+              {
+                leadType: "walk-in",
+              },
+              {
+                leadType: "internal-lead",
+              },
+            ]
+          }
         ],
         // ...walkinType,
         // leadType: { $eq: "walk-in" },
