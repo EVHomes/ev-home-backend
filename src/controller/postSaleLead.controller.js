@@ -12,9 +12,36 @@ export const getPostSaleLeads = async (req, res, next) => {
     let project = req.query.project; // Get the project name from the query
     let page = parseInt(req.query.page) || 1; // Start from page 1
     let limit = parseInt(req.query.limit) || 20;
+    let status = req.query.status;
+    let statusToFind = null;
     console.log(project);
+    console.log(status);
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
+
+    if (status === "registrationDone") {
+      statusToFind = {
+        $and: [
+          {
+            registrationdone: { $ne: null },
+          },
+          {
+            registrationdone: { $eq: true },
+          },
+        ],
+      };
+    } else if (status === "registrationPending") {
+      statusToFind = {
+        $and: [
+          {
+            registrationdone: { $ne: null },
+          },
+          {
+            registrationdone: { $eq: false },
+          },
+        ],
+      };
+    }
 
     let searchFilter = {
       $or: [
@@ -49,7 +76,10 @@ export const getPostSaleLeads = async (req, res, next) => {
     };
 
     const resp = await postSaleLeadModel
-      .find(searchFilter)
+      .find({
+        ...searchFilter,
+        ...(statusToFind != null ? statusToFind : null),
+      })
       .sort({ date: -1 })
       .populate(postSalePopulateOptions)
       .skip(skip)
@@ -58,8 +88,15 @@ export const getPostSaleLeads = async (req, res, next) => {
     // Count the total items matching the filter
     const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
     const registrationDone = await postSaleLeadModel.countDocuments({
-      bookingStatus: "Registration Done",
       ...(project ? { project: project } : {}),
+      $and: [
+        {
+          registrationdone: { $ne: null },
+        },
+        {
+          registrationdone: { $eq: true },
+        },
+      ],
     });
     const eoiRecieved = await postSaleLeadModel.countDocuments({
       bookingStatus: "EOI Recieved",
@@ -72,6 +109,18 @@ export const getPostSaleLeads = async (req, res, next) => {
     const report = await postSaleLeadModel.countDocuments({});
     const totalPages = Math.ceil(totalItems / limit);
 
+    const registrationPending = await postSaleLeadModel.countDocuments({
+      ...(project ? { project: project } : {}),
+      $and: [
+        {
+          registrationdone: { $ne: null },
+        },
+        {
+          registrationdone: { $eq: false },
+        },
+      ],
+    });
+
     return res.send(
       successRes(200, "get post sale leads", {
         page,
@@ -79,6 +128,7 @@ export const getPostSaleLeads = async (req, res, next) => {
         totalItems,
         totalPages,
         registrationDone,
+        registrationPending,
         eoiRecieved,
         cancelled,
         data: resp,
@@ -215,7 +265,7 @@ export async function getLeadCounts(req, res, next) {
     let matchStage = {};
     if (interval === "monthly") {
       matchStage.date = {
-        $gte: new Date('2024-12-10T00:00:00Z'), // Start from December 10, 2024
+        $gte: new Date("2024-12-10T00:00:00Z"), // Start from December 10, 2024
         $lt: new Date(`${selectedYear + 1}-01-01`),
       };
     } else {
@@ -244,8 +294,18 @@ export async function getLeadCounts(req, res, next) {
 
     // Prepare the response for all months
     const monthNames = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
     ];
 
     // Create an array for all months initialized to zero
@@ -262,7 +322,7 @@ export async function getLeadCounts(req, res, next) {
     });
 
     // Filter out months with a count of zero
-    const filteredMonthlyData = monthlyData.filter(item => item.count > 0);
+    const filteredMonthlyData = monthlyData.filter((item) => item.count > 0);
 
     console.log("Query Parameters:", {
       interval,
