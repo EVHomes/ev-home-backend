@@ -1531,6 +1531,277 @@ export const getLeadsTeamLeader = async (req, res, next) => {
   }
 };
 
+export const getLeadsAssignFeedback = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let status = req.query.status?.toLowerCase();
+    let member = req.query.member;
+    let cycle = req.query.cycle;
+    let callData = req.query.callData;
+    let order = req.query.order;
+    let sortDirection = -1;
+    const interval = req.query.interval;
+    const currentDate = new Date();
+    let startDate, endDate;
+    // let callDone =req.query.callDone;
+
+    let ids = [];
+
+    const isNumberQuery = !isNaN(query);
+    const filterDate = new Date("2024-12-10");
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    let skip = (page - 1) * limit;
+
+    let statusToFind = null;
+    if (status === "assigned") {
+      statusToFind = {
+        taskRef: { $ne: null },
+        // ...walkinType,
+      };
+    } else if (status === "not-assigned") {
+      statusToFind = {
+        taskRef: { $eq: null },
+        // ...walkinType,
+      };
+    }
+
+    if (order == "Ascending" || order == "ascending") {
+      sortDirection = 1;
+      console.log("ascending");
+    } else if (order == "Descending" || order == "descending") {
+      sortDirection = -1;
+    }
+
+    // Base Filter for Search and Leads Query
+    let baseFilter = {
+      // teamLeader: { $eq: teamLeaderId },
+      startDate: {
+        $gte: filterDate,
+        ...(interval && { $gte: startDate, $lt: endDate }),
+      },
+      ...(statusToFind != null ? statusToFind : null),
+      ...(member != null ? { taskRef: { $in: ids } } : null),
+      ...(cycle != null ? { "cycle.currentOrder": cycle } : {}),
+      ...(callData != null
+        ? {
+            $expr: {
+              $eq: [
+                { $arrayElemAt: ["$callHistory.remark", -1] }, // Get the last remark in callHistory
+                callData,
+              ],
+            },
+          }
+        : {}),
+    };
+    console.log(baseFilter);
+    // Add query search conditions (if applicable)
+    if (query) {
+      const searchConditions = [
+        { firstName: { $regex: query, $options: "i" } },
+        { lastName: { $regex: query, $options: "i" } },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$altPhoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        { email: { $regex: query, $options: "i" } },
+        { address: { $regex: query, $options: "i" } },
+        { status: { $regex: query, $options: "i" } },
+        { interestedStatus: { $regex: query, $options: "i" } },
+      ].filter(Boolean);
+
+      baseFilter.$or = searchConditions;
+    }
+    console.log(order);
+    console.log(sortDirection);
+    // console.log(JSON.stringify(baseFilter, null, 2));
+    // Fetch Leads
+    const respLeads = await leadModel
+      .find(baseFilter)
+      .skip(skip)
+      .limit(limit)
+      .sort({ "cycle.startDate": sortDirection })
+      .populate(leadPopulateOptions);
+
+    // Extract teamLeader from cycleHistory based on currentOrder
+    // const leadsWithTeamLeader = respLeads.map((lead) => {
+    //   const currentOrder = lead.cycle.currentOrder;
+    //   const cycleHistoryEntry = lead.cycleHistory.find(
+    //     (entry) => entry.currentOrder === currentOrder
+    //   );
+    //   return {
+    //     ...lead.toObject(),
+    //     teamLeader: cycleHistoryEntry ? cycleHistoryEntry.teamLeader : null, // Get teamLeader from cycleHistory
+    //   };
+    // });
+
+    // if (!respLeads.length) return res.send(errorRes(404, "No leads found"));
+
+    const counts = await leadModel.aggregate([
+      {
+        $match: {
+          // teamLeader: teamLeaderId,
+          startDate: {
+            $gte: filterDate,
+            ...(interval && { $gte: startDate, $lt: endDate }),
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "tasks",
+          localField: "taskRef",
+          foreignField: "_id",
+          as: "taskDetails",
+        },
+      },
+      {
+        $unwind: {
+          path: "$taskDetails",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $facet: {
+          totalItems: [{ $count: "count" }],
+          totalItemsCount: [
+            {
+              $match: baseFilter,
+            },
+            { $count: "count" },
+          ],
+          assignedCount: [
+            { $match: { taskRef: { $ne: null } } },
+            { $count: "count" },
+          ],
+          notAssignedCount: [
+            { $match: { taskRef: { $eq: null } } },
+            { $count: "count" },
+          ],
+          notFollowUpCount: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    // Ensure last caller is not null
+                    {
+                      $ne: [
+                        { $arrayElemAt: ["$callHistory.caller", -1] },
+                        null,
+                      ],
+                    },
+                    { $ne: ["$taskDetails.assignTo_id", null] },
+                    // Check if the last caller is not equal to assignTo
+                    {
+                      $ne: [
+                        { $arrayElemAt: ["$callHistory.caller", -1] },
+                        "$taskDetails.assignTo._id",
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            { $count: "count" },
+          ],
+          // Add other count stages as required
+        },
+      },
+      {
+        $addFields: {
+          totalItems: { $arrayElemAt: ["$totalItems.count", 0] },
+          totalItemsCount: { $arrayElemAt: ["$totalItemsCount.count", 0] },
+          assignedCount: { $arrayElemAt: ["$assignedCount.count", 0] },
+          notAssignedCount: { $arrayElemAt: ["$notAssignedCount.count", 0] },
+          notFollowUpCount: { $arrayElemAt: ["$notFollowUpCount.count", 0] },
+          // Add other fields similarly as required
+        },
+      },
+      {
+        $project: {
+          totalItems: 1,
+          assignedCount: 1,
+          notAssignedCount: 1,
+          totalItemsCount: 1,
+          notFollowUpCount: 1,
+          // Include only the fields you need
+        },
+      },
+    ]);
+
+    const {
+      totalItems = 0,
+      assignedCount = 0,
+      notAssignedCount = 0,
+      totalItemsCount = 0,
+      notFollowUpCount = 0,
+    } = counts[0] || {};
+
+    const totalPages = Math.ceil(totalItems / limit);
+    if (status === "no-feedback") {
+      // statusToFind = {
+      //   $expr: {
+      //     $eq: [
+      //       { $arrayElemAt: ["$callHistory.caller", -1] },
+      //       "$taskRef.assignTo",
+      //     ],
+      //   },
+      // };
+      const matchingTasks = respLeads.filter(
+        (leadd) =>
+          leadd.callHistory.length > 0 &&
+          leadd.callHistory[leadd.callHistory.length - 1]?.caller?._id !=
+            leadd.taskRef?.assignTo?._id
+      );
+      return res.send(
+        successRes(200, "Leads for team Leader", {
+          page,
+          limit,
+          totalPages,
+          totalItems,
+          assignedCount,
+          notAssignedCount,
+          totalItemsCount,
+          notFollowUpCount,
+          data: matchingTasks,
+        })
+      );
+    }
+
+    return res.send(
+      successRes(200, "Leads for team Leader", {
+        page,
+        limit,
+        totalPages,
+        totalItems,
+        assignedCount,
+        notAssignedCount,
+        totalItemsCount,
+        notFollowUpCount,
+        data: respLeads,
+      })
+    );
+  } catch (error) {
+    next(error);
+  }
+};
+
 export const getAssignedToSalesManger = async (req, res, next) => {
   const salesManagerId = req.params.id;
   let cycle = req.query.cycle;

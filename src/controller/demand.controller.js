@@ -25,7 +25,7 @@ export const getDemand = async (req, res) => {
 export const addDemand = async (req, res) => {
   try {
     if (!req.body) return res.send(errorRes(401, "data Required"));
-
+    console.log(req.body);
     const respDemand = await demandModel.create({ ...req.body });
 
     return res.send(
@@ -34,6 +34,8 @@ export const addDemand = async (req, res) => {
       })
     );
   } catch (error) {
+    console.log(error);
+
     return res.send(errorRes(500, error));
   }
 };

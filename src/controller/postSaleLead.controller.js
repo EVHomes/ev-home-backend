@@ -618,8 +618,14 @@ export const getPostSaleLeadByFlat = async (req, res) => {
     const project = req.query.project;
     console.log(unitNo);
     console.log(project);
+    const filter = {
+      unitNo: parseInt(unitNo),
+      project,
+    };
+    console.log(filter);
+
     const respPayment = await postSaleLeadModel
-      .findOne({ unitNo: unitNo, project: project })
+      .findOne(filter)
       .populate(postSalePopulateOptions);
     // console.log(respPayment);
     return res.send(
