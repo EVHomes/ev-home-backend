@@ -575,7 +575,7 @@ export const getPostSaleLeadByFlat = async (req, res) => {
     console.log(filter);
 
     const respPayment = await postSaleLeadModel
-      .find(filter)
+      .findOne(filter)
       .populate(postSalePopulateOptions);
     // console.log(respPayment);
     return res.send(
