@@ -91,10 +91,10 @@ export const getPostSaleLeads = async (req, res, next) => {
       ...(project ? { project: project } : {}),
       $and: [
         {
-          registrationDone: { $ne: null },
+          registrationdone: { $ne: null },
         },
         {
-          registrationDone: { $eq: true },
+          registrationdone: { $eq: true },
         },
       ],
     });
