@@ -1550,7 +1550,8 @@ export const getLeadsAssignFeedback = async (req, res, next) => {
     const isNumberQuery = !isNaN(query);
     const filterDate = new Date("2024-12-10");
     let page = parseInt(req.query.page) || 1;
-    let limit = parseInt(req.query.limit) || 10;
+    let limit =
+      status === "no-feedback" ? 999999 : parseInt(req.query.limit) || 10;
     let skip = (page - 1) * limit;
 
     let statusToFind = null;
@@ -1706,12 +1707,31 @@ export const getLeadsAssignFeedback = async (req, res, next) => {
                         null,
                       ],
                     },
-                    { $ne: ["$taskDetails.assignTo_id", null] },
+                    { $ne: ["$taskDetails.assignTo", null] },
                     // Check if the last caller is not equal to assignTo
                     {
                       $ne: [
                         { $arrayElemAt: ["$callHistory.caller", -1] },
-                        "$taskDetails.assignTo._id",
+                        "$taskDetails.assignTo",
+                      ],
+                    },
+                    // Check if last callDate is older than 3 days
+                    {
+                      $lt: [
+                        { $arrayElemAt: ["$callHistory.callDate", -1] },
+                        {
+                          $dateSubtract: {
+                            startDate: "$$NOW",
+                            unit: "day",
+                            amount: 2,
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      $and: [
+                        { $ne: ["$validTill", null] }, // Include if no validTill date
+                        { $gte: ["$validTill", "$$NOW"] }, // Include only if validTill is today or in the future
                       ],
                     },
                   ],
@@ -1763,12 +1783,31 @@ export const getLeadsAssignFeedback = async (req, res, next) => {
       //     ],
       //   },
       // };
-      const matchingTasks = respLeads.filter(
-        (leadd) =>
-          leadd.callHistory.length > 0 &&
-          leadd.callHistory[leadd.callHistory.length - 1]?.caller?._id !=
-            leadd.taskRef?.assignTo?._id
-      );
+      const matchingTasks = respLeads.filter((leadd) => {
+        const lastCallHistory = leadd.callHistory[leadd.callHistory.length - 1];
+
+        // Ensure callHistory exists and has valid data
+        if (
+          !lastCallHistory ||
+          !lastCallHistory.caller?._id ||
+          !leadd.taskRef?.assignTo?._id
+        ) {
+          return false;
+        }
+
+        const lastCallDate = new Date(lastCallHistory.callDate);
+        const currentDate = new Date();
+
+        // Calculate the difference in days (check for older than 1 day)
+        const daysDiff =
+          (currentDate.getTime() - lastCallDate.getTime()) /
+          (1000 * 60 * 60 * 24);
+
+        return (
+          lastCallHistory.caller._id !== leadd.taskRef.assignTo._id &&
+          daysDiff > 1
+        );
+      });
       return res.send(
         successRes(200, "Leads for team Leader", {
           page,
@@ -1777,7 +1816,7 @@ export const getLeadsAssignFeedback = async (req, res, next) => {
           totalItems,
           assignedCount,
           notAssignedCount,
-          totalItemsCount,
+          totalItemsCount: matchingTasks.length,
           notFollowUpCount,
           data: matchingTasks,
         })
