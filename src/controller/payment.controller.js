@@ -23,6 +23,7 @@ export const addPayment = async (req, res) => {
 
   const {
     projects,
+    slab,
     customerName,
     phoneNumber,
     dateOfAmtReceive,
@@ -45,20 +46,6 @@ export const addPayment = async (req, res) => {
     //   if (!department) return res.send(errorRes(403, "department is required"));
     const newPayment = await paymentModel.create({
       ...body,
-      // projects: projects,
-      // customerName: customerName,
-      // phoneNumber: phoneNumber,
-      // dateOfAmtReceive: dateOfAmtReceive,
-      // receiptNo: receiptNo,
-      // account: account,
-      // paymentMode: paymentMode,
-      // transactionId: transactionId,
-      // flatNo: flatNo,
-      // amtReceived: amtReceived,
-      // bookingAmt: bookingAmt,
-      // stampDuty: stampDuty,
-      // tds: tds,
-      // cgst: cgst,
     });
     await newPayment.save();
     const respP = await paymentModel

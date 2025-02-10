@@ -10,6 +10,7 @@ const slabSchema = new mongoose.Schema({
   completedOn: { type: Date, default: null },
   architectCertificate: { type: String, default: null },
 });
+
 export const slabInfoSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
