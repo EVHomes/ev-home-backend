@@ -16,6 +16,8 @@
 //   PASSWORD_MIN_LENGTH_ERROR: "password-min-length-error",
 // };
 
+import { populate } from "dotenv";
+
 export const errorMessage = {
   EMP_NOT_FOUND:
     "We were unable to find an employee associated with the provided information.",
@@ -752,6 +754,14 @@ export const paymentPopulateOptions = [
     path: "projects",
     select: "name",
   },
+  // {
+  //   path: "slab",
+  //   select: "",
+  //   populate: [
+  //     { path: "projects",select:"name" },
+     
+  //   ],
+  // },
 ];
 
 export const postSalePopulateOptions = [

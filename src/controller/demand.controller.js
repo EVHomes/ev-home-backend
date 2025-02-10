@@ -8,9 +8,9 @@ export const getDemand = async (req, res) => {
       .populate({
         path: "project",
       })
-      .populate({
-        path: "reminders.customer",
-      });
+      // .populate({
+      //   path: "reminders.customer",
+      // });
 
     return res.send(
       successRes(200, "Get Demand Details", {
@@ -21,6 +21,45 @@ export const getDemand = async (req, res) => {
     return res.send(errorRes(500, error));
   }
 };
+
+export const getDemandCountByProjectAndSlab = async (req, res) => {
+  try {
+    let project = req.query.project; 
+    let slab=req.query.slab;
+
+    if (!project ) {
+      return res.send(errorRes(400, "Project is required"));
+    }
+    if (!slab ) {
+      return res.send(errorRes(400, "Slab is required"));
+    }
+
+    const totalItemCount = await demandModel.countDocuments({
+      project: project,
+    });
+    // Query the database to count demands for the specified project and slab
+    const demandCount = await demandModel.countDocuments({
+      project: project,
+      slab: slab,
+    });
+
+    return res.send(
+      successRes(200, "Demand count for project and slab", {
+        // project: project,
+        // slab: slab,
+        data:{
+          totalItemCount:totalItemCount,
+          demandGeneratedcount: demandCount,
+        }
+        
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, error.message));
+  }
+};
+
+
 
 export const addDemand = async (req, res) => {
   try {
@@ -39,6 +78,8 @@ export const addDemand = async (req, res) => {
     return res.send(errorRes(500, error));
   }
 };
+
+
 
 // import demandModel from "../model/demand.model.js";
 // import { errorRes, successRes } from "../model/response.js";
