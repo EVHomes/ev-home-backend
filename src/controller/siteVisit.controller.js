@@ -741,7 +741,10 @@ export const addSiteVisits = async (req, res) => {
       validTillbefore.setDate(validTillbefore.getDate() + 15);
       validTill.setDate(validTill.getDate() + 30);
 
-      if (source?.toLowerCase() === "walk-in" || source?.toLowerCase() ==="internal-lead") {
+      if (
+        source?.toLowerCase() === "walk-in" ||
+        source?.toLowerCase() === "internal-lead"
+      ) {
         const foundLead = await leadModel.create({
           leadType: source?.toLowerCase(),
           firstName: firstName,
@@ -763,16 +766,16 @@ export const addSiteVisits = async (req, res) => {
             startDate: startDate,
             validTill: validTill,
           },
-          cycleHistory: [
-            {
-              nextTeamLeader: null,
-              stage: "visit",
-              currentOrder: 1,
-              teamLeader: closingManager,
-              startDate: startDate,
-              validTill: validTillbefore,
-            },
-          ],
+          // cycleHistory: [
+          //   {
+          //     nextTeamLeader: null,
+          //     stage: "visit",
+          //     currentOrder: 1,
+          //     teamLeader: closingManager,
+          //     startDate: startDate,
+          //     validTill: validTillbefore,
+          //   },
+          // ],
         });
         const foundTLPlayerId = await oneSignalModel.findOne({
           docId: closingManager,
