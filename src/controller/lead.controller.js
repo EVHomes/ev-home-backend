@@ -1121,15 +1121,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
         // ...walkinType,
       };
@@ -1156,15 +1156,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             revisitStatus: { $ne: "pending" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
 
         // ...walkinType,
@@ -1182,15 +1182,15 @@ export const getLeadsTeamLeader = async (req, res, next) => {
             visitStatus: { $ne: "pending" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
         // ...walkinType,
         leadType: { $eq: "walk-in" },
@@ -1829,6 +1829,35 @@ export const getLeadsAssignFeedback = async (req, res, next) => {
           daysDiff > 1
         );
       });
+      const csvFilePath = path.join(__dirname, "no-feedback-leads.csv");
+      const headers =
+        "Lead Type,Client Name,PhoneNumber,Channel Partner, TeamLeader, Last Call Date, AssignTo ";
+
+      const rows = matchingTasks.map((task) => {
+        const lastCallHistory = task.callHistory[task.callHistory.length - 1];
+        const lastCallDate = new Date(lastCallHistory.callDate);
+        const currentDate = new Date();
+        // const daysDiff =
+        //   (currentDate.getTime() - lastCallDate.getTime()) /
+        //   (1000 * 60 * 60 * 24);
+
+        return `${task.leadType},${task.firstName} ${task.lastName},${
+          task.phoneNumber
+        },${task.channelPartner?.firmName ?? "NA"},${
+          task.teamLeader.firstName
+        } ${task.teamLeader.lastName},${moment(lastCallDate)
+          .tz("Asia/Kolkata")
+          .format("DD-MM-YYYY hh:mm:ss a")},${
+          lastCallHistory.caller.firstName
+        } ${lastCallHistory.caller.lastName}`;
+      });
+
+      const csvContent = headers + "\n" + rows.join("\n");
+
+      // Write CSV File
+      fs.writeFileSync(csvFilePath, csvContent);
+      console.log(`CSV successfully created at: ${csvFilePath}`);
+
       return res.send(
         successRes(200, "Leads for team Leader", {
           page,
@@ -2033,15 +2062,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
         // ...walkinType,
       };
@@ -2072,15 +2101,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             revisitStatus: { $ne: "pending" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
 
         // ...walkinType,
@@ -2098,15 +2127,15 @@ export const getAssignedToSalesManger = async (req, res, next) => {
             visitStatus: { $ne: "pending" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
         // ...walkinType,
         // leadType: { $eq: "walk-in" },
@@ -2520,15 +2549,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             stage: { $ne: "approval" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
         // ...walkinType,
       };
@@ -2555,15 +2584,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             revisitStatus: { $ne: "pending" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
 
         // ...walkinType,
@@ -2581,15 +2610,15 @@ export const getLeadsTeamLeaderReportingTo = async (req, res, next) => {
             visitStatus: { $ne: "pending" },
           },
           {
-            $or:[
+            $or: [
               {
                 leadType: "walk-in",
               },
               {
                 leadType: "internal-lead",
               },
-            ]
-          }
+            ],
+          },
         ],
         // ...walkinType,
         // leadType: { $eq: "walk-in" },
