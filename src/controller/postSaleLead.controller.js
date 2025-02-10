@@ -1,46 +1,174 @@
 import postSaleLeadModel from "../model/postSaleLead.model.js";
 import { errorRes, successRes } from "../model/response.js";
-import { startOfWeek, addDays, format } from "date-fns";
+import { startOfWeek, addDays, format, startOfYear, endOfYear } from "date-fns";
 import { postSalePopulateOptions } from "../utils/constant.js";
 import TargetModel from "../model/target.model.js";
 import { updateFlatInfoByIdFlatNo } from "./ourProjects.controller.js";
 import ourProjectModel from "../model/ourProjects.model.js";
 
+
 export const getPostSaleLeads = async (req, res, next) => {
   try {
     let query = req.query.query || "";
-    let project = req.query.project; // Get the project name from the query
-    let page = parseInt(req.query.page) || 1; // Start from page 1
+    let project = req.query.project; 
+    let page = parseInt(req.query.page) || 1; 
     let limit = parseInt(req.query.limit) || 20;
     let status = req.query.status;
     let statusToFind = null;
-    console.log(project);
-    console.log(status);
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
 
-    if (status === "registrationDone") {
-      statusToFind = {
-        $and: [
-          {
-            registrationdone: { $ne: null },
+    // Build the search filter
+    let searchFilter = {
+      $or: [
+        { firstName: new RegExp(query, "i") },
+        { lastName: new RegExp(query, "i") },
+        { email: new RegExp(query, "i") },
+        { address: new RegExp(query, "i") },
+        isNumberQuery
+          ? {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$phoneNumber" },
+                  regex: query,
+                },
+              },
+            }
+          : null,
+        {
+          applicants: {
+            $elemMatch: {
+              $or: [
+                { firstName: new RegExp(query, "i") },
+                { lastName: new RegExp(query, "i") },
+                { email: new RegExp(query, "i") },
+                { address: new RegExp(query, "i") },
+              ].filter(Boolean),
+            },
           },
-          {
-            registrationdone: { $eq: true },
-          },
-        ],
-      };
-    } else if (status === "registrationPending") {
-      statusToFind = {
-        $and: [
-          {
-            registrationdone: { $ne: null },
-          },
-          {
-            registrationdone: { $eq: false },
-          },
-        ],
-      };
+        },
+      ].filter(Boolean),
+      ...(project ? { project: project } : {}),
+   
+    };
+
+    const resp = await postSaleLeadModel
+      .find({
+        ...searchFilter,
+        ...(statusToFind != null ? statusToFind : null),
+      })
+      .sort({ date: -1 })
+      .populate(postSalePopulateOptions)
+      .skip(skip)
+      .limit(limit);
+
+    // Count the total items matching the filter
+    const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
+    const registrationDone = await postSaleLeadModel.countDocuments({
+      ...(project ? { project: project } : {}),
+      $and: [
+        {
+          registrationDone: { $ne: null },
+        },
+        {
+          registrationDone: { $eq: true },
+        },
+      ],
+    });
+    const eoiRecieved = await postSaleLeadModel.countDocuments({
+      bookingStatus: "EOI Recieved",
+      ...(project ? { project: project } : {}),
+    });
+    const cancelled = await postSaleLeadModel.countDocuments({
+      bookingStatus: "Cancelled",
+      ...(project ? { project: project } : {}),
+    });
+    const report = await postSaleLeadModel.countDocuments({});
+    const totalPages = Math.ceil(totalItems / limit);
+
+    const registrationPending = await postSaleLeadModel.countDocuments({
+      ...(project ? { project: project } : {}),
+      $and: [
+        {
+          registrationDone: { $ne: null },
+        },
+        {
+          registrationDone: { $eq: false },
+        },
+      ],
+    });
+
+    return res.send(
+      successRes(200, "get post sale leads", {
+        page,
+        limit,
+        totalItems,
+        totalPages,
+        registrationDone,
+        registrationPending,
+        eoiRecieved,
+        cancelled,
+        data: resp,
+      })
+    );
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const getpostSaleCountsRegGraph = async (req, res, next) => {
+  try {
+    let query = req.query.query || "";
+    let project = req.query.project; 
+    let page = parseInt(req.query.page) || 1; 
+    let limit = parseInt(req.query.limit) || 20;
+    let status = req.query.status;
+    let statusToFind = null;
+    let skip = (page - 1) * limit;
+    const filterDate = new Date("2024-12-10");
+    const isNumberQuery = !isNaN(query);
+    let interval = req.query.interval;
+    let startDate = req.query.startDate;
+    let endDate = req.query.endDate;
+    let dateRange = {};
+    const currentDate = new Date();
+    console.log(interval);
+    console.log(startDate);
+    console.log(endDate);
+
+    if (interval === "weekly") {
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+    } else if (interval === "monthly") {
+      startDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+      endDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      );
+    } else if (interval === "quarterly") {
+      const quarter = Math.floor(currentDate.getMonth() / 3);
+      startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+      endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
+    } else if (interval === "semi-annually") {
+      const half = Math.floor(currentDate.getMonth() / 6);
+      startDate = new Date(currentDate.getFullYear(), half * 6, 1);
+      endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
+    } else if (interval === "annually") {
+      startDate = new Date(currentDate.getFullYear(), 0, 1);
+      endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
     }
 
     let searchFilter = {
@@ -72,18 +200,15 @@ export const getPostSaleLeads = async (req, res, next) => {
           },
         },
       ].filter(Boolean),
+      $and: [
+        // { date: { $gte: filterDate } },
+        interval && { date: { $gte: startDate, $lt: endDate } },
+      ].filter(Boolean),
       ...(project ? { project: project } : {}),
+    
     };
-
-    const resp = await postSaleLeadModel
-      .find({
-        ...searchFilter,
-        ...(statusToFind != null ? statusToFind : null),
-      })
-      .sort({ date: -1 })
-      .populate(postSalePopulateOptions)
-      .skip(skip)
-      .limit(limit);
+    console.log("Start Date:", startDate);
+    console.log("End Date:", endDate);
 
     // Count the total items matching the filter
     const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
@@ -91,12 +216,14 @@ export const getPostSaleLeads = async (req, res, next) => {
       ...(project ? { project: project } : {}),
       $and: [
         {
-          registrationdone: { $ne: null },
+          registrationDone: { $ne: null },
         },
         {
-          registrationdone: { $eq: true },
+          registrationDone: { $eq: true },
         },
       ],
+      ...(interval && { date: { $gte: startDate, $lt: endDate } })
+      
     });
     const eoiRecieved = await postSaleLeadModel.countDocuments({
       bookingStatus: "EOI Recieved",
@@ -113,31 +240,193 @@ export const getPostSaleLeads = async (req, res, next) => {
       ...(project ? { project: project } : {}),
       $and: [
         {
-          registrationdone: { $ne: null },
+          registrationDone: { $ne: null },
         },
         {
-          registrationdone: { $eq: false },
+          registrationDone: { $eq: false },
         },
       ],
+      ...(interval && { date: { $gte: startDate, $lt: endDate } })
+
     });
 
     return res.send(
-      successRes(200, "get post sale leads", {
+      successRes(200, "get monthly report", {
         page,
         limit,
         totalItems,
         totalPages,
         registrationDone,
         registrationPending,
+        interval,
         eoiRecieved,
         cancelled,
-        data: resp,
       })
     );
   } catch (error) {
     return next(error);
   }
 };
+
+// export const getpostSaleCountsRegFunnel = async (req, res, next) => {
+//   try {
+//     let query = req.query.query || "";
+//     let project = req.query.project; 
+//     let page = parseInt(req.query.page) || 1; 
+//     let limit = parseInt(req.query.limit) || 20;
+//     let status = req.query.status;
+//     let statusToFind = null;
+//     let skip = (page - 1) * limit;
+//     const filterDate = new Date("2024-12-10");
+//     const isNumberQuery = !isNaN(query);
+//     let interval = req.query.interval;
+//     let startDate = req.query.startDate;
+//     let endDate = req.query.endDate;
+//     let dateRange = {};
+//     const currentDate = new Date();
+//     console.log(interval);
+//     console.log(startDate);
+//     console.log(endDate);
+
+//     if (interval === "weekly") {
+//       startDate = new Date(
+//         currentDate.getFullYear(),
+//         currentDate.getMonth(),
+//         1
+//       );
+//       endDate = new Date(
+//         currentDate.getFullYear(),
+//         currentDate.getMonth() + 1,
+//         0
+//       );
+//     } else if (interval === "monthly") {
+//       startDate = new Date(
+//         currentDate.getFullYear(),
+//         currentDate.getMonth(),
+//         1
+//       );
+//       endDate = new Date(
+//         currentDate.getFullYear(),
+//         currentDate.getMonth() + 1,
+//         0
+//       );
+//     } else if (interval === "quarterly") {
+//       const quarter = Math.floor(currentDate.getMonth() / 3);
+//       startDate = new Date(currentDate.getFullYear(), quarter * 3, 1);
+//       endDate = new Date(currentDate.getFullYear(), (quarter + 1) * 3, 0);
+//     } else if (interval === "semi-annually") {
+//       const half = Math.floor(currentDate.getMonth() / 6);
+//       startDate = new Date(currentDate.getFullYear(), half * 6, 1);
+//       endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
+//     } else if (interval === "annually") {
+//       startDate = new Date(currentDate.getFullYear(), 0, 1);
+//       endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
+//     }
+
+//     let searchFilter = {
+//       $or: [
+//         { firstName: new RegExp(query, "i") },
+//         { lastName: new RegExp(query, "i") },
+//         { email: new RegExp(query, "i") },
+//         { address: new RegExp(query, "i") },
+//         isNumberQuery
+//           ? {
+//               $expr: {
+//                 $regexMatch: {
+//                   input: { $toString: "$phoneNumber" },
+//                   regex: query,
+//                 },
+//               },
+//             }
+//           : null,
+//         {
+//           applicants: {
+//             $elemMatch: {
+//               $or: [
+//                 { firstName: new RegExp(query, "i") },
+//                 { lastName: new RegExp(query, "i") },
+//                 { email: new RegExp(query, "i") },
+//                 { address: new RegExp(query, "i") },
+//               ].filter(Boolean),
+//             },
+//           },
+//         },
+//       ].filter(Boolean),
+//       $and: [
+//         { startDate: { $gte: filterDate } },
+//         interval && { startDate: { $gte: startDate, $lt: endDate } },
+//       ].filter(Boolean),
+//       ...(project ? { project: project } : {}),
+    
+//     };
+//     console.log("Start Date:", startDate);
+//     console.log("End Date:", endDate);
+
+//     const resp = await postSaleLeadModel
+//       .find({
+//         ...searchFilter,
+//         ...(statusToFind != null ? statusToFind : null),
+//       })
+//       .sort({ date: -1 })
+//       .populate(postSalePopulateOptions)
+//       .skip(skip)
+//       .limit(limit);
+
+//     // Count the total items matching the filter
+//     const totalItems = await postSaleLeadModel.countDocuments(searchFilter); // Count with the same filter
+//     const registrationDone = await postSaleLeadModel.countDocuments({
+//       ...(project ? { project: project } : {}),
+//       $and: [
+//         {
+//           registrationDone: { $ne: null },
+//         },
+//         {
+//           registrationDone: { $eq: true },
+//         },
+//       ],
+//     });
+//     const eoiRecieved = await postSaleLeadModel.countDocuments({
+//       bookingStatus: "EOI Recieved",
+//       ...(project ? { project: project } : {}),
+//     });
+//     const cancelled = await postSaleLeadModel.countDocuments({
+//       bookingStatus: "Cancelled",
+//       ...(project ? { project: project } : {}),
+//     });
+//     const report = await postSaleLeadModel.countDocuments({});
+//     const totalPages = Math.ceil(totalItems / limit);
+
+//     const registrationPending = await postSaleLeadModel.countDocuments({
+//       ...(project ? { project: project } : {}),
+//       $and: [
+//         {
+//           registrationDone: { $ne: null },
+//         },
+//         {
+//           registrationDone: { $eq: false },
+//         },
+//       ],
+//     });
+
+//     return res.send(
+//       successRes(200, "get monthly report", {
+//         page,
+//         limit,
+//         totalItems,
+//         totalPages,
+//         registrationDone,
+//         registrationPending,
+//         interval,
+//         eoiRecieved,
+//         cancelled,
+//         data: resp,
+//       })
+//     );
+//   } catch (error) {
+//     return next(error);
+//   }
+// };
+
 
 export const getPostSaleLeadById = async (req, res, next) => {
   try {
