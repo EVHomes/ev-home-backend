@@ -7,6 +7,8 @@ import {
   updatePostSaleLeadById,
   getPostSaleLeadByFlat,
   getLeadCounts,
+  getpostSaleCountsRegGraph,
+  // getpostSaleCountsRegFunnel,
 } from "../../controller/postSaleLead.controller.js";
 import { authenticateToken } from "../../middleware/auth.middleware.js";
 
@@ -20,6 +22,14 @@ postSaleRouter.get(
 );
 postSaleRouter.get("/post-sale-lead-by-id/:flatNo", getPostSaleLeadById);
 postSaleRouter.get("/post-sale-leadCount", getLeadCounts);
+postSaleRouter.get(
+  "/post-sale-leads-regraph",
+  getpostSaleCountsRegGraph
+);
+// postSaleRouter.get(
+//   "/post-sale-leads-refunnel",
+//   getpostSaleCountsRegFunnel
+// );
 
 postSaleRouter.get("/post-sale-lead-by-flat", getPostSaleLeadByFlat);
 
