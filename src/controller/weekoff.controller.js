@@ -128,7 +128,9 @@ export const getReportingToWeekOffs = async (req, res, next) => {
   try {
     if (!id) return res.status(401).send(errorRes(401, "weekoff id required"));
     // const query = {};
-
+    // const empResp = await employeeModel.findById(id);
+    // if (empResp?.reportingTo === null)
+    //   return res.status(401).send(errorRes(401, "Update your Reporting to"));
     // if (applyby) {
     //   query.applyby = applyby;
     // }
