@@ -83,7 +83,7 @@ slabRouter.post("/update-current-slab/:id", async (req, res) => {
       updateFields[`slabs.$.${key}`] = req.body[key];
     }
 
-    console.log(updateFields);
+    // console.log(updateFields);
 
     const slabListResp = await slabModel.updateOne(
       { _id: idResp, "slabs.id": id },
