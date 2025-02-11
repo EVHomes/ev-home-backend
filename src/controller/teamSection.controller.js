@@ -1,5 +1,10 @@
+import employeeModel from "../model/employee.model.js";
 import { errorRes, successRes } from "../model/response.js";
 import teamSectionModel from "../model/teamSections.model.js";
+import {
+  employeePopulateOptions,
+  teamSectionPopulateOptions,
+} from "../utils/constant.js";
 
 //GET BY ALL
 export const getTeamSections = async (req, res) => {
@@ -14,7 +19,6 @@ export const getTeamSections = async (req, res) => {
     return res.send(errorRes(500, error));
   }
 };
-
 
 export const addTeamSection = async (req, res) => {
   const { section, designations } = req.body;
@@ -53,14 +57,48 @@ export const addTeamSection = async (req, res) => {
 };
 
 export const getTeamSectionById = async (req, res) => {
+  const id = req.params.id;
   try {
-    const respSections = await teamSectionModel.find().populate("designations");
+    if (!id) return res.send(errorRes(401, "id Required"));
+    const respSections = await teamSectionModel
+      .findById(id)
+      .populate(teamSectionPopulateOptions);
+    let members = [];
+    if (respSections?.sectionType === "members") {
+      const desgIds = respSections.designations.map((dg) => dg._id);
+
+      const findEmployees = await employeeModel
+        .find({
+          designation: { $in: desgIds },
+        })
+        .populate([
+          {
+            path: "designation",
+          },
+          {
+            path: "reportingTo",
+            select: "firstName lastName",
+            populate: {
+              path: "designation",
+            },
+          },
+        ])
+        .select("firstName lastName designation reportingTo")
+        .lean();
+
+      console.log(findEmployees);
+      members = findEmployees;
+      // respSections.members = findEmployees;
+    }
+
+    // if (respSections)
     return res.send(
       successRes(200, "Get team Sections", {
-        data: respSections,
+        data: { ...respSections._doc, members },
       })
     );
   } catch (error) {
+    console.log(error);
     return res.send(errorRes(500, error));
   }
 };

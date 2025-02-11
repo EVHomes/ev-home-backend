@@ -759,7 +759,7 @@ export const paymentPopulateOptions = [
   //   select: "",
   //   populate: [
   //     { path: "projects",select:"name" },
-     
+
   //   ],
   // },
 ];
@@ -1060,4 +1060,20 @@ export const slabPopulateOptions = [
   //     },
   //   ],
   // },
+];
+
+export const teamSectionPopulateOptions = [
+  { path: "designations" },
+  {
+    path: "members",
+    select: "firstName lastName",
+    populate: [
+      { path: "designation" },
+      {
+        path: "reportingTo",
+        select: "firstName lastName",
+        populate: [{ path: "designation" }],
+      },
+    ],
+  },
 ];
