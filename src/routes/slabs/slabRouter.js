@@ -47,6 +47,25 @@ slabRouter.get("/get-slab-by-project/:project", async (req, res) => {
   }
 });
 
+
+export async function updateSlab(req, res) {
+  try {
+    const { projectId, slabId } = req.body
+    const updatedSlab = await findOneAndUpdate(
+      { project: projectId },
+      { $set: { currentSlab: slabId } },
+      { new: true },
+    )
+    if (!updatedSlab) {
+      return res.status(404).json({ code: 404, message: "Slab not found" })
+    }
+    res.json({ code: 200, message: "Slab updated successfully", data: updatedSlab })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ code: 500, message: "Failed to update slab" })
+  }
+}
+
 slabRouter.post("/update-slab/:id", async (req, res) => {
   const id = req.params.id;
   const body = req.body;
