@@ -41,6 +41,14 @@ export const getDemandCountByProjectAndSlab = async (req, res) => {
     const demandCount = await demandModel.countDocuments({
       project: project,
       slab: slab,
+    })
+
+    const resp = await demandModel.find({
+      project: project,
+      slab: slab,
+    }).populate({
+      path: "project",
+      select:"name",
     });
 
     return res.send(
@@ -50,7 +58,43 @@ export const getDemandCountByProjectAndSlab = async (req, res) => {
         data:{
           totalItemCount:totalItemCount,
           demandGeneratedcount: demandCount,
+          resp,
         }
+        
+      })
+    );
+  } catch (error) {
+    return res.send(errorRes(500, error.message));
+  }
+};
+
+export const getDemandInfo = async (req, res) => {
+  try {
+    let project = req.query.project; 
+    let slab=req.query.slab;
+
+    if (!project ) {
+      return res.send(errorRes(400, "Project is required"));
+    }
+    if (!slab ) {
+      return res.send(errorRes(400, "Slab is required"));
+    }
+
+  
+    const resp = await demandModel.find({
+      project: project,
+      slab: slab,
+    }).populate({
+      path: "project",
+      select:"name",
+    });
+
+    // console.log(resp);
+    return res.send(
+      successRes(200, "Demand for project and slab", {
+     
+        data:resp,
+        
         
       })
     );
