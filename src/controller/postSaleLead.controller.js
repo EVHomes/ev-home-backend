@@ -15,8 +15,34 @@ export const getPostSaleLeads = async (req, res, next) => {
     let limit = parseInt(req.query.limit) || 20;
     let status = req.query.status;
     let statusToFind = null;
+    console.log(project);
+    console.log(status);
     let skip = (page - 1) * limit;
     const isNumberQuery = !isNaN(query);
+
+    if (status === "registrationDone") {
+      statusToFind = {
+        $and: [
+          {
+            registrationDone: { $ne: null },
+          },
+          {
+            registrationDone: { $eq: true },
+          },
+        ],
+      };
+    } else if (status === "registrationPending") {
+      statusToFind = {
+        $and: [
+          {
+            registrationDone: { $ne: null },
+          },
+          {
+            registrationDone: { $eq: false },
+          },
+        ],
+      };
+    }
 
     // Build the search filter
     let searchFilter = {
