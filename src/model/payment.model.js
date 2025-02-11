@@ -8,6 +8,12 @@ export const paymentSchema = new mongoose.Schema(
       default: null,
       ref: "ourProjects",
     },
+    slab: {
+      type: String,
+      required: true,
+      default: null,
+      ref: "Slab",
+    },
     customerName: {
       type: String,
     },
