@@ -166,7 +166,7 @@ export const getpostSaleCountsRegGraph = async (req, res, next) => {
       const half = Math.floor(currentDate.getMonth() / 6);
       startDate = new Date(currentDate.getFullYear(), half * 6, 1);
       endDate = new Date(currentDate.getFullYear(), (half + 1) * 6, 0);
-    } else if (interval === "annually") {
+    } else if (interval === "yearly") {
       startDate = new Date(currentDate.getFullYear(), 0, 1);
       endDate = new Date(currentDate.getFullYear() + 1, 0, 0);
     }
@@ -207,6 +207,7 @@ export const getpostSaleCountsRegGraph = async (req, res, next) => {
       ...(project ? { project: project } : {}),
     
     };
+    console.log(searchFilter);
     console.log("Start Date:", startDate);
     console.log("End Date:", endDate);
 
