@@ -4,7 +4,9 @@ export const teamSectionSchema = new mongoose.Schema(
   {
     _id: { type: String, required: true },
     section: { type: String, required: true },
-    designations: [{ type: String, required: true, ref: "designations" }],
+    sectionType: { type: String, required: true },
+    designations: [{ type: String, required: true, ref: "designations" }], //deprecated (should not be used)
+    members: [{ type: String, ref: "employees" }],
   },
   { timestamps: true }
 );

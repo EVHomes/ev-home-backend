@@ -1,8 +1,13 @@
 import { Router } from "express";
-import { getTeamSections } from "../../controller/teamSection.controller.js";
+import {
+  addTeamSection,
+  getTeamSectionById,
+  getTeamSections,
+} from "../../controller/teamSection.controller.js";
 const teamSectionRouter = Router();
 
 teamSectionRouter.get("/team-sections", getTeamSections);
-// teamSectionRouter.post("/requirement-add", addRequirement);
+teamSectionRouter.get("/team-section-by-id/:id", getTeamSectionById);
+teamSectionRouter.post("/team-section-add", addTeamSection);
 
 export default teamSectionRouter;
