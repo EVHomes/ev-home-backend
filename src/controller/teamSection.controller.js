@@ -9,7 +9,10 @@ import {
 //GET BY ALL
 export const getTeamSections = async (req, res) => {
   try {
-    const respSections = await teamSectionModel.find().populate("designations");
+    const respSections = await teamSectionModel
+      .find()
+      .populate("designations")
+      .sort({ createdAt: 1 });
     return res.send(
       successRes(200, "Get team Sections", {
         data: respSections,
