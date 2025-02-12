@@ -215,10 +215,29 @@ export const getEmployeeByDesignation = async (req, res, next) => {
   try {
     const desgId = req.params.id;
     if (!desgId) return res.send(errorRes(200, "id is required"));
+    let filter = { designation: desgId };
+    if (desgId === "desg-senior-closing-manager") {
+      filter = {
+        designation: {
+          $in: [
+            "desg-senior-closing-manager",
+            "desg-site-head",
+            "desg-post-sales-head",
+          ],
+        },
+      };
+    } else if (desgId === "desg-sales-manager") {
+      filter = {
+        designation: {
+          $in: ["desg-sales-manager", "desg-senior-sales-manager"],
+        },
+      };
+    }
+
     // console.log(desgId);
     const respCP = await employeeModel
       .find({
-        designation: desgId,
+        ...filter,
         status: "active",
       })
       .select("-password -refreshToken")
@@ -504,9 +523,6 @@ export const getReportingTo = async (req, res, next) => {
     next(error); // Pass the error to the global error handler
   }
 };
-
-
-
 
 export const deleteEmployeeById = async (req, res, next) => {
   const id = req.params.id;

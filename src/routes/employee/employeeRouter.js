@@ -61,7 +61,7 @@ employeeRouter.get("/employee-sales-manager", getSalesManagers);
 
 employeeRouter.get(
   "/employee-by-designation/:id",
-  authenticateToken,
+  // authenticateToken,
   getEmployeeByDesignation
 );
 
